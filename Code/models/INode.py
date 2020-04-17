@@ -159,12 +159,18 @@ class INode:
               x_dot_chr =  abs(_fast_dot(x_ik,chr_ik))/len(curr_node.children[1].pts)
               chl_dot_chr = abs(_fast_dot(chl_ik,chr_ik))/len(curr_node.pts)
               
-              #if (x_dot_chr <= chl_dot_chr) or (x_dot_chl <= chl_dot_chr):                
-              #  break
+            #if (x_dot_chr >= chl_dot_chr):
+			#	curr_node = curr_node.children[1]
+			#	break
+			#  elif(x_dot_chl >= chl_dot_chr): 
+			#	curr_node = curr_node.children[0] 
+			#	break
+				
               if x_dot_chl >= x_dot_chr:
                 curr_node = curr_node.children[0]
               elif x_dot_chr > x_dot_chl:
                 curr_node = curr_node.children[1]
+			  #if 	
               
               
             new_leaf = curr_node._split_down(pt)

@@ -74,19 +74,19 @@ def addNNE(met,x,oneHot,subIndexSet):
     indData = met[ind]
     d = [_fast_norm_diff(x,y) for y in indData]
     disDict = dict(zip(ind,d))
-    
-    count = 0
-    embSet = np.array([]) 
-	
-    for item in subIndexSet:
-        nn = min(item, key=lambda x: disDict[x])
-        emb = oneHot.transform(list(item).index(nn))
-        embSet = np.append(embSet, emb)
-        count = count+1
-		
+
+    # embSet = np.array([]) 
+    # for item in subIndexSet:
+    #     nn = min(item, key=lambda x: disDict[x])
+    #     emb = oneHot.transform(list(item).index(nn))
+    #     embSet = np.append(embSet, emb)
+
+    nn = [min(item, key=lambda x: disDict[x]) for item in subIndexSet]
+    ind = [[list(subIndexSet[i]).index(nn[i])] for i in range(len(nn))]
+    embSet = oneHot.transform(ind)
     embSet  = embSet.reshape(-1)
     #aNNEMetrix = np.concatenate((aNNEMetrix,embSet),axis=0)
-	
+
     return embSet
 
 
@@ -103,7 +103,8 @@ if __name__ == '__main__':
     x = cdist(met,met, 'euclidean') 
     oneHot,subIndexSet,aNNEMetrix = aNNE_similarity(x,3,3)
     
-    test = addNNE(met,addx,aNNEMetrix,oneHot,subIndexSet)
+    test = addNNE(met,addx,oneHot,subIndexSet)
+    print(test)
     
     
     
