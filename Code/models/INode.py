@@ -6,6 +6,7 @@ from queue import Queue
 from heapq import heappush, heappop
 from numba import jit
 from bisect import bisect_left
+from scipy.special import comb, perm
 
 import math
 
@@ -154,23 +155,24 @@ class INode:
               x_ik = pt[3] #.toarray().reshape(-1)
               chl_ik = curr_node.children[0].ikv #.toarray().reshape(-1)
               chr_ik = curr_node.children[1].ikv #.toarray().reshape(-1)
+              cur_ik = curr_node.ikv
                 
               x_dot_chl =  abs(_fast_dot(x_ik,chl_ik))/len(curr_node.children[0].pts)
               x_dot_chr =  abs(_fast_dot(x_ik,chr_ik))/len(curr_node.children[1].pts)
-              chl_dot_chr = abs(_fast_dot(chl_ik,chr_ik))/len(curr_node.pts)
+              x_dot_cur =  abs(_fast_dot(x_ik,cur_ik))/len(curr_node.pts)
+              #chl_dot_chr = abs(_fast_dot(chl_ik,chr_ik))/len(curr_node.pts)
+              len_pts = len(curr_node.pts)
+              cur_dit = (_fast_dot(cur_ik,cur_ik)-len_pts*200)/(2*comb(len_pts,2))
               
-            #if (x_dot_chr >= chl_dot_chr):
-			#	curr_node = curr_node.children[1]
-			#	break
-			#  elif(x_dot_chl >= chl_dot_chr): 
-			#	curr_node = curr_node.children[0] 
-			#	break
-				
+              if (cur_dit >= x_dot_cur):
+                  curr_node = curr_node
+                  break
               if x_dot_chl >= x_dot_chr:
                 curr_node = curr_node.children[0]
               elif x_dot_chr > x_dot_chl:
                 curr_node = curr_node.children[1]
-			  #if 	
+
+
               
               
             new_leaf = curr_node._split_down(pt)
