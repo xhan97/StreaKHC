@@ -162,11 +162,11 @@ class INode:
               x_dot_cur =  abs(_fast_dot(x_ik,cur_ik))/len(curr_node.pts)
               #chl_dot_chr = abs(_fast_dot(chl_ik,chr_ik))/len(curr_node.pts)
               len_pts = len(curr_node.pts)
-              cur_dit = (_fast_dot(cur_ik,cur_ik)-len_pts*200)/(2*comb(len_pts,2))
+              cur_dit = abs((_fast_dot(cur_ik,cur_ik)-len_pts*200)/(2*comb(len_pts,2)))
               
-              if (cur_dit >= x_dot_cur):
-                  curr_node = curr_node
-                  break
+#              if (cur_dit >= x_dot_cur):
+#                  curr_node = curr_node
+#                  break
               if x_dot_chl >= x_dot_chr:
                 curr_node = curr_node.children[0]
               elif x_dot_chr > x_dot_chl:
@@ -272,7 +272,7 @@ class INode:
              else:
                self.ikv = self.children[0].ikv + self.children[1].ikv
                #self.dis = _fast_dot(self.children[0].ikv.toarray().reshape(-1),self.children[1].ikv.toarray().reshape(-1))
-               self.dis = _fast_dot(self.children[0].ikv,self.children[1].ikv)
+               #self.dis = _fast_dot(self.children[0].ikv,self.children[1].ikv)
              return self
         else:
             

@@ -17,13 +17,15 @@ import numpy as np
 
 from scipy.spatial.distance import cdist
 from models.INode import INode
-from utils.dendrogram_purity import dendrogram_purity
+from utils.dendrogram_purity import expected_dendrogram_purity
 from utils.deltasep_utils import create_dataset
 from utils.add_nne import addNNE,aNNE_similarity
 from utils.Graphviz import Graphviz
 
+from copy import copy, deepcopy
 
-def add_nne_data(dataset,n,psi,t):
+
+def add_nne_data(met,dataset,n,psi,t):
   """Add ik value to dataset.
   Args:
     dataset - a list of points with which to build the tree.
@@ -34,12 +36,9 @@ def add_nne_data(dataset,n,psi,t):
     dataset with ik value
     
   """
-  
-  
-  met = [pt[0] for pt in dataset[:n]]
-  
   x = cdist(met,met, 'euclidean') 
   oneHot,subIndexSet,aNNEMetrix = aNNE_similarity(x,psi,t)
+  
   for i, pt in enumerate(dataset[:n]):
       pt.append(aNNEMetrix[i])
       
@@ -61,22 +60,34 @@ def create_trees_w_purity_check(n,psi,t,dataset):
         A list of pointers to the trees constructed via the insert methods
         passed in.
     """
-    np.random.shuffle(dataset)
+    
     met = [pt[0] for pt in dataset[:n]]
     
-    oneHot,subIndexSet,dataset = add_nne_data(dataset,n,psi,t)
+    oneHot,subIndexSet,mes = add_nne_data(met,dataset,n,psi,t)
     root = INode(exact_dist_thres=10)
     
-    for i, pt in enumerate(dataset[:n]):
+    for i, pt in enumerate(mes):
         if len(pt)==3:
           ikv = addNNE(met,pt[0],oneHot,subIndexSet)
           pt.append(ikv)
         root = root.insert(pt, collapsibles=None, L= float('inf'))
-        
-#        if i % 30 == 0:
-#            assert(dendrogram_purity(root) == 1.0)
-#            assert(root.point_counter == (i + 1))
+        #gv = Graphviz()
+        #tree = gv.graphviz_tree(root)
+        #src = Source(tree)
+        #src.render('treeResult\\'+'tree'+str(i)+'.gv', view=True,format='png')
     return root
+
+
+
+def load_data(filename):
+    with open(filename, 'r') as f:
+        for line in f:
+            splits = line.strip().split('\t')
+            pid, l, vec = splits[0], splits[1], np.array([float(x)
+                                                          for x in splits[2:]])
+            yield ([vec, l, pid])
+
+
 
 
 if __name__ == '__main__':
@@ -89,16 +100,27 @@ if __name__ == '__main__':
     dimensions = [5]
     size = 30
     num_clus = 5
-    n=100
-    psi=10
+    n = 4000
+    psi=[3,5,7,10,15,20,25,30,45,70]
     t = 200
     
-    for dim in dimensions:
-        print("TESTING DIMENSIONS == %d" % dim)
-        dataset = create_dataset(dim, size, num_clusters=num_clus)                                         
-        
-    root = create_trees_w_purity_check(n,psi,t,dataset)
-    print(dendrogram_purity(root))
+    data = list(load_data("spambase.tsv"))
+    np.random.shuffle(data)
     
-    graph = Graphviz()
-    graph.write_tree('tree.txt',root)
+  
+    for p in psi:
+      dataset =  deepcopy(data)
+      root = create_trees_w_purity_check(n,p,t,dataset)
+      print(expected_dendrogram_purity(root))
+    
+    
+    
+#    for dim in dimensions:
+#        print("TESTING DIMENSIONS == %d" % dim)
+#        dataset = create_dataset(dim, size, num_clusters=num_clus)                                         
+#        
+#    root = create_trees_w_purity_check(n,psi,t,dataset)
+#    print(dendrogram_purity(root))
+#    
+#    graph = Graphviz()
+#    graph.write_tree('tree.txt',root)
