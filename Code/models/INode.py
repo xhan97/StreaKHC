@@ -157,19 +157,26 @@ class INode:
               chr_ik = curr_node.children[1].ikv #.toarray().reshape(-1)
               cur_ik = curr_node.ikv
                 
-              x_dot_chl =  abs(_fast_dot(x_ik,chl_ik))/len(curr_node.children[0].pts)
-              x_dot_chr =  abs(_fast_dot(x_ik,chr_ik))/len(curr_node.children[1].pts)
-              x_dot_cur =  abs(_fast_dot(x_ik,cur_ik))/len(curr_node.pts)
+              x_dot_chl =  ((200 + len(curr_node.children[0].pts)) - 2 * _fast_dot(x_ik,chl_ik)) /len(curr_node.children[0].pts)
+             # 2 * (200 - _fast_dot(x_ik,chl_ik))/len(curr_node.children[0].pts)
+
+              x_dot_chr =  ((200 + len(curr_node.children[1].pts)) - 2 * _fast_dot(x_ik,chl_ik)) /len(curr_node.children[1].pts)
+             # 2 * (200 - _fast_dot(x_ik,chr_ik))/len(curr_node.children[1].pts)
+
+              x_dot_cur =  ((200 + len(curr_node.pts)) - 2 * _fast_dot(x_ik,cur_ik)) / len(curr_node.pts)
+             # 2 * (200 - _fast_dot(x_ik,cur_ik))/len(curr_node.pts)
+             
               #chl_dot_chr = abs(_fast_dot(chl_ik,chr_ik))/len(curr_node.pts)
               len_pts = len(curr_node.pts)
-              cur_dit = abs((_fast_dot(cur_ik,cur_ik)-len_pts*200)/(2*comb(len_pts,2)))
+              cur_dit = (200 * len_pts - _fast_dot(cur_ik, cur_ik)) / comb(len_pts,2)
+              #cur_dit = abs((_fast_dot(cur_ik,cur_ik)-len_pts*200)/(2*comb(len_pts,2)))
               
-#              if (cur_dit >= x_dot_cur):
-#                  curr_node = curr_node
-#                  break
-              if x_dot_chl >= x_dot_chr:
+              if (cur_dit <= x_dot_cur):
+                 curr_node = curr_node
+                 break
+              if x_dot_chl <= x_dot_chr:
                 curr_node = curr_node.children[0]
-              elif x_dot_chr > x_dot_chl:
+              elif x_dot_chr < x_dot_chl:
                 curr_node = curr_node.children[1]
 
 

@@ -107,7 +107,6 @@ if __name__ == '__main__':
     data = list(load_data("spambase.tsv"))
     np.random.shuffle(data)
     
-  
     for p in psi:
       dataset =  deepcopy(data)
       root = create_trees_w_purity_check(n,p,t,dataset)
