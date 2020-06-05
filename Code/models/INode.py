@@ -150,37 +150,26 @@ class INode:
             return root          
         else:
             curr_node = root
+            x_ik = pt[3] #.toarray().reshape(-1)
+
             while not curr_node.is_leaf():
-        
-              x_ik = pt[3] #.toarray().reshape(-1)
               chl_ik = curr_node.children[0].ikv #.toarray().reshape(-1)
               chr_ik = curr_node.children[1].ikv #.toarray().reshape(-1)
-              cur_ik = curr_node.ikv
-                
-              x_dot_chl =  ((200 + len(curr_node.children[0].pts)) - 2 * _fast_dot(x_ik,chl_ik)) /len(curr_node.children[0].pts)
-             # 2 * (200 - _fast_dot(x_ik,chl_ik))/len(curr_node.children[0].pts)
+              len_lpts,len_rpts = len(curr_node.children[0].pts),len(curr_node.children[1].pts)
+              len_cpts = len(curr_node.pts)
 
-              x_dot_chr =  ((200 + len(curr_node.children[1].pts)) - 2 * _fast_dot(x_ik,chl_ik)) /len(curr_node.children[1].pts)
-             # 2 * (200 - _fast_dot(x_ik,chr_ik))/len(curr_node.children[1].pts)
+              x_dot_chl =  (200 + 200*len_lpts - 2 * _fast_dot(x_ik, chl_ik)) / len_lpts
+              x_dot_chr =  (200 + 200*len_rpts - 2 * _fast_dot(x_ik, chl_ik)) / len_rpts
+              x_dot_cur =  (200 + 200*len_cpts - 2 * _fast_dot(x_ik, curr_node.ikv)) / len_cpts
+              cur_dit = (200 * len_cpts - _fast_dot(curr_node.ikv, curr_node.ikv)) / comb(len_cpts,2)
 
-              x_dot_cur =  ((200 + len(curr_node.pts)) - 2 * _fast_dot(x_ik,cur_ik)) / len(curr_node.pts)
-             # 2 * (200 - _fast_dot(x_ik,cur_ik))/len(curr_node.pts)
-             
-              #chl_dot_chr = abs(_fast_dot(chl_ik,chr_ik))/len(curr_node.pts)
-              len_pts = len(curr_node.pts)
-              cur_dit = (200 * len_pts - _fast_dot(cur_ik, cur_ik)) / comb(len_pts,2)
-              #cur_dit = abs((_fast_dot(cur_ik,cur_ik)-len_pts*200)/(2*comb(len_pts,2)))
-              
-              if (cur_dit <= x_dot_cur):
+              if (cur_dit >= x_dot_cur):
                  curr_node = curr_node
                  break
-              if x_dot_chl <= x_dot_chr:
+              if x_dot_chl >= x_dot_chr:
                 curr_node = curr_node.children[0]
-              elif x_dot_chr < x_dot_chl:
+              elif x_dot_chr > x_dot_chl:
                 curr_node = curr_node.children[1]
-
-
-              
               
             new_leaf = curr_node._split_down(pt)
             ancs = new_leaf.parent._ancestors()
