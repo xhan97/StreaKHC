@@ -155,20 +155,25 @@ class INode:
             while not curr_node.is_leaf():
               chl_ik = curr_node.children[0].ikv #.toarray().reshape(-1)
               chr_ik = curr_node.children[1].ikv #.toarray().reshape(-1)
-              len_lpts,len_rpts = len(curr_node.children[0].pts),len(curr_node.children[1].pts)
+              len_lpts, len_rpts = len(curr_node.children[0].pts), len(curr_node.children[1].pts)
               len_cpts = len(curr_node.pts)
+              
+              t = 200
 
-              x_dot_chl =  (200 + 200*len_lpts - 2 * _fast_dot(x_ik, chl_ik)) / len_lpts
-              x_dot_chr =  (200 + 200*len_rpts - 2 * _fast_dot(x_ik, chl_ik)) / len_rpts
-              x_dot_cur =  (200 + 200*len_cpts - 2 * _fast_dot(x_ik, curr_node.ikv)) / len_cpts
-              cur_dit = (200 * len_cpts - _fast_dot(curr_node.ikv, curr_node.ikv)) / comb(len_cpts,2)
+              x_dot_chl =  2 * (t * len_lpts - _fast_dot(x_ik, chl_ik)) / len_lpts
+              x_dot_chr =  2 * (t * len_rpts - _fast_dot(x_ik, chl_ik)) / len_rpts
+              x_dot_cur =  2 * (t * len_cpts - _fast_dot(x_ik, curr_node.ikv)) / len_cpts
+              cur_dit = (t * len_cpts**2 - _fast_dot(curr_node.ikv, curr_node.ikv)) / comb(len_cpts,2)
+              
+              print("cur_dit: "+'{:f}'.format(cur_dit))
+              print("x_dot_cur: "+'{:f}'.format(x_dot_cur))
 
-              if (cur_dit >= x_dot_cur):
+              if x_dot_cur >= cur_dit  :
                  curr_node = curr_node
                  break
-              if x_dot_chl >= x_dot_chr:
+              if x_dot_chl <= x_dot_chr:
                 curr_node = curr_node.children[0]
-              elif x_dot_chr > x_dot_chl:
+              elif x_dot_chr < x_dot_chl:
                 curr_node = curr_node.children[1]
               
             new_leaf = curr_node._split_down(pt)
