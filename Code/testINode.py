@@ -56,7 +56,7 @@ def create_trees_w_purity_check(n,psi,t,dataset):
     oneHot,subIndexSet,data = add_nne_data(dataset,n,psi,t)
     root = INode(exact_dist_thres=10)
     
-    for i, pt in enumerate(data[:10]):
+    for i, pt in enumerate(data[:13]):
         if len(pt)==3:
           ikv = addNNE(met,pt[0],oneHot,subIndexSet)
           pt.append(ikv)
@@ -87,13 +87,13 @@ if __name__ == "__main__":
     size = 50
     num_clus = 3
     
-    #dataset = list(load_data("data/spambase.tsv"))
+    #dataset = list(load_data("data\spambase.tsv"))
     for dim in dimensions:
       print("TESTING DIMENSIONS == %d" % dim)
       dataset = create_dataset(dim, size, num_clusters=num_clus)  
 
-    n=50
-    psi=20
+    n = 50
+    psi = 3
     t = 200
 
     np.random.shuffle(dataset)

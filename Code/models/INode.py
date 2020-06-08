@@ -161,14 +161,14 @@ class INode:
               t = 200
 
               x_dot_chl =  2 * (t * len_lpts - _fast_dot(x_ik, chl_ik)) / len_lpts
-              x_dot_chr =  2 * (t * len_rpts - _fast_dot(x_ik, chl_ik)) / len_rpts
+              x_dot_chr =  2 * (t * len_rpts - _fast_dot(x_ik, chr_ik)) / len_rpts
               x_dot_cur =  2 * (t * len_cpts - _fast_dot(x_ik, curr_node.ikv)) / len_cpts
               cur_dit = (t * len_cpts**2 - _fast_dot(curr_node.ikv, curr_node.ikv)) / comb(len_cpts,2)
-              
-              print("cur_dit: "+'{:f}'.format(cur_dit))
-              print("x_dot_cur: "+'{:f}'.format(x_dot_cur))
 
-              if x_dot_cur >= cur_dit  :
+            #   print("cur_dit: "+'{:f}'.format(cur_dit))
+            #   print("x_dot_cur: "+'{:f}'.format(x_dot_cur))
+
+              if x_dot_cur >= cur_dit:
                  curr_node = curr_node
                  break
               if x_dot_chl <= x_dot_chr:
