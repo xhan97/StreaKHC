@@ -1,7 +1,7 @@
 '''
 @Author: Xin Han
 @Date: 2020-06-07 10:05:49
-@LastEditTime: 2020-06-08 08:06:32
+@LastEditTime: 2020-06-08 20:58:17
 @LastEditors: Please set LastEditors
 @Description: In User Settings Edit
 @FilePath: \StreamHC\Code\models\testDotProduct.py
@@ -71,7 +71,3 @@ print(dit/4)
 print(_fast_dot(a, b+c+d+e))
 dotpr = (4*2*2 - 2*_fast_dot(a, b+c+d+e))/4
 print(dotpr)
-
-
-
-

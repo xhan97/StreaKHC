@@ -56,16 +56,16 @@ def create_trees_w_purity_check(n,psi,t,dataset):
     oneHot,subIndexSet,data = add_nne_data(dataset,n,psi,t)
     root = INode(exact_dist_thres=10)
     
-    for i, pt in enumerate(data[:13]):
+    for i, pt in enumerate(data):
         if len(pt)==3:
           ikv = addNNE(met,pt[0],oneHot,subIndexSet)
           pt.append(ikv)
         root = root.insert(pt, collapsibles=None, L= float('inf'))
         #if i%10 == 0:
-        gv = Graphviz()
-        tree = gv.graphviz_tree(root)
-        src = Source(tree)
-        src.render('treeResult\\'+'tree'+str(i)+'.gv', view=True,format='png')
+        # gv = Graphviz()
+        # tree = gv.graphviz_tree(root)
+        # src = Source(tree)
+        # src.render('treeResult\\'+'tree'+str(i)+'.gv', view=True,format='png')
     return root
 
 
@@ -87,13 +87,13 @@ if __name__ == "__main__":
     size = 50
     num_clus = 3
     
-    #dataset = list(load_data("data\spambase.tsv"))
-    for dim in dimensions:
-      print("TESTING DIMENSIONS == %d" % dim)
-      dataset = create_dataset(dim, size, num_clusters=num_clus)  
+    dataset = list(load_data("data\spambase.tsv"))
+    # for dim in dimensions:
+    #   print("TESTING DIMENSIONS == %d" % dim)
+    #   dataset = create_dataset(dim, size, num_clusters=num_clus)  
 
     n = 50
-    psi = 3
+    psi = 10
     t = 200
 
     np.random.shuffle(dataset)
@@ -102,4 +102,4 @@ if __name__ == "__main__":
     root = create_trees_w_purity_check(n,psi,t,data)
     #ets = time.time() 
     #print(ets-sts)
-    print(expected_dendrogram_purity(root))
+    print(dendrogram_purity(root))

@@ -155,11 +155,12 @@ class INode:
             while not curr_node.is_leaf():
               chl_ik = curr_node.children[0].ikv #.toarray().reshape(-1)
               chr_ik = curr_node.children[1].ikv #.toarray().reshape(-1)
-              len_lpts, len_rpts = len(curr_node.children[0].pts), len(curr_node.children[1].pts)
-              len_cpts = len(curr_node.pts)
+
+              len_lpts = curr_node.children[0].point_counter
+              len_rpts = curr_node.children[1].point_counter
+              len_cpts = curr_node.point_counter
               
               t = 200
-
               x_dot_chl =  2 * (t * len_lpts - _fast_dot(x_ik, chl_ik)) / len_lpts
               x_dot_chr =  2 * (t * len_rpts - _fast_dot(x_ik, chr_ik)) / len_rpts
               x_dot_cur =  2 * (t * len_cpts - _fast_dot(x_ik, curr_node.ikv)) / len_cpts
@@ -168,7 +169,7 @@ class INode:
             #   print("cur_dit: "+'{:f}'.format(cur_dit))
             #   print("x_dot_cur: "+'{:f}'.format(x_dot_cur))
 
-              if x_dot_cur >= cur_dit:
+              if 0.8*x_dot_cur >= cur_dit:
                  curr_node = curr_node
                  break
               if x_dot_chl <= x_dot_chr:
@@ -452,7 +453,7 @@ class INode:
         Returns:
         A point to this node (i.e., self). Self now "contains" pt.
         """
-        self.point_counter += 1.0
+        self.point_counter += 1
         if self.pts is not None:
             self.pts.append(pt)
         return self
