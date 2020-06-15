@@ -87,19 +87,19 @@ if __name__ == "__main__":
     size = 50
     num_clus = 3
     
-    dataset = list(load_data("data\spambase.tsv"))
+    dataset = list(load_data("./data/glass.tsv"))
     # for dim in dimensions:
     #   print("TESTING DIMENSIONS == %d" % dim)
     #   dataset = create_dataset(dim, size, num_clusters=num_clus)  
 
-    n = 50
-    psi = 10
-    t = 200
+    n = 300
+    psi = 8
+    t = 300
 
     np.random.shuffle(dataset)
     data = deepcopy(dataset)
-    #sts = time.time()
     root = create_trees_w_purity_check(n,psi,t,data)
-    #ets = time.time() 
-    #print(ets-sts)
-    print(dendrogram_purity(root))
+    sts = time.time()
+    print(expected_dendrogram_purity(root))
+    ets = time.time() 
+    print(ets-sts)

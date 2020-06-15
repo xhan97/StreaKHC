@@ -160,7 +160,7 @@ class INode:
               len_rpts = curr_node.children[1].point_counter
               len_cpts = curr_node.point_counter
               
-              t = 200
+              t = 300
               x_dot_chl =  2 * (t * len_lpts - _fast_dot(x_ik, chl_ik)) / len_lpts
               x_dot_chr =  2 * (t * len_rpts - _fast_dot(x_ik, chr_ik)) / len_rpts
               x_dot_cur =  2 * (t * len_cpts - _fast_dot(x_ik, curr_node.ikv)) / len_cpts

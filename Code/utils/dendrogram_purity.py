@@ -16,6 +16,10 @@ limitations under the License.
 import numpy as np
 
 from itertools import groupby, combinations
+from multiprocessing import Pool
+from functools import partial
+
+import time
 
 def expected_dendrogram_purity(root):
     """Compute the expected dendrogram purity.
@@ -50,21 +54,48 @@ def expected_dendrogram_purity(root):
     # For n samples, sample a leaf uniformly at random then select another leaf
     # from the same class unformly at random.
     samps = len(non_singleton_leaves) * 5  # TODO (AK): pick 5 in a better way.
+    print(samps)
     unnormalized_purity = 0.0
-    for i in range(samps):
-        rand_leaf = np.random.choice(non_singleton_leaves)
-        cluster = leaf_to_cluster[rand_leaf]
-        rand_cluster_member = np.random.choice(cluster_to_leaves[cluster])
-        # Make sure we get two distinct leaves
-        while rand_cluster_member == rand_leaf:
-            assert(leaf_to_cluster[rand_leaf] == leaf_to_cluster[rand_cluster_member])
-            rand_cluster_member = np.random.choice(cluster_to_leaves[cluster])
-
-        # Find their lowest common ancestor and compute cluster purity.
-        assert(leaf_to_cluster[rand_leaf] == leaf_to_cluster[rand_cluster_member])
-        lca = rand_leaf.lca(rand_cluster_member)
-        unnormalized_purity += lca.purity(cluster=cluster)
+    
+    processor = partial(process, 
+                        non_singleton_leaves=non_singleton_leaves,
+                        leaf_to_cluster = leaf_to_cluster,
+                        cluster_to_leaves = cluster_to_leaves)
+    sts = time.time()
+    pool = Pool(processes=4)
+    #with Pool() as pool:
+    res = pool.map(processor,range(samps))
+    end = time.time()
+    print(end-sts)
+    
+    unnormalized_purity = sum(res)
+    
+#    for i in range(samps):
+#        unnormalized_purity += process(non_singleton_leaves,leaf_to_cluster,cluster_to_leaves)
     return unnormalized_purity / samps
+
+
+  
+def process(_,non_singleton_leaves,leaf_to_cluster,cluster_to_leaves):
+  
+    rand_leaf = np.random.choice(non_singleton_leaves)
+    cluster = leaf_to_cluster[rand_leaf]
+    rand_cluster_member = np.random.choice(cluster_to_leaves[cluster])
+    # Make sure we get two distinct leaves
+    while rand_cluster_member == rand_leaf:
+        assert(leaf_to_cluster[rand_leaf] == leaf_to_cluster[rand_cluster_member])
+        rand_cluster_member = np.random.choice(cluster_to_leaves[cluster])
+    
+    # Find their lowest common ancestor and compute cluster purity.
+    assert(leaf_to_cluster[rand_leaf] == leaf_to_cluster[rand_cluster_member])
+    
+    lca = rand_leaf.lca(rand_cluster_member)
+    purity = lca.purity(cluster=cluster)
+    return purity
+  
+  
+  
+  
 
 def dendrogram_purity(root):
     """
@@ -87,8 +118,6 @@ def dendrogram_purity(root):
     for class_lbl in leaf_pairs_by_true_class:
         for pair in leaf_pairs_by_true_class[class_lbl]:
             lca = pair[0].lca(pair[1])
-            test = get_cluster(pair[0])
-            testb = lca.purity(test)
             sum_purity += lca.purity(get_cluster(pair[0]))
             assert(get_cluster(pair[0]) == get_cluster(pair[1]))
             count += 1.0
