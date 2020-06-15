@@ -1,4 +1,3 @@
-
 # coding: utf-8
 
 import pandas as pd
@@ -10,7 +9,7 @@ import pathos.pools as pp
 from multiprocessing import Pool
 from functools import partial
 
-#@jit(nopython=False)
+#@jit(nopython=True)
 def _fast_norm_diff(x, y):
     """Compute the norm of x - y using numba.
 
@@ -100,10 +99,9 @@ def addNNE(met,x,oneHot,subIndexSet):
 
 
 if __name__ == '__main__':
-  
-    from deltasep_utils import create_dataset
     import time
-
+    from deltasep_utils import create_dataset
+    
     dataset = create_dataset(3, 100, num_clusters=3)
     np.random.shuffle(dataset)
     met = [pt[0] for pt in dataset][:-1]
@@ -112,7 +110,7 @@ if __name__ == '__main__':
     x = cdist(met,met, 'euclidean') 
    
     sts = time.time()
-    oneHot,subIndexSet,aNNEMetrix = aNNE_similarity(x,5,100)
+    oneHot,subIndexSet,aNNEMetrix = aNNE_similarity(x,5,200)
     ets = time.time()
     test = addNNE(met,addx,oneHot,subIndexSet)
     print(ets-sts)

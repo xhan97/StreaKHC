@@ -169,7 +169,7 @@ class INode:
             #   print("cur_dit: "+'{:f}'.format(cur_dit))
             #   print("x_dot_cur: "+'{:f}'.format(x_dot_cur))
 
-              if 0.8*x_dot_cur >= cur_dit:
+              if 0.7*x_dot_cur >= cur_dit:
                  curr_node = curr_node
                  break
               if x_dot_chl <= x_dot_chr:

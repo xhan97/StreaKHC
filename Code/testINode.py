@@ -92,14 +92,15 @@ if __name__ == "__main__":
     #   print("TESTING DIMENSIONS == %d" % dim)
     #   dataset = create_dataset(dim, size, num_clusters=num_clus)  
 
-    n = 100
+    n = 200
     psi = 10
     t = 300
 
     np.random.shuffle(dataset)
     data = deepcopy(dataset)
-    root = create_trees_w_purity_check(n,psi,t,data)
     sts = time.time()
-    print(expected_dendrogram_purity(root))
+    root = create_trees_w_purity_check(n,psi,t,data)
+    dendrogram_purity = expected_dendrogram_purity(root)
     ets = time.time() 
+    print(dendrogram_purity)
     print(ets-sts)
