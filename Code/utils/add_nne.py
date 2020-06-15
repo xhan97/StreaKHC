@@ -50,6 +50,13 @@ def _fast_norm_diff(x, y):
 
 
 def aNNE_similarity(m_distance, psi, t):
+    """[summary]
+
+    Args:
+        m_distance ([type]): [description]
+        psi ([type]): [description]
+        t ([type]): [description]
+    """
   
     n = np.array(range(len(m_distance)))
     one_hot = preprocessing.OneHotEncoder(sparse=False)
@@ -115,19 +122,29 @@ def embeding(_, n, psi, m_distance, oneHot):
 #    return oneHot,subIndexSet.reshape(t,psi),aNNEMetrix
 
 def addNNE(met,x,oneHot,subIndexSet):
+    """Calcute the aNNE value to a new point x.
+
+    Args:
+        met (2D list): distance matrix
+        x (list): a new x present by vecture
+        oneHot (oneHot): the used encoding rule
+        subIndexSet (2D numpy array): the index of point used to build a Voronoi diagram
+
+    Returns:
+        [numpy array]: the aNNE value of x. 
+    """
     
     ind = list(set(subIndexSet.reshape(-1).astype(int)))
     met = np.array(met)
     indData = met[ind]
+    
     p = pp.ProcessPool(4)
     d = np.sqrt(p.map(_fast_norm_diff, [x]*len(indData), indData))
     disDict = dict(zip(ind,d))
     
     ind = [[list(item).index(min(item, key=lambda x: disDict[x]))] 
             for item in subIndexSet]
-
     embSet = oneHot.transform(ind).reshape(-1)
-
     return embSet
 
 
