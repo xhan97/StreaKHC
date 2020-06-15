@@ -4,31 +4,11 @@
 import pandas as pd
 import numpy as np
 from numba import jit
-import math
 from sklearn import preprocessing
 from scipy.spatial.distance import cdist
-#from scipy.sparse import csr_matrix
 import pathos.pools as pp
-
 from multiprocessing import Pool
 from functools import partial
-
-
-#@jit(nopython=True)
-def _fast_norm(x):
-    """Compute the number of x using numba.
-
-    Args:
-    x - a numpy vector (or list).
-
-    Returns:
-    The 2-norm of x.
-    """
-    s = 0.0
-    for i in range(len(x)):
-        s += x[i] ** 2
-    return math.sqrt(s)
-
 
 #@jit(nopython=False)
 def _fast_norm_diff(x, y):
@@ -50,12 +30,16 @@ def _fast_norm_diff(x, y):
 
 
 def aNNE_similarity(m_distance, psi, t):
-    """[summary]
+    """Get aNNE metrix of given distance matrix
 
     Args:
-        m_distance ([type]): [description]
-        psi ([type]): [description]
-        t ([type]): [description]
+        m_distance (2D array): distance matrix
+        psi (int): parameter of aNNE
+        t (int): parameter of aNNE
+    Returns:
+        oneHot (oneHot): the used encoding rule
+        subIndexSet (): the set of index of point used to build Voronoi diagram
+        aNNEMetrix (2D array): aNNE value of given distance matrix
     """
   
     n = np.array(range(len(m_distance)))
@@ -71,10 +55,7 @@ def aNNE_similarity(m_distance, psi, t):
                         oneHot = oneHot)
     with Pool() as pool:
         embeding_set = np.array(pool.map(processor, range(t)))
-    
-#    embeding_set = np.array([embeding(n, psi, m_distance, oneHot) 
-#                    for i in range(t)])
-  
+
     subIndexSet  = np.concatenate(embeding_set[:,0], axis=0)
     aNNEMetrix = np.concatenate(embeding_set[:,1],axis=1)
     
@@ -82,50 +63,19 @@ def aNNE_similarity(m_distance, psi, t):
 
 
 def embeding(_, n, psi, m_distance, oneHot):
-    
+    """ help function for aNNE_similarity
+    """
     subIndex = np.random.choice(n, size=psi,replace=False)
     centerIdx = np.argmin(m_distance[subIndex],0)
     centerIdx_t = centerIdx.reshape(len(centerIdx),1)
     embedIdex = oneHot.transform(centerIdx_t)
     return ([subIndex], embedIdex)
 
-
-#def aNNE_similarity(m_distance, psi, t):
-#   
-#    aNNEMetrix = []
-#    subIndexSet = np.array([])
-#   
-#    n = np.array(range(len(m_distance)))
-#    
-#    one_hot = preprocessing.OneHotEncoder(sparse=False)
-#   
-#    psi_t = np.array(range(psi)).reshape(psi,1)
-#    oneHot = one_hot.fit(psi_t)
-#   
-#
-#
-# #    embeding_set = [embeding(n, psi, m_distance, oneHot) for i in range(t)]
-# #
-# #    subIndexSet, aNNEMetrix = embeding_set[:][0], embeding_set[:][1]
-#
-#    for i in range(t):
-#         subIndex = np.random.choice(n, size=psi,replace=False)
-#         subIndexSet = np.append(subIndexSet,subIndex)
-#         centerIdx = np.argmin(m_distance[subIndex],0)
-#         centerIdxT = centerIdx.reshape(len(centerIdx),1)
-#         embedIdex = oneHot.transform(centerIdxT)
-#         if len(aNNEMetrix) == 0:
-#             aNNEMetrix = embedIdex
-#         else:
-#             aNNEMetrix = np.concatenate((aNNEMetrix,embedIdex),axis=1)
-#
-#    return oneHot,subIndexSet.reshape(t,psi),aNNEMetrix
-
 def addNNE(met,x,oneHot,subIndexSet):
     """Calcute the aNNE value to a new point x.
 
     Args:
-        met (2D list): distance matrix
+        met (2D array): distance matrix
         x (list): a new x present by vecture
         oneHot (oneHot): the used encoding rule
         subIndexSet (2D numpy array): the index of point used to build a Voronoi diagram
