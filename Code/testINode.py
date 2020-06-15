@@ -87,13 +87,13 @@ if __name__ == "__main__":
     size = 50
     num_clus = 3
     
-    dataset = list(load_data("./data/glass.tsv"))
+    dataset = list(load_data("./StreamHC/Code/data/glass.tsv"))
     # for dim in dimensions:
     #   print("TESTING DIMENSIONS == %d" % dim)
     #   dataset = create_dataset(dim, size, num_clusters=num_clus)  
 
-    n = 300
-    psi = 8
+    n = 100
+    psi = 10
     t = 300
 
     np.random.shuffle(dataset)

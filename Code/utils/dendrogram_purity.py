@@ -55,16 +55,15 @@ def expected_dendrogram_purity(root):
     # from the same class unformly at random.
     samps = len(non_singleton_leaves) * 5  # TODO (AK): pick 5 in a better way.
     print(samps)
-    unnormalized_purity = 0.0
     
     processor = partial(process, 
                         non_singleton_leaves=non_singleton_leaves,
                         leaf_to_cluster = leaf_to_cluster,
                         cluster_to_leaves = cluster_to_leaves)
     sts = time.time()
-    pool = Pool(processes=4)
-    #with Pool() as pool:
-    res = pool.map(processor,range(samps))
+    #pool = Pool(processes=4)
+    with Pool() as pool:
+        res = pool.map(processor,range(samps))
     end = time.time()
     print(end-sts)
     
