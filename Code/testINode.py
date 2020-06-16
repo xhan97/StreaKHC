@@ -5,34 +5,12 @@ from scipy.spatial.distance import cdist
 from models.INode import INode
 from utils.dendrogram_purity import dendrogram_purity,expected_dendrogram_purity
 from utils.deltasep_utils import create_dataset
-from utils.add_nne import addNNE,aNNE_similarity
+from utils.add_nne import addNNE,aNNE_similarity,add_nne_data
 from utils.Graphviz import Graphviz
 import time, datetime
 
 import numpy as np
 from graphviz import Source
-
-
-def add_nne_data(dataset,n,psi,t):
-  """Add ik value to dataset.
-  Args:
-    dataset - a list of points with which to build the tree.
-    n - the number of dataset to build aNNE metrix
-    psi - parameter of ik
-    t - paremeter of ik
-  Return:
-    dataset with ik value
-    
-  """
-  met = [pt[0] for pt in dataset[:n]]
-  
-  x = cdist(met,met, 'euclidean') 
-  oneHot,subIndexSet,aNNEMetrix = aNNE_similarity(x,psi,t)
-  for i, pt in enumerate(dataset[:n]):
-      pt.append(aNNEMetrix[i])
-      
-  return oneHot,subIndexSet,dataset
-  
 
 
 def create_trees_w_purity_check(n,psi,t,dataset):
@@ -60,6 +38,7 @@ def create_trees_w_purity_check(n,psi,t,dataset):
         if len(pt)==3:
           ikv = addNNE(met,pt[0],oneHot,subIndexSet)
           pt.append(ikv)
+
         root = root.insert(pt, collapsibles=None, L= float('inf'))
         #if i%10 == 0:
         # gv = Graphviz()

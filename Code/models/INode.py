@@ -145,22 +145,23 @@ class INode:
         """
         root = self.root()
         if self.pts is not None and len(self.pts) == 0:
-            self.add_pt(pt)
-            self._update_params_recursively()
+            self.add_pt(pt[:3])
+            self.ikv = pt[3]
+            #self._update_params_recursively()
             return root          
         else:
             curr_node = root
             x_ik = pt[3] #.toarray().reshape(-1)
+            t = 300
 
             while not curr_node.is_leaf():
               chl_ik = curr_node.children[0].ikv #.toarray().reshape(-1)
               chr_ik = curr_node.children[1].ikv #.toarray().reshape(-1)
-
               len_lpts = curr_node.children[0].point_counter
               len_rpts = curr_node.children[1].point_counter
               len_cpts = curr_node.point_counter
               
-              t = 300
+              
               x_dot_chl =  2 * (t * len_lpts - _fast_dot(x_ik, chl_ik)) / len_lpts
               x_dot_chr =  2 * (t * len_rpts - _fast_dot(x_ik, chr_ik)) / len_rpts
               x_dot_cur =  2 * (t * len_cpts - _fast_dot(x_ik, curr_node.ikv)) / len_cpts
@@ -180,7 +181,7 @@ class INode:
             new_leaf = curr_node._split_down(pt)
             ancs = new_leaf.parent._ancestors()
             for a in ancs:
-                a.add_pt(pt)
+                a.add_pt(pt[:3])
             _ = new_leaf._update_params_recursively()
             
             
@@ -276,17 +277,17 @@ class INode:
                #self.dis = _fast_dot(self.children[0].ikv.toarray().reshape(-1),self.children[1].ikv.toarray().reshape(-1))
                #self.dis = _fast_dot(self.children[0].ikv,self.children[1].ikv)
              return self
-        else:
+#         else:
             
-            self.ikv = self.pts[0][3]
-            if self.parent:
-              self.ikv  = self.pts[-1][3]
-            #self.mins = self.pts[0][0]
-            #self.maxes = self.pts[0][0]
-#            if self.parent:
-#                self.parent._update_children_min_d()
-#                self.parent._update_children_max_d()
-            return self
+#             self.ikv = self.pts[0][3]
+#             if self.parent:
+#               self.ikv  = self.pts[-1][3]
+#             #self.mins = self.pts[0][0]
+#             #self.maxes = self.pts[0][0]
+# #            if self.parent:
+# #                self.parent._update_children_min_d()
+# #                self.parent._update_children_max_d()
+#             return self
 
     def _update_params_recursively(self):
         """Update a node's parameters recursively.
@@ -491,9 +492,10 @@ class INode:
             new_internal.add_child(self)
 
         new_leaf = INode(exact_dist_thres=self.exact_dist_threshold)
-        new_leaf.add_pt(pt)  # This updates the points counter.
+        new_leaf.ikv = pt[3]
+        new_leaf.add_pt(pt[:3])  # This updates the points counter.
         new_internal.add_child(new_leaf)
-        new_internal.add_pt(pt) # This updates the points counter.
+        new_internal.add_pt(pt[:3]) # This updates the points counter.
         return new_leaf
 
     def _rotate(self):

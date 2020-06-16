@@ -28,6 +28,16 @@ def _fast_norm_diff(x, y):
     return s
 
 
+def embeding(_, n, psi, m_distance, oneHot):
+    """ help function for aNNE_similarity
+    """
+    subIndex = np.random.choice(n, size=psi,replace=False)
+    centerIdx = np.argmin(m_distance[subIndex],0)
+    centerIdx_t = centerIdx.reshape(len(centerIdx),1)
+    embedIdex = oneHot.transform(centerIdx_t)
+    return ([subIndex], embedIdex)
+
+
 def aNNE_similarity(m_distance, psi, t):
     """Get aNNE metrix of given distance matrix
 
@@ -61,15 +71,6 @@ def aNNE_similarity(m_distance, psi, t):
     return oneHot,subIndexSet,aNNEMetrix
 
 
-def embeding(_, n, psi, m_distance, oneHot):
-    """ help function for aNNE_similarity
-    """
-    subIndex = np.random.choice(n, size=psi,replace=False)
-    centerIdx = np.argmin(m_distance[subIndex],0)
-    centerIdx_t = centerIdx.reshape(len(centerIdx),1)
-    embedIdex = oneHot.transform(centerIdx_t)
-    return ([subIndex], embedIdex)
-
 def addNNE(met,x,oneHot,subIndexSet):
     """Calcute the aNNE value to a new point x.
 
@@ -95,6 +96,27 @@ def addNNE(met,x,oneHot,subIndexSet):
             for item in subIndexSet]
     embSet = oneHot.transform(ind).reshape(-1)
     return embSet
+
+
+def add_nne_data(dataset,n,psi,t):
+  """Add ik value to dataset.
+  Args:
+    dataset - a list of points with which to build the tree.
+    n - the number of dataset to build aNNE metrix
+    psi - parameter of ik
+    t - paremeter of ik
+  Return:
+    dataset with ik value
+    
+  """
+  met = [pt[0] for pt in dataset[:n]]
+  
+  x = cdist(met,met, 'euclidean') 
+  oneHot,subIndexSet,aNNEMetrix = aNNE_similarity(x,psi,t)
+  for i, pt in enumerate(dataset[:n]):
+      pt.append(aNNEMetrix[i])
+      
+  return oneHot,subIndexSet,dataset
 
 
 
