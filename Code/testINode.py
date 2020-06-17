@@ -63,10 +63,10 @@ if __name__ == "__main__":
 
     from copy import copy, deepcopy
     dimensions = [5]
-    size = 50
+    size = 200
     num_clus = 3
     
-    dataset = list(load_data("./StreamHC/Code/data/glass.tsv"))
+    dataset = list(load_data("./StreamHC/Code/data/spambase.tsv"))
     # for dim in dimensions:
     #   print("TESTING DIMENSIONS == %d" % dim)
     #   dataset = create_dataset(dim, size, num_clusters=num_clus)  
@@ -79,7 +79,7 @@ if __name__ == "__main__":
     data = deepcopy(dataset)
     sts = time.time()
     root = create_trees_w_purity_check(n,psi,t,data)
-    dendrogram_purity = expected_dendrogram_purity(root)
     ets = time.time() 
+    dendrogram_purity = expected_dendrogram_purity(root)
     print(dendrogram_purity)
     print(ets-sts)

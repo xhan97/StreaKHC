@@ -298,7 +298,7 @@ class INode:
         Returns:
         A pointer to the root.
         """
-        _ = self._update()
+        #_ = self._update()
         curr_node = self
         while curr_node.parent :
             _ = curr_node.parent._update()
