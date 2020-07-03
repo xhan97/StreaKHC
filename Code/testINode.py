@@ -1,23 +1,26 @@
 '''
 @Author: your name
 @Date: 2020-06-07 11:24:57
-@LastEditTime: 2020-07-03 17:32:42
+@LastEditTime: 2020-07-03 17:33:32
 @LastEditors: Please set LastEditors
 @Description: In User Settings Edit
 @FilePath: \StreamHC\Code\testINode.py
 '''
 # coding: utf-8
 
-from scipy.spatial.distance import cdist
-from models.INode import INode
-from utils.dendrogram_purity import dendrogram_purity,expected_dendrogram_purity
-from utils.deltasep_utils import create_dataset
-from utils.add_nne import addNNE,aNNE_similarity,add_nne_data
-from utils.Graphviz import Graphviz
-import time, datetime
+import datetime
+import time
 
 import numpy as np
+from scipy.spatial.distance import cdist
+
 from graphviz import Source
+from models.INode import INode
+from utils.add_nne import add_nne_data, addNNE, aNNE_similarity
+from utils.deltasep_utils import create_dataset
+from utils.dendrogram_purity import (dendrogram_purity,
+                                     expected_dendrogram_purity)
+from utils.Graphviz import Graphviz
 
 
 def create_trees_w_purity_check(n,psi,t,dataset,L):

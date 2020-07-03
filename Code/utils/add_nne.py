@@ -1,13 +1,16 @@
 # coding: utf-8
 
-import pandas as pd
-import numpy as np
-from numba import jit
-from sklearn import preprocessing
-from scipy.spatial.distance import cdist
-import pathos.pools as pp
-from multiprocessing import Pool
 from functools import partial
+from multiprocessing import Pool
+
+import numpy as np
+import pandas as pd
+from scipy.spatial.distance import cdist
+from sklearn import preprocessing
+
+import pathos.pools as pp
+from numba import jit
+
 
 #@jit(nopython=True)
 def _fast_norm_diff(x, y):
