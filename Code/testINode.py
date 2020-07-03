@@ -1,4 +1,11 @@
-
+'''
+@Author: your name
+@Date: 2020-06-07 11:24:57
+@LastEditTime: 2020-07-03 17:32:42
+@LastEditors: Please set LastEditors
+@Description: In User Settings Edit
+@FilePath: \StreamHC\Code\testINode.py
+'''
 # coding: utf-8
 
 from scipy.spatial.distance import cdist
@@ -13,7 +20,7 @@ import numpy as np
 from graphviz import Source
 
 
-def create_trees_w_purity_check(n,psi,t,dataset):
+def create_trees_w_purity_check(n,psi,t,dataset,L):
     """Create trees over the same points.
 
     Create n trees, online, over the same dataset. Return pointers to the
@@ -34,10 +41,19 @@ def create_trees_w_purity_check(n,psi,t,dataset):
     oneHot,subIndexSet,data = add_nne_data(dataset,n,psi,t)
     root = INode(exact_dist_thres=10)
     
+
+    history = []
     for i, pt in enumerate(data):
         if len(pt)==3:
           ikv = addNNE(met,pt[0],oneHot,subIndexSet)
           pt.append(ikv)
+        history.append[pt[0]]
+
+        if len(history) % L == 0:
+            met = history
+            x = cdist(met,met, 'euclidean')
+            oneHot, subIndexSet, _= aNNE_similarity(x, psi, t)
+            history = []
 
         root = root.insert(pt, collapsibles=None, L= float('inf'))
         #if i%10 == 0:

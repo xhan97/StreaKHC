@@ -71,6 +71,27 @@ def aNNE_similarity(m_distance, psi, t):
     return oneHot,subIndexSet,aNNEMetrix
 
 
+def add_nne_data(dataset,n,psi,t):
+  """Add ik value to dataset.
+  Args:
+    dataset - a list of points with which to build the tree.
+    n - the number of dataset to build aNNE metrix
+    psi - parameter of ik
+    t - paremeter of ik
+  Return:
+    dataset with ik value
+    
+  """
+  met = [pt[0] for pt in dataset[:n]]
+  
+  x = cdist(met,met, 'euclidean') 
+  oneHot,subIndexSet,aNNEMetrix = aNNE_similarity(x,psi,t)
+  for i, pt in enumerate(dataset[:n]):
+      pt.append(aNNEMetrix[i])
+      
+  return oneHot,subIndexSet,dataset
+
+
 def addNNE(met,x,oneHot,subIndexSet):
     """Calcute the aNNE value to a new point x.
 
@@ -98,28 +119,6 @@ def addNNE(met,x,oneHot,subIndexSet):
     return embSet
 
 
-def add_nne_data(dataset,n,psi,t):
-  """Add ik value to dataset.
-  Args:
-    dataset - a list of points with which to build the tree.
-    n - the number of dataset to build aNNE metrix
-    psi - parameter of ik
-    t - paremeter of ik
-  Return:
-    dataset with ik value
-    
-  """
-  met = [pt[0] for pt in dataset[:n]]
-  
-  x = cdist(met,met, 'euclidean') 
-  oneHot,subIndexSet,aNNEMetrix = aNNE_similarity(x,psi,t)
-  for i, pt in enumerate(dataset[:n]):
-      pt.append(aNNEMetrix[i])
-      
-  return oneHot,subIndexSet,dataset
-
-
-
 if __name__ == '__main__':
     import time
     from deltasep_utils import create_dataset
@@ -130,7 +129,7 @@ if __name__ == '__main__':
     addx = [pt[0] for pt in dataset][-1]
     
     x = cdist(met,met, 'euclidean') 
-   
+    
     sts = time.time()
     oneHot,subIndexSet,aNNEMetrix = aNNE_similarity(x,5,200)
     ets = time.time()
