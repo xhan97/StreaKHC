@@ -130,7 +130,7 @@ class INode:
         """An arbitrary way to determine an order when comparing 2 nodes."""
         return self.id < other.id
 
-    def insert(self, pt, collapsibles=None, L=float("Inf")):
+    def insert(self, pt, collapsibles=None, L=float("Inf"), t=200, rate=0.7):
         """Insert a new pt into the tree.
 
         Apply recurse masking and balance rotations where appropriate.
@@ -139,6 +139,7 @@ class INode:
         pt - a tuple of numpy array, class label, point id.
         collapsibles - (optional) heap of collapsed nodes.
         L - (optional) maximum number of leaves in the tree.
+        t - parameter of isolation kernel
 
         Returns:
         A pointer to the root.
@@ -152,7 +153,7 @@ class INode:
         else:
             curr_node = root
             x_ik = pt[3] #.toarray().reshape(-1)
-            t = 300
+            
 
             while not curr_node.is_leaf():
               chl_ik = curr_node.children[0].ikv #.toarray().reshape(-1)
@@ -170,7 +171,7 @@ class INode:
             #   print("cur_dit: "+'{:f}'.format(cur_dit))
             #   print("x_dot_cur: "+'{:f}'.format(x_dot_cur))
 
-              if 0.7*x_dot_cur >= cur_dit:
+              if rate*x_dot_cur >= cur_dit:
                  curr_node = curr_node
                  break
               if x_dot_chl <= x_dot_chr:
@@ -204,8 +205,32 @@ class INode:
 #                                            best.parent))
             return new_leaf.root()
           
-    
-    
+
+    def delete(self):
+        curr_node = self
+        p_id = curr_node.pts[0][2]
+
+        while not curr_node.is_leaf():
+            curr_node.pts.pop(0)
+            if curr_node.children[0].pts[0][2] == p_id:
+                curr_node = curr_node.children[0]
+            elif curr_node.children[1].pts[0][2] == p_id:
+                curr_node = curr_node.children[1]
+        
+        sibling = curr_node.siblings[0]
+        parent = curr_node.parent
+        sibling.ikv = parent.ikv
+
+        if grand_parent:
+            if grand_parent.children[0] == parent:
+                grand_parent.children[0] = sibling
+            elif grand_parent.children[1] == parent:
+                grand_parent.children[1] = sibling
+        else:
+            return sibling
+
+        return self
+
 
     def min_distance(self, x):
         """Compute the minimum distance between a point x and this node.
@@ -278,7 +303,6 @@ class INode:
                #self.dis = _fast_dot(self.children[0].ikv,self.children[1].ikv)
              return self
 #         else:
-            
 #             self.ikv = self.pts[0][3]
 #             if self.parent:
 #               self.ikv  = self.pts[-1][3]
@@ -298,7 +322,7 @@ class INode:
         Returns:
         A pointer to the root.
         """
-        #_ = self._update()
+
         curr_node = self
         while curr_node.parent :
             _ = curr_node.parent._update()

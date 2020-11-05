@@ -54,8 +54,9 @@ def expected_dendrogram_purity(root):
     # For n samples, sample a leaf uniformly at random then select another leaf
     # from the same class unformly at random.
     samps = len(non_singleton_leaves) * 5  # TODO (AK): pick 5 in a better way.
+    print(samps)
     processor = partial(process, 
-                        non_singleton_leaves=non_singleton_leaves,
+                        non_singleton_leaves = non_singleton_leaves,
                         leaf_to_cluster = leaf_to_cluster,
                         cluster_to_leaves = cluster_to_leaves)
     with Pool() as pool:
@@ -74,11 +75,11 @@ def process(_,non_singleton_leaves,leaf_to_cluster,cluster_to_leaves):
     rand_cluster_member = np.random.choice(cluster_to_leaves[cluster])
     # Make sure we get two distinct leaves
     while rand_cluster_member == rand_leaf:
-        assert(leaf_to_cluster[rand_leaf] == leaf_to_cluster[rand_cluster_member])
+        #assert(leaf_to_cluster[rand_leaf] == leaf_to_cluster[rand_cluster_member])
         rand_cluster_member = np.random.choice(cluster_to_leaves[cluster])
     
     # Find their lowest common ancestor and compute cluster purity.
-    assert(leaf_to_cluster[rand_leaf] == leaf_to_cluster[rand_cluster_member])
+    #assert(leaf_to_cluster[rand_leaf] == leaf_to_cluster[rand_cluster_member])
     
     lca = rand_leaf.lca(rand_cluster_member)
     purity = lca.purity(cluster=cluster)

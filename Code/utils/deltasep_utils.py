@@ -91,9 +91,12 @@ def _create_constrained_dataset(centers, delta, size):
             direction = x / np.linalg.norm(x)
             magnitude = np.random.uniform(0.0, 0.5 * delta)
             # magnitude = np.random.uniform(0.0, delta) # NOT DEL-SEPARATED
-            dataset.append([c + magnitude * direction, i, count])
+            vec = c + magnitude * direction
+            vec = np.append(vec, i)
+            vec = np.append(vec, count)
+            dataset.append(vec)
             count += 1
-    return dataset
+    return np.array(dataset)
 
 
 def gen_4_normal():

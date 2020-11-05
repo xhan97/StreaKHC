@@ -5,11 +5,10 @@ from multiprocessing import Pool
 
 import numpy as np
 import pandas as pd
-from scipy.spatial.distance import cdist
-from sklearn import preprocessing
-
 import pathos.pools as pp
 from numba import jit
+from scipy.spatial.distance import cdist
+from sklearn import preprocessing
 
 
 #@jit(nopython=True)
@@ -58,10 +57,11 @@ def aNNE_similarity(m_distance, psi, t):
     one_hot = preprocessing.OneHotEncoder(sparse=False)
     
     psi_t = np.array(range(psi)).reshape(psi,1)
+    
     oneHot = one_hot.fit(psi_t)
     
     processor = partial(embeding, 
-                        n=n,
+                        n = n,
                         psi = psi,
                         m_distance = m_distance,
                         oneHot = oneHot)
@@ -85,8 +85,9 @@ def add_nne_data(dataset,n,psi,t):
     dataset with ik value
     
   """
+  #d = len(dataset[0][0])
   met = [pt[0] for pt in dataset[:n]]
-  
+  #met = np.random.random_sample(size =(n,d))
   x = cdist(met,met, 'euclidean') 
   oneHot,subIndexSet,aNNEMetrix = aNNE_similarity(x,psi,t)
   for i, pt in enumerate(dataset[:n]):
@@ -113,7 +114,9 @@ def addNNE(met,x,oneHot,subIndexSet):
     indData = met[ind]
     
     p = pp.ProcessPool(4)
+    #with Pool() as pool:
     d = np.sqrt(p.map(_fast_norm_diff, [x]*len(indData), indData))
+    
     disDict = dict(zip(ind,d))
     
     ind = [[list(item).index(min(item, key=lambda x: disDict[x]))] 
@@ -124,17 +127,18 @@ def addNNE(met,x,oneHot,subIndexSet):
 
 if __name__ == '__main__':
     import time
+
     from deltasep_utils import create_dataset
     
-    dataset = create_dataset(3, 100, num_clusters=3)
-    np.random.shuffle(dataset)
-    met = [pt[0] for pt in dataset][:-1]
-    addx = [pt[0] for pt in dataset][-1]
+    dataset = create_dataset(3, 10, num_clusters=3)
+    #np.random.shuffle(dataset)
+    met = [pt[:3] for pt in dataset[:20]]
+    addx = dataset[21][:3]
     
     x = cdist(met,met, 'euclidean') 
     
     sts = time.time()
-    oneHot,subIndexSet,aNNEMetrix = aNNE_similarity(x,5,200)
+    oneHot,subIndexSet,aNNEMetrix = aNNE_similarity(x,5,10)
     ets = time.time()
     test = addNNE(met,addx,oneHot,subIndexSet)
     print(ets-sts)
