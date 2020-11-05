@@ -153,15 +153,12 @@ class INode:
         else:
             curr_node = root
             x_ik = pt[3] #.toarray().reshape(-1)
-            
-
             while not curr_node.is_leaf():
               chl_ik = curr_node.children[0].ikv #.toarray().reshape(-1)
               chr_ik = curr_node.children[1].ikv #.toarray().reshape(-1)
               len_lpts = curr_node.children[0].point_counter
               len_rpts = curr_node.children[1].point_counter
               len_cpts = curr_node.point_counter
-              
               
               x_dot_chl =  2 * (t * len_lpts - _fast_dot(x_ik, chl_ik)) / len_lpts
               x_dot_chr =  2 * (t * len_rpts - _fast_dot(x_ik, chr_ik)) / len_rpts
@@ -185,24 +182,6 @@ class INode:
                 a.add_pt(pt[:3])
             _ = new_leaf._update_params_recursively()
             
-            
-#            if collapsibles is not None:
-#                heappush(collapsibles, (new_leaf.parent.dis,
-#                                        new_leaf.parent))
-#            if collapsibles is not None and root.point_counter > L:
-#                dist, best = heappop(collapsibles)
-#                valid = best.valid_collapse()
-#                up_to_date = dist == best.dis
-#                while not valid or not up_to_date:
-#                    if not up_to_date:
-#                        heappush(collapsibles, (best.dis, best))
-#                    max_d, best = heappop(collapsibles)
-#                    valid = best.valid_collapse()
-#                    up_to_date = dist == best.dis
-#                best.collapse()
-#                if best.siblings()[0].is_leaf():
-#                    heappush(collapsibles, (best.parent.dis,
-#                                            best.parent))
             return new_leaf.root()
           
 
@@ -275,16 +254,8 @@ class INode:
             return _fast_max_to_box(self.mins, self.maxes, x)
 
     def _update(self):
-        """Update self's bounding box and determine if ancestors need update.
-
-        Check if self's children have changed their bounding boxes. If not,
-        we're done. If they have changed, update this node's bounding box. Also,
-        determine whether this node needs to store points or not (based on the
-        exact distance threshold). There are a handful of scenarios here where
-        we must re-cache the distance at the parent and grandparent.
-
-        If this node has no children, update its bounding box and its parent's
-        cached distances.
+        """
+        updata ik values
 
         Args:
         None.
@@ -302,16 +273,7 @@ class INode:
                #self.dis = _fast_dot(self.children[0].ikv.toarray().reshape(-1),self.children[1].ikv.toarray().reshape(-1))
                #self.dis = _fast_dot(self.children[0].ikv,self.children[1].ikv)
              return self
-#         else:
-#             self.ikv = self.pts[0][3]
-#             if self.parent:
-#               self.ikv  = self.pts[-1][3]
-#             #self.mins = self.pts[0][0]
-#             #self.maxes = self.pts[0][0]
-# #            if self.parent:
-# #                self.parent._update_children_min_d()
-# #                self.parent._update_children_max_d()
-#             return self
+
 
     def _update_params_recursively(self):
         """Update a node's parameters recursively.
