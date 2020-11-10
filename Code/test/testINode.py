@@ -1,7 +1,7 @@
 '''
 @Author: Xin Han
 @Date: 2020-06-07 11:24:57
-LastEditTime: 2020-11-10 16:51:19
+LastEditTime: 2020-11-10 16:56:28
 LastEditors: Please set LastEditors
 @Description: In User Settings Edit
 @FilePath: \StreamHC\Code\testINode.py
@@ -135,7 +135,7 @@ if __name__ == "__main__":
     
     exp_dir_base = './Code/testResult/'
     
-    for i in range(3):
+    for i in range(10):
         np.random.shuffle(dataset)
         ti = 0
         purity = 0
