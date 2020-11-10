@@ -185,30 +185,30 @@ class INode:
             return new_leaf.root()
           
 
-    def delete(self):
-        curr_node = self
-        p_id = curr_node.pts[0][2]
+    # def delete(self):
+    #     curr_node = self
+    #     p_id = curr_node.pts[0][2]
 
-        while not curr_node.is_leaf():
-            curr_node.pts.pop(0)
-            if curr_node.children[0].pts[0][2] == p_id:
-                curr_node = curr_node.children[0]
-            elif curr_node.children[1].pts[0][2] == p_id:
-                curr_node = curr_node.children[1]
+    #     while not curr_node.is_leaf():
+    #         curr_node.pts.pop(0)
+    #         if curr_node.children[0].pts[0][2] == p_id:
+    #             curr_node = curr_node.children[0]
+    #         elif curr_node.children[1].pts[0][2] == p_id:
+    #             curr_node = curr_node.children[1]
         
-        sibling = curr_node.siblings[0]
-        parent = curr_node.parent
-        sibling.ikv = parent.ikv
+    #     sibling = curr_node.siblings[0]
+    #     parent = curr_node.parent
+    #     sibling.ikv = parent.ikv
 
-        if grand_parent:
-            if grand_parent.children[0] == parent:
-                grand_parent.children[0] = sibling
-            elif grand_parent.children[1] == parent:
-                grand_parent.children[1] = sibling
-        else:
-            return sibling
+    #     if grand_parent:
+    #         if grand_parent.children[0] == parent:
+    #             grand_parent.children[0] = sibling
+    #         elif grand_parent.children[1] == parent:
+    #             grand_parent.children[1] = sibling
+    #     else:
+    #         return sibling
 
-        return self
+    #     return self
 
 
     def min_distance(self, x):
