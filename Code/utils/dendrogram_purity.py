@@ -19,7 +19,7 @@ from itertools import combinations, groupby
 from multiprocessing import Pool
 
 import numpy as np
-
+import sys
 
 sys.setrecursionlimit(50000)
 def expected_dendrogram_purity(root):
@@ -61,7 +61,7 @@ def expected_dendrogram_purity(root):
                         non_singleton_leaves=non_singleton_leaves,
                         leaf_to_cluster=leaf_to_cluster,
                         cluster_to_leaves=cluster_to_leaves)
-    with Pool() as pool:
+    with Pool(processes=8) as pool:
         res = pool.map(processor, range(samps))
 
 #    for i in range(samps):

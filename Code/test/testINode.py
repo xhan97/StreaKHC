@@ -1,7 +1,7 @@
 '''
 @Author: Xin Han
 @Date: 2020-06-07 11:24:57
-LastEditTime: 2020-11-11 01:51:08
+LastEditTime: 2020-11-11 16:13:52
 LastEditors: Please set LastEditors
 @Description: In User Settings Edit
 @file_path: \StreamHC\Code\testINode.py
@@ -16,18 +16,17 @@ from copy import deepcopy
 import numpy as np
 import pandas as pd
 from Code.models.INode import INode
-from Code.utils.anne import add_nne_data, addNNE, aNNE_similarity
+from Code.utils.anne import add_nne_data, addNNE
 from Code.utils.deltasep_utils import create_dataset
 from Code.utils.dendrogram_purity import (dendrogram_purity,
                                           expected_dendrogram_purity)
 from Code.utils.Graphviz import Graphviz
 from Code.utils.file_utils import load_data,remove_file
 #from graphviz import Source
-from scipy.spatial.distance import cdist
 from sklearn.preprocessing import MinMaxScaler
 
 
-def create_i_tree(dataset, n, psi, t, w, l, rate):
+def create_i_tree(dataset, n, psi, t, rate):
     """Create trees over the same points.
 
     Create n trees, online, over the same dataset. Return pointers to the
@@ -83,10 +82,6 @@ def create_i_tree(dataset, n, psi, t, w, l, rate):
 #                                                           for x in splits[2:]])
 #             yield ([vec, l, pid])
 
-
-
-
-
 def save_data(args, exp_dir_base, file_name):
     file_path = os.path.join(exp_dir_base, file_name+'.tsv')
     if not os.path.exists(file_path):
@@ -111,7 +106,7 @@ def save_data(args, exp_dir_base, file_name):
         #     clustering_time_elapsed + pick_k_time))
 
 
-def grid_research_inode(dataset, psi, t, n, rates, file_name, exp_dir_base, shuffle_index):
+def grid_search_inode(dataset, psi, t, n, rates, file_name, exp_dir_base, shuffle_index):
     ti = 0
     purity = 0
     max_ps = psi[0]
@@ -123,8 +118,12 @@ def grid_research_inode(dataset, psi, t, n, rates, file_name, exp_dir_base, shuf
             root = create_i_tree(
                 data, n, ps, t, rate=rt)
             ets = time.time()
-            dendrogram_purity = expected_dendrogram_purity(root)
+            print("time of build tree: %s" %(ets-sts))
             ti += ets-sts
+            pu_sts = time.time()
+            dendrogram_purity = expected_dendrogram_purity(root)
+            pu_ets = time.time()
+            print("time of calcute purity: %s" %(pu_ets-pu_sts))
             if dendrogram_purity > purity:
                 max_ps = ps
                 max_rt = rt
@@ -141,32 +140,13 @@ def grid_research_inode(dataset, psi, t, n, rates, file_name, exp_dir_base, shuf
 
 
 if __name__ == "__main__":
-<<<<<<< HEAD
-
-    from copy import deepcopy
-    dimensions = [10]
-    size = 1000
-    num_clus = 5
-
-    dataset = list(load_data("./Code/data/spambase.tsv"))
-=======
     # def load_df(df):
     #     for item in df.values:
     #         yield([item[:-2], item[-2], item[-1]])
 
-    def load_data(file_name):
-        data = pd.read_csv(file_name, delimiter='\t')
-        data = data.dropna(how='all')
-        data = data.dropna(axis=1, how='all')
-        # scaler = MinMaxScaler()
-        # data.iloc[:, 2:] = scaler.fit_transform(data.iloc[:, 2:])
-        for item in data.values:
-            yield([item[2:], item[1], item[0]])
-
     # dimensions = [10]
     # size = 1000
     # num_clus = 5
->>>>>>> 269f06f17d5f0aa0a20d73e7ab9c5d8990e77240
     # for dim in dimensions:
     #   print("TESTING DIMENSIONS == %d" % dim)
     #   dataset = create_dataset(dim, size, num_clusters=num_clus)
@@ -176,64 +156,20 @@ if __name__ == "__main__":
     # dataset.iloc[:,:-2] = scaler.fit_transform(dataset.iloc[:,:-2])
     # dataset = list(load_df(dataset))
 
-<<<<<<< HEAD
-    n = 1000
+    n = 500
     psi = [3,5,7,13,15]
     rates = [0.6,0.7,0.8]
-=======
-    n = 50
-    psi = [3, 5, 7, 13, 15, 17, 20]
-    rates = [0.6, 0.7, 0.8, 0.9]
->>>>>>> 269f06f17d5f0aa0a20d73e7ab9c5d8990e77240
     t = 200
     w = 100
     l = w * 0.5
-    remove = False
-    file_name = "glass"
+    remove = True
+    file_name = "spambase"
     exp_dir_base = './Code/testResult/Inode'
 
-<<<<<<< HEAD
-    fileName = "spambase"
-    
-    exp_dir_base = './Code/testResult/'
-    
-    for i in range(5):
-        np.random.shuffle(dataset)
-        ti = 0
-        purity = 0
-        max_ps = psi[0]
-        max_rt = rates[0]
-        for ps in psi:
-            for rt in rates:
-                data = deepcopy(dataset)
-                sts = time.time()
-                root = create_trees_w_purity_check(data, n, ps, t, w, l, rate = rt)
-                ets = time.time()
-                dendrogram_purity = expected_dendrogram_purity(root)
-                ti += ets-sts
-                if dendrogram_purity > purity:
-                    max_ps = ps
-                    max_rt = rt
-                    purity =  dendrogram_purity
-                del data
-                print(purity)
-        tim = ti/(len(psi)*len(rates))
-
-        args = {'dataset':fileName+"_"+"shuffle"+"_"+str(i),
-        'algorithm':"IKSHC",
-        'purity':purity,
-        'clustering_time_elapsed':tim,
-        "max_psi": max_ps,
-        "max_rt":max_rt}
-
-        save_data(args,exp_dir_base,fileName)
-    
-=======
-    dataset = list(load_data("./Code/data/glass.tsv"))
+    dataset = list(load_data("./Code/data/spambase.tsv"))
     if remove:
         remove_file(file_name=file_name, exp_dir_base=exp_dir_base)
-    for i in range(10):
+    for i in range(5):
         np.random.shuffle(dataset)
-        grid_research_inode(dataset=dataset, n=n, t=t, psi=psi, rates=rates,
-                            file_name=file_name, exp_dir_base=exp_dir_base, shuffle=i)
->>>>>>> 269f06f17d5f0aa0a20d73e7ab9c5d8990e77240
+        grid_search_inode(dataset=dataset, n=n, t=t, psi=psi, rates=rates,
+                            file_name=file_name, exp_dir_base=exp_dir_base, shuffle_index=i)

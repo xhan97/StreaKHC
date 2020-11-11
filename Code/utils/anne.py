@@ -2,6 +2,7 @@
 
 from functools import partial
 from multiprocessing import Pool
+import multiprocessing
 
 import numpy as np
 import pandas as pd
@@ -65,7 +66,8 @@ def aNNE_similarity(m_distance, psi, t):
                         psi = psi,
                         m_distance = m_distance,
                         oneHot = oneHot)
-    with Pool() as pool:
+    cpu_count = multiprocessing.cpu_count()
+    with Pool(processes=2) as pool:
         embeding_set = np.array(pool.map(processor, range(t)))
 
     subIndexSet  = np.concatenate(embeding_set[:,0], axis=0)
@@ -128,7 +130,7 @@ def addNNE(met,x,oneHot,subIndexSet):
 if __name__ == '__main__':
     import time
 
-    from deltasep_utils import create_dataset
+    from Code.utils.deltasep_utils import create_dataset
     
     dataset = create_dataset(3, 10, num_clusters=3)
     #np.random.shuffle(dataset)

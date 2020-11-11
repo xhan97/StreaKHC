@@ -1,11 +1,3 @@
-'''
-Author: your name
-Date: 2020-11-11 01:41:31
-LastEditTime: 2020-11-11 01:53:37
-LastEditors: Please set LastEditors
-Description: In User Settings Edit
-FilePath: \StreamHC\Code\utils\file_utils.py
-'''
 import errno
 import os
 
