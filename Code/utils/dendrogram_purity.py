@@ -20,7 +20,9 @@ from multiprocessing import Pool
 from functools import partial
 
 import time
+import sys
 
+sys.setrecursionlimit(50000)
 def expected_dendrogram_purity(root):
     """Compute the expected dendrogram purity.
 

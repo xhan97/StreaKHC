@@ -114,7 +114,7 @@ if __name__ == "__main__":
     size = 1000
     num_clus = 5
 
-    dataset = list(load_data("./Code/data/glass.tsv"))
+    dataset = list(load_data("./Code/data/spambase.tsv"))
     # for dim in dimensions:
     #   print("TESTING DIMENSIONS == %d" % dim)
     #   dataset = create_dataset(dim, size, num_clusters=num_clus)
@@ -124,18 +124,18 @@ if __name__ == "__main__":
     # dataset.iloc[:,:-2] = scaler.fit_transform(dataset.iloc[:,:-2])
     # dataset = list(load_df(dataset))
 
-    n = 50
-    psi = [3,5,7,13,15,17,20]
-    rates = [0.6,0.7,0.8,0.9]
+    n = 1000
+    psi = [3,5,7,13,15]
+    rates = [0.6,0.7,0.8]
     t = 200
     w = 100
     l = w * 0.5
 
-    fileName = "glass"
+    fileName = "spambase"
     
     exp_dir_base = './Code/testResult/'
     
-    for i in range(10):
+    for i in range(5):
         np.random.shuffle(dataset)
         ti = 0
         purity = 0
@@ -154,6 +154,7 @@ if __name__ == "__main__":
                     max_rt = rt
                     purity =  dendrogram_purity
                 del data
+                print(purity)
         tim = ti/(len(psi)*len(rates))
 
         args = {'dataset':fileName+"_"+"shuffle"+"_"+str(i),
