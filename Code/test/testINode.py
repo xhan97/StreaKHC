@@ -1,7 +1,7 @@
 '''
 @Author: Xin Han
 @Date: 2020-06-07 11:24:57
-LastEditTime: 2020-11-11 16:13:52
+LastEditTime: 2020-11-12 11:47:29
 LastEditors: Please set LastEditors
 @Description: In User Settings Edit
 @file_path: \StreamHC\Code\testINode.py
@@ -21,7 +21,7 @@ from Code.utils.deltasep_utils import create_dataset
 from Code.utils.dendrogram_purity import (dendrogram_purity,
                                           expected_dendrogram_purity)
 from Code.utils.Graphviz import Graphviz
-from Code.utils.file_utils import load_data,remove_file
+from Code.utils.file_utils import load_data, remove_file
 #from graphviz import Source
 from sklearn.preprocessing import MinMaxScaler
 
@@ -74,13 +74,6 @@ def create_i_tree(dataset, n, psi, t, rate):
         # src.render('treeResult\\'+'tree'+str(i)+'.gv', view=True,format='png')
     return root
 
-# def load_data(file_name):
-#     with open(file_name, 'r') as f:
-#         for line in f:
-#             splits = line.strip().split('\t')
-#             pid, l, vec = splits[0], splits[1], np.array([float(x)
-#                                                           for x in splits[2:]])
-#             yield ([vec, l, pid])
 
 def save_data(args, exp_dir_base, file_name):
     file_path = os.path.join(exp_dir_base, file_name+'.tsv')
@@ -101,9 +94,6 @@ def save_data(args, exp_dir_base, file_name):
             args['clustering_time_elapsed'],
             args["max_psi"],
             args["max_rt"]))
-        # fout.write('%s-pick-k\t%s\t%f\n' % (
-        #     args.algorithm, args.dataset,
-        #     clustering_time_elapsed + pick_k_time))
 
 
 def grid_search_inode(dataset, psi, t, n, rates, file_name, exp_dir_base, shuffle_index):
@@ -118,12 +108,13 @@ def grid_search_inode(dataset, psi, t, n, rates, file_name, exp_dir_base, shuffl
             root = create_i_tree(
                 data, n, ps, t, rate=rt)
             ets = time.time()
-            print("time of build tree: %s" %(ets-sts))
+            print("time of build tree: %s" % (ets-sts))
             ti += ets-sts
             pu_sts = time.time()
             dendrogram_purity = expected_dendrogram_purity(root)
+            print("dendrogram_purity: %s" % (dendrogram_purity))
             pu_ets = time.time()
-            print("time of calcute purity: %s" %(pu_ets-pu_sts))
+            print("time of calcute purity: %s" % (pu_ets-pu_sts))
             if dendrogram_purity > purity:
                 max_ps = ps
                 max_rt = rt
@@ -157,19 +148,19 @@ if __name__ == "__main__":
     # dataset = list(load_df(dataset))
 
     n = 500
-    psi = [3,5,7,13,15]
-    rates = [0.6,0.7,0.8]
+    psi = [3, 5, 7, 13, 15]
+    rates = [0.6, 0.7, 0.8, 0.9, 1]
     t = 200
-    w = 100
-    l = w * 0.5
-    remove = True
+    remove = False
     file_name = "spambase"
-    exp_dir_base = './Code/testResult/Inode'
-
+    exp_dir_base_inode = './Code/testResult/Inode'
+    dati = time.strftime("%Y%m%d%H%M%S", time.localtime())
     dataset = list(load_data("./Code/data/spambase.tsv"))
+    shuffle_times = 10
+
     if remove:
-        remove_file(file_name=file_name, exp_dir_base=exp_dir_base)
-    for i in range(5):
+        remove_file(file_name=file_name, exp_dir_base=exp_dir_base_inode)
+    for i in range(shuffle_times):
         np.random.shuffle(dataset)
         grid_search_inode(dataset=dataset, n=n, t=t, psi=psi, rates=rates,
-                            file_name=file_name, exp_dir_base=exp_dir_base, shuffle_index=i)
+                          file_name=dati+"/"+file_name, exp_dir_base=exp_dir_base_inode, shuffle_index=i)

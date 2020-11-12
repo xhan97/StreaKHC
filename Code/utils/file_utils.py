@@ -1,3 +1,13 @@
+'''
+Author: your name
+Date: 2020-11-12 11:41:39
+LastEditTime: 2020-11-12 11:41:53
+LastEditors: Please set LastEditors
+Description: In User Settings Edit
+FilePath: /StreamHC/Code/utils/file_utils.py
+'''
+# coding: utf-8
+
 import errno
 import os
 
@@ -23,6 +33,6 @@ def load_data(file_name):
 
 
 def remove_file(exp_dir_base, file_name):
-    file_path = os.path.join(exp_dir_base, file_name+'.tsv')
+    file_path = os.path.join(exp_dir_base, file_name)
     if os.path.exists(file_path):
-        os.remove(file_path)
+       os.removedirs(file_path)
