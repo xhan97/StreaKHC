@@ -6,6 +6,7 @@ from queue import Queue
 from heapq import heappush, heappop
 from numba import jit
 from bisect import bisect_left
+from numpy.lib.function_base import delete
 from scipy.special import comb, perm
 
 import math
@@ -130,7 +131,7 @@ class INode:
         """An arbitrary way to determine an order when comparing 2 nodes."""
         return self.id < other.id
 
-    def insert(self, pt, collapsibles=None, L=float("Inf"), t=200, rate=0.7):
+    def insert(self, pt, delete_node=False, L=float("Inf"), t=200, rate=0.7):
         """Insert a new pt into the tree.
 
         Apply recurse masking and balance rotations where appropriate.
@@ -144,6 +145,8 @@ class INode:
         Returns:
         A pointer to the root.
         """
+        if delete_node and  self.point_counter >= L:
+            self = self.delete()
         root = self.root()
         if self.pts is not None and len(self.pts) == 0:
             self.add_pt(pt[:3])
@@ -185,30 +188,31 @@ class INode:
             return new_leaf.root()
           
 
-    # def delete(self):
-    #     curr_node = self
-    #     p_id = curr_node.pts[0][2]
+    def delete(self):
+        curr_node = self.root()
+        p_id = curr_node.pts[0][2]
 
-    #     while not curr_node.is_leaf():
-    #         curr_node.pts.pop(0)
-    #         if curr_node.children[0].pts[0][2] == p_id:
-    #             curr_node = curr_node.children[0]
-    #         elif curr_node.children[1].pts[0][2] == p_id:
-    #             curr_node = curr_node.children[1]
+        while not curr_node.is_leaf():
+            curr_node.pts.pop(0)
+            curr_node.point_counter -= 1
+            if curr_node.children[0].pts[0][2] == p_id:
+                curr_node = curr_node.children[0]
+            elif curr_node.children[1].pts[0][2] == p_id:
+                curr_node = curr_node.children[1]
         
-    #     sibling = curr_node.siblings[0]
-    #     parent = curr_node.parent
-    #     sibling.ikv = parent.ikv
+        sibling = curr_node.siblings[0]
+        parent_node = curr_node.parent
+        # sibling.ikv = parent.ikv
+        # grand_parent = parent.parent
+        if parent_node.parent:
+            if parent_node.parent.children[0] == parent_node:
+                parent_node.parent.children[0] = sibling
+            elif parent_node.parent.children[1] == parent_node:
+                parent_node.parent.children[1] = sibling
+        else:
+            return sibling
 
-    #     if grand_parent:
-    #         if grand_parent.children[0] == parent:
-    #             grand_parent.children[0] = sibling
-    #         elif grand_parent.children[1] == parent:
-    #             grand_parent.children[1] = sibling
-    #     else:
-    #         return sibling
-
-    #     return self
+        return self
 
 
     def min_distance(self, x):

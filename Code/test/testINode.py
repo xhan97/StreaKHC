@@ -1,7 +1,7 @@
 '''
 @Author: Xin Han
 @Date: 2020-06-07 11:24:57
-LastEditTime: 2020-11-12 11:47:29
+LastEditTime: 2020-12-18 15:10:55
 LastEditors: Please set LastEditors
 @Description: In User Settings Edit
 @file_path: \StreamHC\Code\testINode.py
@@ -9,7 +9,6 @@ LastEditors: Please set LastEditors
 # coding: utf-8
 
 import os
-from random import shuffle
 import time
 from copy import deepcopy
 
@@ -17,13 +16,10 @@ import numpy as np
 import pandas as pd
 from Code.models.INode import INode
 from Code.utils.anne import add_nne_data, addNNE
-from Code.utils.deltasep_utils import create_dataset
-from Code.utils.dendrogram_purity import (dendrogram_purity,
-                                          expected_dendrogram_purity)
+from Code.utils.dendrogram_purity import expected_dendrogram_purity,create_dataset
+from Code.utils.file_utils import load_data, mkdir_p_safe, remove_dirs
 from Code.utils.Graphviz import Graphviz
-from Code.utils.file_utils import load_data, remove_file
-#from graphviz import Source
-from sklearn.preprocessing import MinMaxScaler
+from graphviz import Source
 
 
 def create_i_tree(dataset, n, psi, t, rate):
@@ -65,18 +61,21 @@ def create_i_tree(dataset, n, psi, t, rate):
         #     x = cdist(met,met, 'euclidean')
         #     oneHot, subIndexSet, _= aNNE_similarity(x, psi, t)
 
-        root = root.insert(pt, collapsibles=None,
-                           L=float('inf'), t=300, rate=rate)
-        # if i%10 == 0:
-        # gv = Graphviz()
-        # tree = gv.graphviz_tree(root)
-        # src = Source(tree)
-        # src.render('treeResult\\'+'tree'+str(i)+'.gv', view=True,format='png')
+        root = root.insert(pt, delete_node=True,
+                           L=5, t=300, rate=rate)
+        if i % 10 == 0:
+            gv = Graphviz()
+            tree = gv.graphviz_tree(root)
+            src = Source(tree)
+            src.render('treeResult\\'+'tree'+str(i) +
+                       '.gv', view=True, format='png')
     return root
 
 
 def save_data(args, exp_dir_base, file_name):
     file_path = os.path.join(exp_dir_base, file_name+'.tsv')
+    if not os.path.exists(exp_dir_base):
+        mkdir_p_safe(exp_dir_base)
     if not os.path.exists(file_path):
         with open(file_path, 'w') as fout:
             fout.write('%s\t%s\t%s\t%s\t%s\t%s\n' % (
@@ -135,18 +134,17 @@ if __name__ == "__main__":
     #     for item in df.values:
     #         yield([item[:-2], item[-2], item[-1]])
 
-    # dimensions = [10]
-    # size = 1000
-    # num_clus = 5
-    # for dim in dimensions:
-    #   print("TESTING DIMENSIONS == %d" % dim)
-    #   dataset = create_dataset(dim, size, num_clusters=num_clus)
+    dimensions = [10]
+    size = 10
+    num_clus = 3
+    for dim in dimensions:
+      print("TESTING DIMENSIONS == %d" % dim)
+      dataset = create_dataset(dim, size, num_clusters=num_clus)
 
     # dataset = pd.DataFrame(dataset)
     # scaler = MinMaxScaler()
     # dataset.iloc[:,:-2] = scaler.fit_transform(dataset.iloc[:,:-2])
     # dataset = list(load_df(dataset))
-
     n = 500
     psi = [3, 5, 7, 13, 15]
     rates = [0.6, 0.7, 0.8, 0.9, 1]
@@ -155,11 +153,11 @@ if __name__ == "__main__":
     file_name = "spambase"
     exp_dir_base_inode = './Code/testResult/Inode'
     dati = time.strftime("%Y%m%d%H%M%S", time.localtime())
-    dataset = list(load_data("./Code/data/spambase.tsv"))
     shuffle_times = 10
+    dataset = list(load_data("./Code/data/spambase.tsv"))
 
     if remove:
-        remove_file(file_name=file_name, exp_dir_base=exp_dir_base_inode)
+        remove_dirs(file_name=file_name, exp_dir_base=exp_dir_base_inode)
     for i in range(shuffle_times):
         np.random.shuffle(dataset)
         grid_search_inode(dataset=dataset, n=n, t=t, psi=psi, rates=rates,
