@@ -1,0 +1,4 @@
+dataset	algorithm	purity	clustering_time_elapsed	max_psi	max_rt
+glass_shuffle_0	IKSHC	0.284573	3.548218	3	0.7
+glass_shuffle_1	IKSHC	0.345961	3.461380	3	0.6
+glass_shuffle_2	IKSHC	0.284833	3.467844	3	0.6

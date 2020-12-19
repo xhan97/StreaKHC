@@ -200,15 +200,17 @@ class INode:
             elif curr_node.children[1].pts[0][2] == p_id:
                 curr_node = curr_node.children[1]
         
-        sibling = curr_node.siblings[0]
+        sibling = curr_node.siblings()[0]
         parent_node = curr_node.parent
         # sibling.ikv = parent.ikv
         # grand_parent = parent.parent
         if parent_node.parent:
             if parent_node.parent.children[0] == parent_node:
                 parent_node.parent.children[0] = sibling
+                sibling.parent = parent_node.parent
             elif parent_node.parent.children[1] == parent_node:
                 parent_node.parent.children[1] = sibling
+                sibling.parent = parent_node.parent
         else:
             return sibling
 
