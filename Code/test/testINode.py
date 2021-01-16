@@ -45,13 +45,18 @@ def create_i_tree(dataset, n, psi, t, rate):
     met = [pt[0] for pt in dataset[:n]]
     oneHot, subIndexSet, data = add_nne_data(dataset, n, psi, t)
     root = INode(exact_dist_thres=10)
+    run_time = []
+
+    tree_st_time = time.time()
 
     # history = []
     for i, pt in enumerate(data):
         if len(pt) == 3:
             ikv = addNNE(met, pt[0], oneHot, subIndexSet)
             pt.append(ikv)
-
+        if (i % 300 == 0): 
+            tree_mi_time = time.time()
+            run_time.append((i, tree_mi_time - tree_st_time))
         # history.append(pt[0])
 
         # if i > w:
@@ -69,7 +74,7 @@ def create_i_tree(dataset, n, psi, t, rate):
         #     src = Source(tree)
         #     src.render('treeResult\\'+'tree'+str(i) +
         #                '.gv', view=True, format='png')
-    return root
+    return root,run_time
 
 
 def save_data(args, exp_dir_base, file_name):
@@ -103,9 +108,10 @@ def grid_search_inode(dataset, psi, t, n, rates, file_name, exp_dir_base, shuffl
         for rt in rates:
             data = deepcopy(dataset)
             sts = time.time()
-            root = create_i_tree(
+            root,runTime = create_i_tree(
                 data, n, ps, t, rate=rt)
             print(root.point_counter)
+            print(runTime)
             ets = time.time()
             print("time of build tree: %s" % (ets-sts))
             ti += ets-sts
@@ -145,16 +151,18 @@ if __name__ == "__main__":
     # scaler = MinMaxScaler()
     # dataset.iloc[:,:-2] = scaler.fit_transform(dataset.iloc[:,:-2])
     # dataset = list(load_df(dataset))
-    n = 25000
-    psi = [3, 5 , 7, 13, 15]
-    rates = [0.6, 0.7, 0.8, 0.9, 1]
-    t = 300
+    n = 4000
+    #psi = [3, 5 , 7, 13, 15]
+    psi = [5]
+    rates = [0.6]
+    #rates = [0.6, 0.7, 0.8, 0.9, 1]
+    t = 200
     remove = False
-    file_name = "aloi"
+    file_name = "spambase"
     exp_dir_base_inode = './Code/testResult/Inode/'
     dati = time.strftime("%Y%m%d%H%M%S", time.localtime())
     exp_dir_base_inode = exp_dir_base_inode+dati
-    shuffle_times = 5
+    shuffle_times = 1
     dataset = list(load_data("./Code/data/"+file_name+".tsv"))
 
     if remove:

@@ -16,7 +16,7 @@ import numpy as np
 from Code.models.PNode import PNode
 from Code.utils.deltasep_utils import create_dataset
 from Code.utils.dendrogram_purity import expected_dendrogram_purity
-from Code.utils.file_utils import load_data, remove_file, mkdir_p_safe
+from Code.utils.file_utils import load_data, remove_dirs, mkdir_p_safe
 
 
 def create_p_tree(dataset):
@@ -37,9 +37,14 @@ def create_p_tree(dataset):
 
     root = PNode(exact_dist_thres=10)
 
+    run_time = []
+    tree_st_time = time.time()
     for i, pt in enumerate(dataset):
         root = root.insert(pt, collapsibles=None, L=float('inf'))
-    return root
+        if (i % 300 == 0): 
+            tree_mi_time = time.time()
+            run_time.append((i, tree_mi_time - tree_st_time))
+    return root,run_time
 
 
 def save_data_Pnode(args, exp_dir_base, file_name):
@@ -66,7 +71,8 @@ def grid_research_pnode(dataset, file_name, exp_dir_base, shuffle_index):
     purity = 0
     data = deepcopy(dataset)
     sts = time.time()
-    root = create_p_tree(data)
+    root,run_time = create_p_tree(data)
+    print(run_time)
     ets = time.time()
     dendrogram_purity = expected_dendrogram_purity(root)
     ti += ets-sts
@@ -84,14 +90,14 @@ def grid_research_pnode(dataset, file_name, exp_dir_base, shuffle_index):
 if __name__ == "__main__":
 
     remove = False
-    file_name = "glass"
+    file_name = "spambase"
     exp_dir_base = './Code/testResult/Pnode'
     # mkdir_p_safe(exp_dir_base)
 
-    dataset = list(load_data("./Code/data/glass.tsv"))
+    dataset = list(load_data("./Code/data/spambase.tsv"))
     if remove:
-        remove_file(file_name=file_name, exp_dir_base=exp_dir_base)
-    for i in range(10):
+        remove_dirs(file_name=file_name, exp_dir_base=exp_dir_base)
+    for i in range(1):
         np.random.shuffle(dataset)
         grid_research_pnode(dataset=dataset, file_name=file_name,
                             exp_dir_base=exp_dir_base, shuffle_index=i)
