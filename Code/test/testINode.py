@@ -98,7 +98,7 @@ def save_data(args, exp_dir_base, file_name):
             args["max_psi"],
             args["max_rt"]))
 
-def save_all_data(args, exp_dir_base):
+def save_all_data(args, exp_dir_base,filename):
     file_path = os.path.join(exp_dir_base, 'allResult.tsv')
     mkdir_p_safe(exp_dir_base)
     if not os.path.exists(file_path):
@@ -109,9 +109,9 @@ def save_all_data(args, exp_dir_base):
                 'purity',
                 ))
     with open(file_path, 'a') as fout:
-        fout.write('%s\t%s\t%f\t%f\t%s\t%s\n' % (
+        fout.write('%s\t%s\t%f\n' % (
             args['algorithm'],
-            args['dataset'],
+            filename,
             args['purity'],
         ))
 
@@ -126,16 +126,16 @@ def grid_search_inode(dataset, psi, t, n, rates, file_name, exp_dir_base, shuffl
             sts = time.time()
             root,runTime = create_i_tree(
                 data, n, ps, t, rate=rt)
-            print(root.point_counter)
-            print(runTime)
+            #print(root.point_counter)
+            #print(runTime)
             ets = time.time()
-            print("time of build tree: %s" % (ets-sts))
+            #print("time of build tree: %s" % (ets-sts))
             ti += ets-sts
             pu_sts = time.time()
             dendrogram_purity = expected_dendrogram_purity(root)
-            print("dendrogram_purity: %s" % (dendrogram_purity))
+            #print("dendrogram_purity: %s" % (dendrogram_purity))
             pu_ets = time.time()
-            print("time of calcute purity: %s" % (pu_ets-pu_sts))
+            #print("time of calcute purity: %s" % (pu_ets-pu_sts))
             if dendrogram_purity > purity:
                 max_ps = ps
                 max_rt = rt
@@ -149,7 +149,7 @@ def grid_search_inode(dataset, psi, t, n, rates, file_name, exp_dir_base, shuffl
             "max_psi": max_ps,
             "max_rt": max_rt}
     save_data(args, exp_dir_base, file_name)
-    save_all_data(args=args,exp_dir_base=exp_dir_base)
+    save_all_data(args=args, exp_dir_base=exp_dir_base, filename = file_name)
 
 
 if __name__ == "__main__":
@@ -168,19 +168,12 @@ if __name__ == "__main__":
     # scaler = MinMaxScaler()
     # dataset.iloc[:,:-2] = scaler.fit_transform(dataset.iloc[:,:-2])
     # dataset = list(load_df(dataset))
-<<<<<<< HEAD
     n = 4000
     #psi = [3, 5 , 7, 13, 15]
     psi = [5]
     rates = [0.6]
     #rates = [0.6, 0.7, 0.8, 0.9, 1]
     t = 200
-=======
-    # n = 25000
-    psi = [3, 5 , 7, 13, 15]
-    rates = [0.6, 0.7, 0.8, 0.9, 1]
-    t = 300
->>>>>>> 7e4ed110fc48a17e5d31c0a2682e075bab7eae1b
     remove = False
     file_name = "spambase"
     exp_dir_base_inode = './Code/testResult/Inode/'

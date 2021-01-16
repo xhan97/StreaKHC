@@ -1,0 +1,17 @@
+algorithm	dataset	purity
+IKSHC	banknote	0.694651
+PERCH	banknote	0.662331
+IKSHC	banknote	0.770664
+PERCH	banknote	0.796016
+IKSHC	banknote	0.755523
+PERCH	banknote	0.581753
+IKSHC	banknote	0.846601
+PERCH	banknote	0.659271
+IKSHC	banknote	0.706661
+PERCH	banknote	0.628460
+IKSHC	banknote	0.773890
+PERCH	banknote	0.665374
+IKSHC	banknote	0.680218
+PERCH	banknote	0.588422
+IKSHC	banknote	0.768820
+PERCH	banknote	0.609514

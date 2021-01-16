@@ -1,0 +1,21 @@
+dataset	algorithm	purity	clustering_time_elapsed	max_psi	max_rt
+lung_shuffle_0	IKSHC	0.812312	6.694890	13	0.6
+lung_shuffle_0	PERCH	0.725392	0.883405
+lung_shuffle_1	IKSHC	0.823982	6.811606	7	0.8
+lung_shuffle_1	PERCH	0.780203	0.913398
+lung_shuffle_2	IKSHC	0.842238	6.823396	7	0.7
+lung_shuffle_2	PERCH	0.817414	0.938999
+lung_shuffle_3	IKSHC	0.865452	6.843333	7	0.7
+lung_shuffle_3	PERCH	0.751757	0.989559
+lung_shuffle_4	IKSHC	0.866928	6.918144	5	0.6
+lung_shuffle_4	PERCH	0.742633	0.961874
+lung_shuffle_5	IKSHC	0.925393	6.984697	13	0.8
+lung_shuffle_5	PERCH	0.741363	1.046972
+lung_shuffle_6	IKSHC	0.884885	6.699643	7	0.6
+lung_shuffle_6	PERCH	0.715808	0.995100
+lung_shuffle_7	IKSHC	0.863100	6.770945	15	0.8
+lung_shuffle_7	PERCH	0.795053	1.026332
+lung_shuffle_8	IKSHC	0.835587	7.079482	7	0.7
+lung_shuffle_8	PERCH	0.772472	1.005834
+lung_shuffle_9	IKSHC	0.878441	7.258239	13	0.8
+lung_shuffle_9	PERCH	0.738796	0.891741

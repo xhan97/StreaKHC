@@ -1,0 +1,5 @@
+algorithm	dataset	purity
+IKSHC	control	0.771113
+PERCH	control	0.490392
+IKSHC	control	0.776594
+PERCH	control	0.594715

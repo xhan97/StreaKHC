@@ -1,0 +1,3 @@
+algorithm	dataset	purity
+IKSHC	Isolet	0.444347
+PERCH	Isolet	0.399398

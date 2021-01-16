@@ -65,6 +65,23 @@ def save_data_Pnode(args, exp_dir_base, file_name):
             args['clustering_time_elapsed']
         ))
 
+def save_all_data(args, exp_dir_base, filename):
+    file_path = os.path.join(exp_dir_base, 'allResult.tsv')
+    mkdir_p_safe(exp_dir_base)
+    if not os.path.exists(file_path):
+        with open(file_path, 'w') as fout:
+            fout.write('%s\t%s\t%s\n' % (
+                'algorithm',
+                'dataset',
+                'purity',
+                ))
+    with open(file_path, 'a') as fout:
+        fout.write('%s\t%s\t%f\n' % (
+            args['algorithm'],
+            filename,
+            args['purity'],
+        ))
+
 
 def grid_research_pnode(dataset, file_name, exp_dir_base, shuffle_index):
     ti = 0
@@ -72,7 +89,7 @@ def grid_research_pnode(dataset, file_name, exp_dir_base, shuffle_index):
     data = deepcopy(dataset)
     sts = time.time()
     root,run_time = create_p_tree(data)
-    print(run_time)
+    # print(run_time)
     ets = time.time()
     dendrogram_purity = expected_dendrogram_purity(root)
     ti += ets-sts
@@ -80,11 +97,12 @@ def grid_research_pnode(dataset, file_name, exp_dir_base, shuffle_index):
         purity = dendrogram_purity
     del data
     args = {'dataset': file_name+"_"+"shuffle"+"_"+str(shuffle_index),
-            'algorithm': "IKSHC",
+            'algorithm': "PERCH",
             'purity': purity,
             'clustering_time_elapsed': ti,
             }
     save_data_Pnode(args, exp_dir_base, file_name)
+    save_all_data(args,exp_dir_base,file_name)
 
 
 if __name__ == "__main__":
@@ -97,11 +115,7 @@ if __name__ == "__main__":
     dataset = list(load_data("./Code/data/spambase.tsv"))
     if remove:
         remove_dirs(file_name=file_name, exp_dir_base=exp_dir_base)
-<<<<<<< HEAD
     for i in range(1):
-=======
-    for i in range(10):
->>>>>>> 7e4ed110fc48a17e5d31c0a2682e075bab7eae1b
         np.random.shuffle(dataset)
         grid_research_pnode(dataset=dataset, file_name=file_name,
                             exp_dir_base=exp_dir_base, shuffle_index=i)

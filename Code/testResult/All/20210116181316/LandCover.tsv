@@ -1,0 +1,21 @@
+dataset	algorithm	purity	clustering_time_elapsed	max_psi	max_rt
+LandCover_shuffle_0	IKSHC	0.533172	15.632742	13	0.7
+LandCover_shuffle_0	PERCH	0.488867	1.572489
+LandCover_shuffle_1	IKSHC	0.562172	15.714992	13	0.7
+LandCover_shuffle_1	PERCH	0.416671	0.770369
+LandCover_shuffle_2	IKSHC	0.551224	15.372927	15	0.6
+LandCover_shuffle_2	PERCH	0.446841	0.996730
+LandCover_shuffle_3	IKSHC	0.539024	15.610808	13	0.6
+LandCover_shuffle_3	PERCH	0.375492	0.948302
+LandCover_shuffle_4	IKSHC	0.538575	15.486831	13	0.8
+LandCover_shuffle_4	PERCH	0.472923	0.848894
+LandCover_shuffle_5	IKSHC	0.571078	15.498311	15	0.6
+LandCover_shuffle_5	PERCH	0.413278	0.783135
+LandCover_shuffle_6	IKSHC	0.529745	15.042532	13	0.7
+LandCover_shuffle_6	PERCH	0.385000	0.837875
+LandCover_shuffle_7	IKSHC	0.520993	15.332201	15	0.8
+LandCover_shuffle_7	PERCH	0.444271	0.778059
+LandCover_shuffle_8	IKSHC	0.553193	15.711025	15	0.7
+LandCover_shuffle_8	PERCH	0.343653	1.120325
+LandCover_shuffle_9	IKSHC	0.518373	15.453841	7	0.6
+LandCover_shuffle_9	PERCH	0.429598	0.873191
