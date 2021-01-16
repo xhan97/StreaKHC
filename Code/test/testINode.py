@@ -52,7 +52,10 @@ def create_i_tree(dataset, n, psi, t, rate):
     # history = []
     for i, pt in enumerate(data):
         if len(pt) == 3:
+            #st = time.time()
             ikv = addNNE(met, pt[0], oneHot, subIndexSet)
+            #et = time.time()
+            #print("add time:%s"%(et-st))
             pt.append(ikv)
         if (i % 300 == 0): 
             tree_mi_time = time.time()
@@ -168,7 +171,7 @@ if __name__ == "__main__":
     # scaler = MinMaxScaler()
     # dataset.iloc[:,:-2] = scaler.fit_transform(dataset.iloc[:,:-2])
     # dataset = list(load_df(dataset))
-    n = 4000
+    n = 2000
     #psi = [3, 5 , 7, 13, 15]
     psi = [5]
     rates = [0.6]
@@ -180,7 +183,7 @@ if __name__ == "__main__":
     dati = time.strftime("%Y%m%d%H%M%S", time.localtime())
     exp_dir_base_inode = exp_dir_base_inode+dati
     shuffle_times = 1
-    dataset = list(load_data("./Code/data/"+file_name+".tsv"))
+    dataset = list(load_data("./Code/data/originalData/"+file_name+".tsv"))
     n = int(len(dataset)/4)
 
     if remove:

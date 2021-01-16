@@ -1,0 +1,9 @@
+dataset	algorithm	purity	clustering_time_elapsed	max_psi	max_rt
+diabetes_shuffle_0	IKSHC	0.637895	2.072985	5	0.7
+diabetes_shuffle_0	PERCH	0.602479	0.544899
+diabetes_shuffle_1	IKSHC	0.622857	2.032988	3	0.6
+diabetes_shuffle_1	PERCH	0.589786	0.589159
+diabetes_shuffle_2	IKSHC	0.628521	2.079573	15	0.6
+diabetes_shuffle_2	PERCH	0.605919	0.706118
+diabetes_shuffle_3	IKSHC	0.632654	2.020960	15	0.7
+diabetes_shuffle_3	PERCH	0.580677	0.541366

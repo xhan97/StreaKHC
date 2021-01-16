@@ -1,0 +1,21 @@
+dataset	algorithm	purity	clustering_time_elapsed	max_psi	max_rt
+wine_shuffle_0	IKSHC	0.888193	0.530119	13	0.8
+wine_shuffle_0	PERCH	0.651025	0.136625
+wine_shuffle_1	IKSHC	0.942245	0.526738	7	0.8
+wine_shuffle_1	PERCH	0.687138	0.112969
+wine_shuffle_2	IKSHC	0.916138	0.535955	13	0.7
+wine_shuffle_2	PERCH	0.560366	0.109563
+wine_shuffle_3	IKSHC	0.936716	0.523934	15	0.9
+wine_shuffle_3	PERCH	0.701788	0.118717
+wine_shuffle_4	IKSHC	0.952976	0.523788	7	0.8
+wine_shuffle_4	PERCH	0.809103	0.118218
+wine_shuffle_5	IKSHC	0.849551	0.535331	3	0.6
+wine_shuffle_5	PERCH	0.634086	0.117106
+wine_shuffle_6	IKSHC	0.959677	0.530696	7	0.8
+wine_shuffle_6	PERCH	0.707930	0.099519
+wine_shuffle_7	IKSHC	0.874198	0.530809	13	0.8
+wine_shuffle_7	PERCH	0.666610	0.106970
+wine_shuffle_8	IKSHC	0.947433	0.540788	13	0.6
+wine_shuffle_8	PERCH	0.743568	0.130851
+wine_shuffle_9	IKSHC	0.891048	0.514238	7	0.6
+wine_shuffle_9	PERCH	0.770799	0.114428

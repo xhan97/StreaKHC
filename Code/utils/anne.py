@@ -10,7 +10,35 @@ import pathos.pools as pp
 from numba import jit
 from scipy.spatial.distance import cdist
 from sklearn import preprocessing
+from itertools import chain 
 
+from sklearn.neighbors import BallTree
+import numpy as np
+import time
+
+def get_nearest(src_points, candidates, k_neighbors=1):
+    """Find nearest neighbors for all source points from a set of candidate points"""
+
+    # Create tree from the candidate points
+    # st = time.time()
+    tree = BallTree(candidates, leaf_size=15, metric='euclidean')
+    # et = time.time()
+    # Find closest points and distances
+    distances, indices = tree.query(src_points, k=k_neighbors)
+    #print("search time: %s"%(et-st))
+
+    distance_dict = dict(zip(indices[0], distances[0])) 
+    # Transpose to get distances and indices into arrays
+    #distances = distances.transpose()
+    #indices = indices.transpose()
+
+    # Get closest indices and distances (i.e. array at index 0)
+    # note: for the second closest points, you would take index 1, etc.
+    #closest = indices
+    #closest_dist = distances
+
+    # Return indices and distances
+    return distance_dict
 
 #@jit(nopython=True)
 def _fast_norm_diff(x, y):
@@ -22,13 +50,16 @@ def _fast_norm_diff(x, y):
 
     Returns:
     The 2-norm of x - y.
+
     """
-    s = 0.0
+    # s = 0.0
     d = x-y
-    #s = sum([i**2 for i in d ])
-    for i in range(len(d)):
-         s += d[i] ** 2
-    return s
+    # #s = sum([i**2 for i in d ])
+    # for i in range(len(d)):
+    #      s += d[i] ** 2
+    # return s
+
+    return sum([i**2 for i in d ])
 
 
 def embeding(_, n, psi, m_distance, oneHot):
@@ -66,7 +97,6 @@ def aNNE_similarity(m_distance, psi, t):
                         psi = psi,
                         m_distance = m_distance,
                         oneHot = oneHot)
-    cpu_count = multiprocessing.cpu_count()
     with Pool(processes=2) as pool:
         embeding_set = np.array(pool.map(processor, range(t)))
 
@@ -110,20 +140,35 @@ def addNNE(met,x,oneHot,subIndexSet):
     Returns:
         [numpy array]: the aNNE value of x. 
     """
-    
-    ind = list(set(subIndexSet.reshape(-1).astype(int)))
+    #st = time.time()
+    ind = list(set(chain(*subIndexSet))) 
+    #ind = list(set(subIndexSet.reshape(-1).astype(int)))
     met = np.array(met)
     indData = met[ind]
     
-    p = pp.ProcessPool(4)
+
+    # p = pp.ProcessPool(8)
+    # print(len(indData))
     #with Pool() as pool:
-    d = np.sqrt(p.map(_fast_norm_diff, [x]*len(indData), indData))
-    
-    disDict = dict(zip(ind,d))
-    
-    ind = [[list(item).index(min(item, key=lambda x: disDict[x]))] 
+    #st = time.time()
+    #d = np.sqrt(p.map(_fast_norm_diff, [x]*len(indData), indData))
+    #print(d)
+    #et = time.time()
+    #st = time.time()
+    distance_dict = get_nearest([x],indData,k_neighbors=len(indData))
+    distDict = {}
+    for i in range(len(ind)):
+        distDict[ind[i]] = distance_dict[i]
+    #disDict = dict(zip(ind,d))
+    #print(distDict)
+    #print(disDict)
+    ind = [[list(item).index(min(item, key=lambda x: distDict[x]))] 
             for item in subIndexSet]
+    #print(ind)
     embSet = oneHot.transform(ind).reshape(-1)
+    #et = time.time()
+    #print("maptime:%s"%(et-st))
+
     return embSet
 
 
@@ -132,10 +177,10 @@ if __name__ == '__main__':
 
     from Code.utils.deltasep_utils import create_dataset
     
-    dataset = create_dataset(3, 10, num_clusters=3)
+    dataset = create_dataset(5, 500, num_clusters=3)
     #np.random.shuffle(dataset)
-    met = [pt[:3] for pt in dataset[:20]]
-    addx = dataset[21][:3]
+    met = [pt[:3] for pt in dataset[:400]]
+    addx = dataset[401][:3]
     
     x = cdist(met,met, 'euclidean') 
     
@@ -143,5 +188,7 @@ if __name__ == '__main__':
     oneHot,subIndexSet,aNNEMetrix = aNNE_similarity(x,5,10)
     ets = time.time()
     test = addNNE(met,addx,oneHot,subIndexSet)
-    print(ets-sts)
-    print(len(test))
+    add_end = time.time()
+
+    print("build time:%s"%(ets-sts))
+    print("add time:%s" %(add_end-ets))

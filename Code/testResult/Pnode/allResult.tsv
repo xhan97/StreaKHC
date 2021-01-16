@@ -1,0 +1,3 @@
+algorithm	dataset	purity
+PERCH	spambase	0.615131
+PERCH	spambase	0.584603
