@@ -1,7 +1,7 @@
 '''
 @Author: Xin Han
 @Date: 2020-06-07 11:24:57
-LastEditTime: 2020-11-11 01:52:35
+LastEditTime: 2021-01-16 16:44:04
 LastEditors: Please set LastEditors
 @Description: In User Settings Edit
 @file_path: \StreamHC\Code\testPNode.py
@@ -16,7 +16,7 @@ import numpy as np
 from Code.models.PNode import PNode
 from Code.utils.deltasep_utils import create_dataset
 from Code.utils.dendrogram_purity import expected_dendrogram_purity
-from Code.utils.file_utils import load_data, remove_file, mkdir_p_safe
+from Code.utils.file_utils import load_data, remove_dirs, mkdir_p_safe
 
 
 def create_p_tree(dataset):
@@ -90,7 +90,7 @@ if __name__ == "__main__":
 
     dataset = list(load_data("./Code/data/glass.tsv"))
     if remove:
-        remove_file(file_name=file_name, exp_dir_base=exp_dir_base)
+        remove_dirs(file_name=file_name, exp_dir_base=exp_dir_base)
     for i in range(10):
         np.random.shuffle(dataset)
         grid_research_pnode(dataset=dataset, file_name=file_name,

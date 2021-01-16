@@ -1,7 +1,7 @@
 '''
 @Author: Xin Han
 @Date: 2020-06-07 11:24:57
-LastEditTime: 2020-12-18 17:40:33
+LastEditTime: 2021-01-16 16:19:13
 LastEditors: Please set LastEditors
 @Description: In User Settings Edit
 @file_path: \StreamHC\Code\testINode.py
@@ -93,6 +93,22 @@ def save_data(args, exp_dir_base, file_name):
             args["max_psi"],
             args["max_rt"]))
 
+def save_all_data(args, exp_dir_base):
+    file_path = os.path.join(exp_dir_base, 'allResult.tsv')
+    mkdir_p_safe(exp_dir_base)
+    if not os.path.exists(file_path):
+        with open(file_path, 'w') as fout:
+            fout.write('%s\t%s\t%s\n' % (
+                'algorithm',
+                'dataset',
+                'purity',
+                ))
+    with open(file_path, 'a') as fout:
+        fout.write('%s\t%s\t%f\t%f\t%s\t%s\n' % (
+            args['algorithm'],
+            args['dataset'],
+            args['purity'],
+        ))
 
 def grid_search_inode(dataset, psi, t, n, rates, file_name, exp_dir_base, shuffle_index):
     ti = 0
@@ -127,6 +143,7 @@ def grid_search_inode(dataset, psi, t, n, rates, file_name, exp_dir_base, shuffl
             "max_psi": max_ps,
             "max_rt": max_rt}
     save_data(args, exp_dir_base, file_name)
+    save_all_data(args=args,exp_dir_base=exp_dir_base)
 
 
 if __name__ == "__main__":
@@ -145,7 +162,7 @@ if __name__ == "__main__":
     # scaler = MinMaxScaler()
     # dataset.iloc[:,:-2] = scaler.fit_transform(dataset.iloc[:,:-2])
     # dataset = list(load_df(dataset))
-    n = 25000
+    # n = 25000
     psi = [3, 5 , 7, 13, 15]
     rates = [0.6, 0.7, 0.8, 0.9, 1]
     t = 300
@@ -156,6 +173,7 @@ if __name__ == "__main__":
     exp_dir_base_inode = exp_dir_base_inode+dati
     shuffle_times = 5
     dataset = list(load_data("./Code/data/"+file_name+".tsv"))
+    n = int(len(dataset)/4)
 
     if remove:
         remove_dirs(file_name=file_name, exp_dir_base=exp_dir_base_inode)

@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2020-11-12 11:41:39
-LastEditTime: 2020-11-12 12:27:59
+LastEditTime: 2021-01-16 16:08:55
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: /StreamHC/Code/utils/file_utils.py
@@ -27,7 +27,8 @@ def remove_dirs(exp_dir_base, file_name):
        os.removedirs(file_path)
 
 def load_data(file_path):
-    data = pd.read_csv(file_path, delimiter='\t')
+    #data = pd.read_csv(file_path, delimiter='\t')
+    data = pd.read_csv(file_path)
     data = data.dropna(how='all')
     data = data.dropna(axis=1, how='all')
     # scaler = MinMaxScaler()
