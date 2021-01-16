@@ -1,7 +1,7 @@
 '''
 @Author: Xin Han
 @Date: 2020-06-07 11:24:57
-LastEditTime: 2020-11-11 01:52:35
+LastEditTime: 2021-01-16 16:44:04
 LastEditors: Please set LastEditors
 @Description: In User Settings Edit
 @file_path: \StreamHC\Code\testPNode.py
@@ -97,7 +97,11 @@ if __name__ == "__main__":
     dataset = list(load_data("./Code/data/spambase.tsv"))
     if remove:
         remove_dirs(file_name=file_name, exp_dir_base=exp_dir_base)
+<<<<<<< HEAD
     for i in range(1):
+=======
+    for i in range(10):
+>>>>>>> 7e4ed110fc48a17e5d31c0a2682e075bab7eae1b
         np.random.shuffle(dataset)
         grid_research_pnode(dataset=dataset, file_name=file_name,
                             exp_dir_base=exp_dir_base, shuffle_index=i)
