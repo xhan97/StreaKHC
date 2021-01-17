@@ -83,7 +83,7 @@ def serliaze_tree_to_file_with_point_ids(root,fn):
           if curr_node.parent:
             sibling_node_id = curr_node.siblings()[0].pts[0][2] if curr_node.siblings()[0].is_leaf() else curr_node.siblings()[0].id
           dis  = getDistance(curr_node) if curr_node.parent else "None"
-          fout.write("%s\t%s\t%s\t%s\n" % (curr_node_id, sibling_node_id, dis, curr_node.pts[0][1] if curr_node.is_leaf() else "None"))
+          fout.write("%s\t%s\t%s\t%s\t%s\n" % (curr_node_id,sibling_node_id,curr_node.parent.id if curr_node.parent else "None",dis, curr_node.pts[0][1] if curr_node.is_leaf() else "None"))
           for c in curr_node.children:
               queue.put(c)
 
