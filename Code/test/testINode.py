@@ -132,7 +132,7 @@ def grid_search_inode(dataset, psi, t, n, rates, file_name, exp_dir_base, shuffl
             root,runTime = create_i_tree(
                 data, n, ps, t, rate=rt)
             
-            serliaze_tree_to_file(root, "seriesTree.txt")
+            serliaze_tree_to_file_with_point_ids(root, "seriesTree.tsv")
             #print(root.point_counter)
             #print(runTime)
             ets = time.time()
@@ -182,7 +182,7 @@ if __name__ == "__main__":
     #rates = [0.6, 0.7, 0.8, 0.9, 1]
     t = 200
     remove = False
-    file_name = "spambase"
+    file_name = "glass"
     exp_dir_base_inode = './Code/testResult/Inode/'
     dati = time.strftime("%Y%m%d%H%M%S", time.localtime())
     exp_dir_base_inode = exp_dir_base_inode+dati

@@ -27,8 +27,8 @@ def remove_dirs(exp_dir_base, file_name):
        os.removedirs(file_path)
 
 def load_data(file_path):
-    #data = pd.read_csv(file_path, delimiter='\t')
-    data = pd.read_csv(file_path)
+    data = pd.read_csv(file_path, delimiter='\t')
+    #data = pd.read_csv(file_path)
     data = data.dropna(how='all')
     data = data.dropna(axis=1, how='all')
     # scaler = MinMaxScaler()
