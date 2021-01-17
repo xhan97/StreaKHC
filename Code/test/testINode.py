@@ -1,7 +1,7 @@
 '''
 @Author: Xin Han
 @Date: 2020-06-07 11:24:57
-LastEditTime: 2021-01-16 16:19:13
+LastEditTime: 2021-01-17 14:04:24
 LastEditors: Please set LastEditors
 @Description: In User Settings Edit
 @file_path: \StreamHC\Code\testINode.py
@@ -16,10 +16,12 @@ import numpy as np
 import pandas as pd
 from Code.models.INode import INode
 from Code.utils.anne import add_nne_data, addNNE
-from Code.utils.dendrogram_purity import expected_dendrogram_purity #,create_dataset
+from Code.utils.dendrogram_purity import expected_dendrogram_purity
+from Code.utils.serialize_trees import serliaze_tree_to_file_with_point_ids,serliaze_tree_to_file
 from Code.utils.file_utils import load_data, mkdir_p_safe, remove_dirs
 from Code.utils.Graphviz import Graphviz
 from graphviz import Source
+
 
 
 def create_i_tree(dataset, n, psi, t, rate):
@@ -129,6 +131,8 @@ def grid_search_inode(dataset, psi, t, n, rates, file_name, exp_dir_base, shuffl
             sts = time.time()
             root,runTime = create_i_tree(
                 data, n, ps, t, rate=rt)
+            
+            serliaze_tree_to_file(root, "seriesTree.txt")
             #print(root.point_counter)
             #print(runTime)
             ets = time.time()
@@ -171,7 +175,7 @@ if __name__ == "__main__":
     # scaler = MinMaxScaler()
     # dataset.iloc[:,:-2] = scaler.fit_transform(dataset.iloc[:,:-2])
     # dataset = list(load_df(dataset))
-    n = 2000
+    n = 4000
     #psi = [3, 5 , 7, 13, 15]
     psi = [5]
     rates = [0.6]
