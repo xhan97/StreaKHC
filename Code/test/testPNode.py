@@ -17,6 +17,7 @@ from Code.models.PNode import PNode
 from Code.utils.deltasep_utils import create_dataset
 from Code.utils.dendrogram_purity import expected_dendrogram_purity
 from Code.utils.file_utils import load_data, remove_dirs, mkdir_p_safe
+from Code.utils.Graphviz import Graphviz
 
 
 def create_p_tree(dataset):
@@ -89,6 +90,7 @@ def grid_research_pnode(dataset, file_name, exp_dir_base, shuffle_index):
     data = deepcopy(dataset)
     sts = time.time()
     root,run_time = create_p_tree(data)
+    Graphviz.write_tree("ptree.dot",root)
     print(run_time)
     ets = time.time()
     dendrogram_purity = expected_dendrogram_purity(root)
@@ -108,11 +110,11 @@ def grid_research_pnode(dataset, file_name, exp_dir_base, shuffle_index):
 if __name__ == "__main__":
 
     remove = False
-    file_name = "spambase"
+    file_name = "wine"
     exp_dir_base = './Code/testResult/Pnode'
     # mkdir_p_safe(exp_dir_base)
 
-    dataset = list(load_data("./Code/data/originalData/"+file_name+".tsv"))
+    dataset = list(load_data("./Code/data/addData/split4/"+file_name+".csv"))
     if remove:
         remove_dirs(file_name=file_name, exp_dir_base=exp_dir_base)
     for i in range(1):

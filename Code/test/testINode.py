@@ -178,8 +178,8 @@ if __name__ == "__main__":
     # dataset = list(load_df(dataset))
     n = 4000
     #psi = [3, 5 , 7, 13, 15]
-    psi = [5]
-    rates = [0.6]
+    psi = [7]
+    rates = [0.8]
     #rates = [0.6, 0.7, 0.8, 0.9, 1]
     t = 200
     remove = False
