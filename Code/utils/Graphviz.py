@@ -42,19 +42,19 @@ class Graphviz(object):
 
     def get_node_label(self, node):
         lbl = []
-        lbl.append(self.format_id(node.id))
-        lbl.append('<BR/>')
-        lbl.append('num pts: %d' % len(node.leaves()))
-        lbl.append('<BR/>')
-        try:
-            lbl.append('purity: %f' % node.purity())
-        except Exception:
-            pass
-        try:
-            lbl.append('<BR/>')
-            lbl.append('across: %s' % node.best_across_debug)
-        except Exception:
-            pass
+        #lbl.append(self.format_id(node.id))
+        #lbl.append('<BR/>')
+        #lbl.append('num pts: %d' % len(node.leaves()))
+        #lbl.append('<BR/>')
+        #try:
+        #    lbl.append('purity: %f' % node.purity())
+        #except Exception:
+        #    pass
+        #try:
+        #    lbl.append('<BR/>')
+        #    lbl.append('across: %s' % node.best_across_debug)
+        #except Exception:
+        #    pass
         return ''.join(lbl)
 
     def get_color(self, lbl):
@@ -79,7 +79,7 @@ class Graphviz(object):
                         color = self.get_color('None')
         except Exception:
             pass
-        shape = 'egg'
+        shape = 'circle'
 
         if node.parent is None:
             s.append(
@@ -98,10 +98,8 @@ class Graphviz(object):
                 else:
                     leaf_m = '%s|%s' % (node.pts[0][2], node.pts[0][1]) \
                         if node.is_leaf() else ''
-            s.append('\n%s[shape=%s;style=filled;color=%s;label=<%s<BR/>'
-                     '%s<BR/>%s<BR/>>]'
-                % (self.format_id(node.id), shape, color,
-                   self.get_node_label(node), color, leaf_m))
+            s.append('\n%s[shape=%s;style=filled;color=%s]'
+                % (self.format_id(node.id), shape, color))
             s.append('\n%s->%s' % (self.format_id(node.parent.id),
                                    self.format_id(node.id)))
         return ''.join(s)

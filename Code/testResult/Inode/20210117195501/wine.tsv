@@ -1,0 +1,2 @@
+dataset	algorithm	purity	clustering_time_elapsed	max_psi	max_rt
+wine_shuffle_0	IKSHC	0.866120	0.627780	5	0.6

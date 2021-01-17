@@ -21,7 +21,7 @@ from Code.utils.serialize_trees import serliaze_tree_to_file_with_point_ids,serl
 from Code.utils.file_utils import load_data, mkdir_p_safe, remove_dirs
 from Code.utils.Graphviz import Graphviz
 from graphviz import Source
-
+#from Code.utils.Graphviz import write_tree
 
 
 def create_i_tree(dataset, n, psi, t, rate):
@@ -133,6 +133,7 @@ def grid_search_inode(dataset, psi, t, n, rates, file_name, exp_dir_base, shuffl
                 data, n, ps, t, rate=rt)
             
             serliaze_tree_to_file_with_point_ids(root, "seriesTree.tsv")
+            Graphviz.write_tree("tree.dot",root)
             #print(root.point_counter)
             #print(runTime)
             ets = time.time()
@@ -182,12 +183,12 @@ if __name__ == "__main__":
     #rates = [0.6, 0.7, 0.8, 0.9, 1]
     t = 200
     remove = False
-    file_name = "glass"
+    file_name = "wine"
     exp_dir_base_inode = './Code/testResult/Inode/'
     dati = time.strftime("%Y%m%d%H%M%S", time.localtime())
     exp_dir_base_inode = exp_dir_base_inode+dati
     shuffle_times = 1
-    dataset = list(load_data("./Code/data/originalData/"+file_name+".tsv"))
+    dataset = list(load_data("./Code/data/addData/split4/"+file_name+".csv"))
     n = int(len(dataset)/4)
 
     if remove:
