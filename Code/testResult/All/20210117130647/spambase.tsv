@@ -4,3 +4,6 @@ spambase_shuffle_0	PERCH	0.598560	4.881153
 spambase_shuffle_1	IKSHC	0.628307	19.295236	7	0.8
 spambase_shuffle_1	PERCH	0.606587	4.348566
 spambase_shuffle_2	IKSHC	0.629522	19.810574	5	0.7
+spambase_shuffle_2	PERCH	0.569328	4.277271
+spambase_shuffle_3	IKSHC	0.626914	19.488511	7	0.8
+spambase_shuffle_3	PERCH	0.593550	4.285891
