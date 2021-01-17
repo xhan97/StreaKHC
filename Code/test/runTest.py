@@ -22,7 +22,7 @@ rates = [0.6, 0.7, 0.8, 0.9, 1]
 t = 300
 
 remove = False
-inputdir = "Code/data/addData/split4"
+inputdir = "Code/data/addData/split1"
 exp_dir_base = 'Code/testResult/All/'
 dati = time.strftime("%Y%m%d%H%M%S", time.localtime())
 exp_dir_base = exp_dir_base+dati
