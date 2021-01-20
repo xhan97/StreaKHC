@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 import os
 
-inputdir = r'Code\\testResult\\All'
+inputdir = r'Code\\testResult\\extraAll'
 data = pd.DataFrame()
 
 for parents, dirnames, filenames in os.walk(inputdir):
@@ -20,4 +20,4 @@ for parents, dirnames, filenames in os.walk(inputdir):
             data = data.append(df, ignore_index=True)
 print(data)
 
-data.to_csv("alldata.csv",sep="\t",index=False)
+data.to_csv("extraalldata.csv",sep="\t",index=False)

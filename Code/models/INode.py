@@ -8,6 +8,7 @@ from numba import jit
 from bisect import bisect_left
 from numpy.lib.function_base import delete
 from scipy.special import comb, perm
+import time
 
 import math
 
@@ -145,8 +146,14 @@ class INode:
         Returns:
         A pointer to the root.
         """
+
         if delete_node and  self.point_counter >= L:
+            #print(self.point_counter)
+            #delti = time.time()
             self = self.delete()
+            #deled = time.time()
+            #print("delete time:%s"%(deled-delti))
+            #print(self.point_counter)
         root = self.root()
         if self.pts is not None and len(self.pts) == 0:
             self.add_pt(pt[:3])
@@ -191,15 +198,16 @@ class INode:
     def delete(self):
         curr_node = self.root()
         p_id = curr_node.pts[0][2]
-
+        #i = 0
         while not curr_node.is_leaf():
+        #    i = i+1
             curr_node.pts.pop(0)
-            curr_node.point_counter -= 1
+            #curr_node.point_counter -= 1
             if curr_node.children[0].pts[0][2] == p_id:
                 curr_node = curr_node.children[0]
             elif curr_node.children[1].pts[0][2] == p_id:
                 curr_node = curr_node.children[1]
-        
+        #print(i)
         sibling = curr_node.siblings()[0]
         parent_node = curr_node.parent
         # sibling.ikv = parent.ikv

@@ -1,0 +1,98 @@
+algorithm	dataset	purity
+IKSHC	control	0.771113
+PERCH	control	0.490392
+IKSHC	control	0.776594
+PERCH	control	0.594715
+IKSHC	control	0.763705
+PERCH	control	0.539764
+IKSHC	control	0.788476
+PERCH	control	0.594418
+IKSHC	control	0.783900
+PERCH	control	0.588982
+IKSHC	control	0.774629
+PERCH	control	0.589928
+IKSHC	control	0.780330
+PERCH	control	0.623966
+IKSHC	control	0.779325
+PERCH	control	0.795415
+IKSHC	control	0.809081
+PERCH	control	0.602046
+IKSHC	control	0.762635
+PERCH	control	0.695824
+IKSHC	hill	0.505972
+PERCH	hill	0.505277
+IKSHC	hill	0.506571
+PERCH	hill	0.502523
+IKSHC	hill	0.505826
+PERCH	hill	0.504871
+IKSHC	hill	0.505176
+PERCH	hill	0.503919
+IKSHC	hill	0.504946
+PERCH	hill	0.502393
+IKSHC	hill	0.505711
+PERCH	hill	0.506549
+IKSHC	hill	0.506665
+PERCH	hill	0.505998
+IKSHC	hill	0.505497
+PERCH	hill	0.507332
+IKSHC	hill	0.505946
+PERCH	hill	0.503791
+IKSHC	hill	0.505621
+PERCH	hill	0.505407
+Single-linkage	AHC	banknote	0.92
+Single-linkage	AHC	thyroid	0.92
+Single-linkage	AHC	seeds	0.69
+Single-linkage	AHC	diabetes	0.67
+Single-linkage	AHC	vowel	0.2
+Single-linkage	AHC	wine	0.68
+Single-linkage	AHC	shape	0.69
+Single-linkage	AHC	Segment	0.6
+Single-linkage	AHC	WDBC	0.71
+Single-linkage	AHC	spam	0.59
+Single-linkage	AHC	control	0.73
+Single-linkage	AHC	hill	0.5
+Single-linkage	AHC	LandCover	0.3
+Single-linkage	AHC	musk	0.54
+Single-linkage	AHC	LSVT	0.58
+Single-linkage	AHC	Isolet	0.27
+Single-linkage	AHC	COIL20	0.91
+Single-linkage	AHC	lung	0.76
+Single-linkage	AHC	ALLAML	0.68
+Complete-linkage	AHC	banknote	0.63
+Complete-linkage	AHC	thyroid	0.89
+Complete-linkage	AHC	seeds	0.75
+Complete-linkage	AHC	diabetes	0.66
+Complete-linkage	AHC	vowel	0.22
+Complete-linkage	AHC	wine	0.92
+Complete-linkage	AHC	shape	0.65
+Complete-linkage	AHC	Segment	0.62
+Complete-linkage	AHC	WDBC	0.79
+Complete-linkage	AHC	spam	0.57
+Complete-linkage	AHC	control	0.81
+Complete-linkage	AHC	hill	0.5
+Complete-linkage	AHC	LandCover	0.52
+Complete-linkage	AHC	musk	0.56
+Complete-linkage	AHC	LSVT	0.62
+Complete-linkage	AHC	Isolet	0.48
+Complete-linkage	AHC	COIL20	0.66
+Complete-linkage	AHC	lung	0.89
+Complete-linkage	AHC	ALLAML	0.67
+Average-linkage	AHC	banknote	0.68
+Average-linkage	AHC	thyroid	0.93
+Average-linkage	AHC	seeds	0.85
+Average-linkage	AHC	diabetes	0.67
+Average-linkage	AHC	vowel	0.22
+Average-linkage	AHC	wine	0.89
+Average-linkage	AHC	shape	0.65
+Average-linkage	AHC	Segment	0.65
+Average-linkage	AHC	WDBC	0.86
+Average-linkage	AHC	spam	0.58
+Average-linkage	AHC	control	0.81
+Average-linkage	AHC	hill	0.5
+Average-linkage	AHC	LandCover	0.56
+Average-linkage	AHC	musk	0.55
+Average-linkage	AHC	LSVT	0.63
+Average-linkage	AHC	Isolet	0.57
+Average-linkage	AHC	COIL20	0.72
+Average-linkage	AHC	lung	0.94
+Average-linkage	AHC	ALLAML	0.68

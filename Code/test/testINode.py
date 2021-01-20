@@ -15,8 +15,8 @@ from copy import deepcopy
 import numpy as np
 import pandas as pd
 from Code.models.INode import INode
-from Code.utils.anne import add_nne_data, addNNE
-from Code.utils.dendrogram_purity import expected_dendrogram_purity
+from Code.utils.anne_no_pool import add_nne_data, addNNE
+from Code.utils.dendrogram_purity import dendrogram_purity, expected_dendrogram_purity
 from Code.utils.serialize_trees import serliaze_tree_to_file_with_point_ids,serliaze_tree_to_file
 from Code.utils.file_utils import load_data, mkdir_p_safe, remove_dirs
 from Code.utils.Graphviz import Graphviz
@@ -44,8 +44,13 @@ def create_i_tree(dataset, n, psi, t, rate):
         passed in.
     """
 
-    met = [pt[0] for pt in dataset[:n]]
+    met = np.array( [pt[0] for pt in dataset[:n]])
+    nne_st = time.time()
     oneHot, subIndexSet, data = add_nne_data(dataset, n, psi, t)
+    ind =  list(set.union(*map(set,subIndexSet)))
+    indData = met[ind]
+    nne_ed = time.time()
+    print(nne_ed - nne_st)
     root = INode(exact_dist_thres=10)
     run_time = []
 
@@ -55,13 +60,16 @@ def create_i_tree(dataset, n, psi, t, rate):
     for i, pt in enumerate(data):
         if len(pt) == 3:
             #st = time.time()
-            ikv = addNNE(met, pt[0], oneHot, subIndexSet)
+            ikv = addNNE(ind,indData, pt[0], oneHot, subIndexSet)
             #et = time.time()
             #print("add time:%s"%(et-st))
             pt.append(ikv)
-        if (i % 300 == 0): 
+        if (i % 5000 == 0): 
             tree_mi_time = time.time()
             run_time.append((i, tree_mi_time - tree_st_time))
+            print(run_time)
+        #if (i > 25000):
+        #    print()
         # history.append(pt[0])
 
         # if i > w:
@@ -128,21 +136,28 @@ def grid_search_inode(dataset, psi, t, n, rates, file_name, exp_dir_base, shuffl
     for ps in psi:
         for rt in rates:
             data = deepcopy(dataset)
-            sts = time.time()
+            #sts = time.time()
             root,runTime = create_i_tree(
                 data, n, ps, t, rate=rt)
-            
-            serliaze_tree_to_file_with_point_ids(root, "seriesTree.tsv")
-            Graphviz.write_tree("tree.dot",root)
+            with open("InodeTime.tsv","a") as f:
+                for item in runTime:
+                        f.write("%s\t%s\n" %(
+                            item[0],
+                            item[1]
+                        ))
+            #print(runTime) 
+            #serliaze_tree_to_file_with_point_ids(root, "seriesTree.tsv")
+            #Graphviz.write_tree("tree.dot",root)
             #print(root.point_counter)
             #print(runTime)
-            ets = time.time()
+            #ets = time.time()
             #print("time of build tree: %s" % (ets-sts))
-            ti += ets-sts
-            pu_sts = time.time()
+            #ti += ets-sts
+            #pu_sts = time.time()
             dendrogram_purity = expected_dendrogram_purity(root)
-            #print("dendrogram_purity: %s" % (dendrogram_purity))
-            pu_ets = time.time()
+            #dendrogram_purity = 0
+            print("dendrogram_purity: %s" % (dendrogram_purity))
+            #pu_ets = time.time()
             #print("time of calcute purity: %s" % (pu_ets-pu_sts))
             if dendrogram_purity > purity:
                 max_ps = ps
@@ -176,20 +191,19 @@ if __name__ == "__main__":
     # scaler = MinMaxScaler()
     # dataset.iloc[:,:-2] = scaler.fit_transform(dataset.iloc[:,:-2])
     # dataset = list(load_df(dataset))
-    n = 4000
-    #psi = [3, 5 , 7, 13, 15]
-    psi = [7]
-    rates = [0.8]
-    #rates = [0.6, 0.7, 0.8, 0.9, 1]
-    t = 200
+    psi = [3, 5 , 7, 13, 15]
+    #psi = [15]
+    #rates = [0.8]
+    rates = [0.6, 0.7, 0.8, 0.9, 1]
+    t = 300
     remove = False
-    file_name = "wine"
-    exp_dir_base_inode = './Code/testResult/Inode/'
+    file_name = "covtype"
+    exp_dir_base_inode = './Code/data/originalData/'
     dati = time.strftime("%Y%m%d%H%M%S", time.localtime())
     exp_dir_base_inode = exp_dir_base_inode+dati
-    shuffle_times = 1
-    dataset = list(load_data("./Code/data/addData/split4/"+file_name+".csv"))
-    n = int(len(dataset)/4)
+    shuffle_times = 5
+    dataset = list(load_data("./Code/data/originalData/"+file_name+".tsv"))
+    n = 25000 #int(len(dataset)/4)
 
     if remove:
         remove_dirs(file_name=file_name, exp_dir_base=exp_dir_base_inode)

@@ -15,7 +15,7 @@ import pandas as pd
 import numpy as np
 from Code.models.PNode import PNode
 from Code.utils.deltasep_utils import create_dataset
-from Code.utils.dendrogram_purity import expected_dendrogram_purity
+from Code.utils.dendrogram_purity import dendrogram_purity, expected_dendrogram_purity
 from Code.utils.file_utils import load_data, remove_dirs, mkdir_p_safe
 from Code.utils.Graphviz import Graphviz
 
@@ -41,8 +41,8 @@ def create_p_tree(dataset):
     run_time = []
     tree_st_time = time.time()
     for i, pt in enumerate(dataset):
-        root = root.insert(pt, collapsibles=None, L=float('inf'))
-        if (i % 300 == 0): 
+        root = root.insert(pt, collapsibles=None, L=5000)
+        if (i % 5000 == 0): 
             tree_mi_time = time.time()
             run_time.append((i, tree_mi_time - tree_st_time))
     return root,run_time
@@ -90,10 +90,17 @@ def grid_research_pnode(dataset, file_name, exp_dir_base, shuffle_index):
     data = deepcopy(dataset)
     sts = time.time()
     root,run_time = create_p_tree(data)
-    Graphviz.write_tree("ptree.dot",root)
+    with open("pnodeTime.tsv","a") as f:
+        for item in run_time:
+                f.write("%s\t%s\n" %(
+                    item[0],
+                    item[1]
+                ))
+    #Graphviz.write_tree("ptree.dot",root)
     print(run_time)
     ets = time.time()
     dendrogram_purity = expected_dendrogram_purity(root)
+    #dendrogram_purity = 0
     ti += ets-sts
     if dendrogram_purity > purity:
         purity = dendrogram_purity
@@ -110,11 +117,11 @@ def grid_research_pnode(dataset, file_name, exp_dir_base, shuffle_index):
 if __name__ == "__main__":
 
     remove = False
-    file_name = "wine"
+    file_name = "aloi"
     exp_dir_base = './Code/testResult/Pnode'
     # mkdir_p_safe(exp_dir_base)
 
-    dataset = list(load_data("./Code/data/addData/split4/"+file_name+".csv"))
+    dataset = list(load_data("./Code/data/addData/split1/"+file_name+".tsv"))
     if remove:
         remove_dirs(file_name=file_name, exp_dir_base=exp_dir_base)
     for i in range(1):

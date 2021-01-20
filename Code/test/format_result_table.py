@@ -58,11 +58,11 @@ def latex_table(alg2dataset2score):
     alg_names = alg2dataset2score.keys()
     alg_names = sorted(alg_names)
     for alg in alg_names:
-        scores = [ "%.5f $\\pm$ %.5f" % (alg2dataset2score[alg][ds][0],alg2dataset2score[alg][ds][1]) if ds in alg2dataset2score[alg] else "-" for ds in ds_names]
+        scores = [ "%.2f $\\pm$ %.5f" % (alg2dataset2score[alg][ds][0],alg2dataset2score[alg][ds][1]) if ds in alg2dataset2score[alg] else "-" for ds in ds_names]
         table_string += "%s & %s \\\\\n" % (alg," & ".join(scores))
     table_string += "\\hline\n\\end{tabular}\n\\end{center}\n\\end{table}"
     return table_string
 
 
 if __name__ == "__main__":
-    print(latex_table(load_result_file("alldata.csv")))
+    print(latex_table(load_result_file("exallResult.tsv")))

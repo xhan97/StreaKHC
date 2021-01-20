@@ -18,22 +18,25 @@ from Code.utils.file_utils import load_data, mkdir_p_safe, remove_dirs
 import os
 # Inode parameter
 psi = [3, 5, 7, 13, 15]
+#psi = [5]
+#rates = [0.7]
 rates = [0.6, 0.7, 0.8, 0.9, 1]
 t = 300
 
 remove = False
-inputdir = "Code/data/addData/split1"
-exp_dir_base = 'Code/testResult/All/'
+inputdir = "Code/data/extralData"
+exp_dir_base = 'Code/testResult/extraAll/'
 dati = time.strftime("%Y%m%d%H%M%S", time.localtime())
 exp_dir_base = exp_dir_base+dati
-shuffle_times = 10
+shuffle_times = 10 
 
 
 for parents, dirnames, filenames in os.walk(inputdir):
     print(filenames)
     for filename in filenames:
         data = list(load_data(inputdir+"/"+filename))
-        n = int(len(data)/4)
+        n = int(len(data))
+        print(n)
         f = filename[:-4]
         print(f)
         if remove:
@@ -43,5 +46,5 @@ for parents, dirnames, filenames in os.walk(inputdir):
             P_data = deepcopy(data)
             grid_search_inode(dataset=data, n=n, t=t, psi=psi, rates=rates,
                                 file_name=f, exp_dir_base=exp_dir_base, shuffle_index=i)
-            grid_research_pnode(dataset=P_data, file_name=f,
-                            exp_dir_base=exp_dir_base, shuffle_index=i)
+            #grid_research_pnode(dataset=P_data, file_name=f,
+            #                exp_dir_base=exp_dir_base, shuffle_index=i)

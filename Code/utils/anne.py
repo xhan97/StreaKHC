@@ -2,12 +2,9 @@
 
 from functools import partial
 from multiprocessing import Pool
-import multiprocessing
 
 import numpy as np
 import pandas as pd
-import pathos.pools as pp
-from numba import jit
 from scipy.spatial.distance import cdist
 from sklearn import preprocessing
 from itertools import chain 
@@ -85,7 +82,7 @@ def aNNE_similarity(m_distance, psi, t):
         aNNEMetrix (2D array): aNNE value of given distance matrix
     """
   
-    n = np.array(range(len(m_distance)))
+    n = len(m_distance) #np.array(range(len(m_distance)))
     one_hot = preprocessing.OneHotEncoder(sparse=False)
     
     psi_t = np.array(range(psi)).reshape(psi,1)
@@ -97,7 +94,7 @@ def aNNE_similarity(m_distance, psi, t):
                         psi = psi,
                         m_distance = m_distance,
                         oneHot = oneHot)
-    with Pool(processes=2) as pool:
+    with Pool(processes=10) as pool:
         embeding_set = np.array(pool.map(processor, range(t)))
 
     subIndexSet  = np.concatenate(embeding_set[:,0], axis=0)
@@ -145,8 +142,6 @@ def addNNE(met,x,oneHot,subIndexSet):
     #ind = list(set(subIndexSet.reshape(-1).astype(int)))
     met = np.array(met)
     indData = met[ind]
-    
-
     # p = pp.ProcessPool(8)
     # print(len(indData))
     #with Pool() as pool:
@@ -168,7 +163,6 @@ def addNNE(met,x,oneHot,subIndexSet):
     embSet = oneHot.transform(ind).reshape(-1)
     #et = time.time()
     #print("maptime:%s"%(et-st))
-
     return embSet
 
 
