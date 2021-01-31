@@ -137,8 +137,11 @@ def grid_search_inode(dataset, psi, t, n, rates, file_name, exp_dir_base, shuffl
         for rt in rates:
             data = deepcopy(dataset)
             #sts = time.time()
-            root,runTime = create_i_tree(
-                data, n, ps, t, rate=rt)
+            try:
+                root,runTime = create_i_tree(
+                  data, n, ps, t, rate=rt)
+            except:
+                continue
             with open("InodeTime.tsv","a") as f:
                 for item in runTime:
                         f.write("%s\t%s\n" %(

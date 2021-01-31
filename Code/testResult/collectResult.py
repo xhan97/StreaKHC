@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 import os
 
-inputdir = r'Code\\testResult\\extraAll'
+inputdir = r'Code/testResult/extraAll'
 data = pd.DataFrame()
 
 for parents, dirnames, filenames in os.walk(inputdir):

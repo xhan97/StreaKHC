@@ -24,18 +24,19 @@ rates = [0.6, 0.7, 0.8, 0.9, 1]
 t = 300
 
 remove = False
-inputdir = "Code/data/extralData"
-exp_dir_base = 'Code/testResult/extraAll/'
+inputdir = "Code/data/addData/split6"
+exp_dir_base = 'Code/testResult/Inode/'
 dati = time.strftime("%Y%m%d%H%M%S", time.localtime())
 exp_dir_base = exp_dir_base+dati
-shuffle_times = 10 
+shuffle_times = 5 
 
 
 for parents, dirnames, filenames in os.walk(inputdir):
     print(filenames)
     for filename in filenames:
         data = list(load_data(inputdir+"/"+filename))
-        n = int(len(data))
+        #n = int(1/4*len(data))
+        n = 50000
         print(n)
         f = filename[:-4]
         print(f)

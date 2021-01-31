@@ -65,4 +65,4 @@ def latex_table(alg2dataset2score):
 
 
 if __name__ == "__main__":
-    print(latex_table(load_result_file("exallResult.tsv")))
+    print(latex_table(load_result_file("extraalldata.csv")))
