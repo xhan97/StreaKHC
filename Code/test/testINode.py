@@ -67,7 +67,7 @@ def create_i_tree(dataset, n, psi, t, rate):
         if (i % 5000 == 0): 
             tree_mi_time = time.time()
             run_time.append((i, tree_mi_time - tree_st_time))
-            print(run_time)
+            #print(run_time)
         #if (i > 25000):
         #    print()
         # history.append(pt[0])
@@ -128,6 +128,27 @@ def save_all_data(args, exp_dir_base,filename):
             args['purity'],
         ))
 
+def save_grid_search_data(args, exp_dir_base,filename):
+    file_path = os.path.join(exp_dir_base, 'gridSearch.tsv')
+    mkdir_p_safe(exp_dir_base)
+    if not os.path.exists(file_path):
+        with open(file_path, 'w') as fout:
+            fout.write('%s\t%s\t%s\t%s\t%s\n' % (
+                'algorithm',
+                'dataset',
+				'psi',
+				'beta',
+                'purity',
+                ))
+    with open(file_path, 'a') as fout:
+        fout.write('%s\t%s\t%d\t%f\t%f\n' % (
+            args['algorithm'],
+            filename,
+			args["psi"],
+			args["beta"],
+            args['purity'],
+        ))
+
 def grid_search_inode(dataset, psi, t, n, rates, file_name, exp_dir_base, shuffle_index):
     ti = 0
     purity = 0
@@ -135,13 +156,17 @@ def grid_search_inode(dataset, psi, t, n, rates, file_name, exp_dir_base, shuffl
     max_rt = rates[0]
     for ps in psi:
         for rt in rates:
+            print(ps,rt)
             data = deepcopy(dataset)
-            #sts = time.time()
+            sts = time.time()
             try:
                 root,runTime = create_i_tree(
                   data, n, ps, t, rate=rt)
             except:
                 continue
+            ets = time.time()
+            print("time of build tree: %s" % (ets-sts))
+            ti += ets-sts
             with open("InodeTime.tsv","a") as f:
                 for item in runTime:
                         f.write("%s\t%s\n" %(
@@ -153,13 +178,18 @@ def grid_search_inode(dataset, psi, t, n, rates, file_name, exp_dir_base, shuffl
             #Graphviz.write_tree("tree.dot",root)
             #print(root.point_counter)
             #print(runTime)
-            #ets = time.time()
-            #print("time of build tree: %s" % (ets-sts))
-            #ti += ets-sts
+
             #pu_sts = time.time()
             dendrogram_purity = expected_dendrogram_purity(root)
             #dendrogram_purity = 0
             print("dendrogram_purity: %s" % (dendrogram_purity))
+            args = {
+				'dataset': file_name+"_"+"shuffle"+"_"+str(shuffle_index),
+            	'algorithm': "IKSHC",
+            	'purity': dendrogram_purity,
+				"psi": ps,
+            	"beta": rt}
+            save_grid_search_data(args,exp_dir_base=exp_dir_base, filename=file_name)
             #pu_ets = time.time()
             #print("time of calcute purity: %s" % (pu_ets-pu_sts))
             if dendrogram_purity > purity:
@@ -194,10 +224,10 @@ if __name__ == "__main__":
     # scaler = MinMaxScaler()
     # dataset.iloc[:,:-2] = scaler.fit_transform(dataset.iloc[:,:-2])
     # dataset = list(load_df(dataset))
-    psi = [3, 5 , 7, 13, 15]
+    psi = [13, 15, 17, 21, 25]
     #psi = [15]
     #rates = [0.8]
-    rates = [0.6, 0.7, 0.8, 0.9, 1]
+    rates = [0.6, 0.7, 0.8]
     t = 300
     remove = False
     file_name = "covtype"

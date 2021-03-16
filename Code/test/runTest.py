@@ -18,25 +18,29 @@ from Code.utils.file_utils import load_data, mkdir_p_safe, remove_dirs
 import os
 # Inode parameter
 psi = [3, 5, 7, 13, 15]
-#psi = [5]
-#rates = [0.7]
+# #psi = [5]
+# #rates = [0.7]
 rates = [0.6, 0.7, 0.8, 0.9, 1]
+#psi = [13, 15, 17, 21, 25, 28]
+#psi = [15]
+#rates = [0.8]
+#rates = [0.6, 0.7, 0.8]
 t = 300
 
 remove = False
-inputdir = "Code/data/addData/split6"
-exp_dir_base = 'Code/testResult/Inode/'
+inputdir = "Code/data/stabelData"
+exp_dir_base = 'Code/testResult/stableTest/'
 dati = time.strftime("%Y%m%d%H%M%S", time.localtime())
 exp_dir_base = exp_dir_base+dati
-shuffle_times = 5 
+shuffle_times = 1 
 
 
 for parents, dirnames, filenames in os.walk(inputdir):
     print(filenames)
     for filename in filenames:
         data = list(load_data(inputdir+"/"+filename))
-        #n = int(1/4*len(data))
-        n = 50000
+        n = int(1/4*len(data))
+        #n = 50000
         print(n)
         f = filename[:-4]
         print(f)
