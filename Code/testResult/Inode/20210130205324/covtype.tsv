@@ -1,0 +1,3 @@
+dataset	algorithm	purity	clustering_time_elapsed	max_psi	max_rt
+covtype_shuffle_0	IKSHC	0.419819	0.000000	15	0.7
+covtype_shuffle_1	IKSHC	0.403602	0.000000	15	0.7
