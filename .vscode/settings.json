@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "/home/hanxin/anaconda3/bin/python",
+    "python.pythonPath": "C:\\ProgramData\\Anaconda3\\python.exe",
     "files.watcherExclude": {
         "**/target": true
     }
