@@ -15,11 +15,17 @@ for m in linkMethod:
         d = dataset[:index]
         if index >= 2:
             X = linkage(dataset[:index], method=m, metric='euclidean')
-        if (index % 1000 == 0):
+        if (index % 100 == 0):
             tree_mi_time = time.time()
             run_time.append((index, tree_mi_time - start_time))
             print(index, tree_mi_time - start_time)
-            if tree_mi_time - start_time >= 350:
+            if tree_mi_time - start_time >= 20:
                 break
+    with open(m+".tsv","a") as f:
+                for item in run_time:
+                        f.write("%s\t%s\n" %(
+                            item[0],
+                            item[1]
+                        ))
     ti.append(run_time)
     
