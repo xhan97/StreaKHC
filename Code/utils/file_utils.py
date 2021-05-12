@@ -38,5 +38,5 @@ def load_data(file_path):
     # scaler = MinMaxScaler()
     # data.iloc[:, 2:] = scaler.fit_transform(data.iloc[:, 2:])
     for item in data.values:
-        yield(item[2:])
-        #yield([item[2:], item[1], item[0]])
+        #yield(item[2:])
+        yield([item[2:], item[1], item[0]])

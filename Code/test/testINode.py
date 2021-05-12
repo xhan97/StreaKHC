@@ -20,7 +20,7 @@ from Code.utils.dendrogram_purity import dendrogram_purity, expected_dendrogram_
 from Code.utils.serialize_trees import serliaze_tree_to_file_with_point_ids,serliaze_tree_to_file
 from Code.utils.file_utils import load_data, mkdir_p_safe, remove_dirs
 from Code.utils.Graphviz import Graphviz
-from graphviz import Source
+#from graphviz import Source
 #from Code.utils.Graphviz import write_tree
 
 
@@ -225,18 +225,18 @@ if __name__ == "__main__":
     # dataset.iloc[:,:-2] = scaler.fit_transform(dataset.iloc[:,:-2])
     # dataset = list(load_df(dataset))
     psi = [13, 15, 17, 21, 25]
-    #psi = [15]
+    #psi = [15]#
     #rates = [0.8]
-    rates = [0.6, 0.7, 0.8]
+    rates = [0.5,0.6, 0.7, 0.8,0.9]
     t = 300
     remove = False
-    file_name = "covtype"
+    file_name = "glass"
     exp_dir_base_inode = './Code/data/originalData/'
     dati = time.strftime("%Y%m%d%H%M%S", time.localtime())
     exp_dir_base_inode = exp_dir_base_inode+dati
     shuffle_times = 5
     dataset = list(load_data("./Code/data/originalData/"+file_name+".tsv"))
-    n = 25000 #int(len(dataset)/4)
+    n = int(len(dataset)/4)
 
     if remove:
         remove_dirs(file_name=file_name, exp_dir_base=exp_dir_base_inode)
