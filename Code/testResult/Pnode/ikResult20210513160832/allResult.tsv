@@ -1,0 +1,3 @@
+algorithm	dataset	purity
+PERCH	banknote	0.688353
+PERCH	banknote	0.786446

@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-01-16 16:10:48
-LastEditTime: 2021-05-13 10:25:59
+LastEditTime: 2021-05-13 16:09:44
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: \StreamHC\Code\test\runTest.py
@@ -10,7 +10,7 @@ from copy import deepcopy
 import time
 
 from Code.test.testINode import grid_search_inode
-from  Code.test.testPNode import grid_research_pnode
+from Code.test.testPNode import grid_research_pnode
 import numpy as np
 import pandas as pd
 from Code.utils.file_utils import load_data, mkdir_p_safe, remove_dirs
@@ -18,16 +18,15 @@ import os
 
 # Inode parameter
 psi = [3, 5, 7, 13, 15, 17, 21, 25]
-rates = [0.4,0.5,0.6, 0.7, 0.8,0.9]
+rates = [0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 t = 300
 
 remove = False
-inputdir = "Code/data/addData/split5"
-exp_dir_base = 'Code/testResult/All/'
+inputdir = "Code/data/addData/split3"
+exp_dir_base = 'Code/testResult/Pnode/ikResult'
 dati = time.strftime("%Y%m%d%H%M%S", time.localtime())
 exp_dir_base = exp_dir_base+dati
 shuffle_times = 10
-
 
 for parents, dirnames, filenames in os.walk(inputdir):
     print(filenames)
@@ -43,7 +42,7 @@ for parents, dirnames, filenames in os.walk(inputdir):
         for i in range(shuffle_times):
             np.random.shuffle(data)
             P_data = deepcopy(data)
-            grid_search_inode(dataset=data, n=n, t=t, psi=psi, rates=rates,
-                                file_name=f, exp_dir_base=exp_dir_base, shuffle_index=i)
+            # grid_search_inode(dataset=data, n=n, t=t, psi=psi, rates=rates,
+            #                   file_name=f, exp_dir_base=exp_dir_base, shuffle_index=i)
             grid_research_pnode(dataset=P_data, file_name=f,
-                            exp_dir_base=exp_dir_base, shuffle_index=i)
+                                exp_dir_base=exp_dir_base, shuffle_index=i, use_ik=True)

@@ -1,0 +1,4 @@
+dataset	algorithm	purity	psi	clustering_time_elapsed
+spam_shuffle_0	PERCH	0.590788	3.000000	21.316383
+spam_shuffle_0	PERCH	0.608649	5.000000	48.723393
+spam_shuffle_0	PERCH	0.580552	7.000000	88.142442

@@ -1,2 +1,3 @@
 dataset	algorithm	purity	clustering_time_elapsed
 wine_shuffle_0	PERCH	0.751913	0.758990
+wine_shuffle_0	PERCH	0.875133	5.835931
