@@ -159,29 +159,23 @@ class INode:
             self.add_pt(pt[:3])
             self.ikv = pt[3]
             #self._update_params_recursively()
-            return root          
+            return root
         else:
             curr_node = root
             x_ik = pt[3] #.toarray().reshape(-1)
             while not curr_node.is_leaf():
               chl_ik = curr_node.children[0].ikv #.toarray().reshape(-1)
               chr_ik = curr_node.children[1].ikv #.toarray().reshape(-1)
-              len_lpts = curr_node.children[0].point_counter
-              len_rpts = curr_node.children[1].point_counter
-              len_cpts = curr_node.point_counter
+           
+            #   len_lpts = curr_node.children[0].point_counter
+            #   len_rpts = curr_node.children[1].point_counter
+            #   len_cpts = curr_node.point_counter
               
             #   x_dot_chl =  2 * (t * len_lpts - _fast_dot(x_ik, chl_ik)) / len_lpts
             #   x_dot_chr =  2 * (t * len_rpts - _fast_dot(x_ik, chr_ik)) / len_rpts
             #   x_dot_cur =  2 * (t * len_cpts - _fast_dot(x_ik, curr_node.ikv)) / len_cpts
             #   cur_dit = (t * len_cpts**2 - _fast_dot(curr_node.ikv, curr_node.ikv)) / comb(len_cpts,2)
-
-              x_dot_chl = _fast_dot(x_ik,chl_ik) / (t * math.sqrt(_fast_dot(x_ik,x_ik)) * (math.sqrt(_fast_dot(chl_ik,chl_ik))))
-              x_dot_chr = _fast_dot(x_ik,chr_ik) / (t * math.sqrt(_fast_dot(x_ik,x_ik)) * (math.sqrt(_fast_dot(chr_ik,chr_ik))))
-              x_dot_cur = _fast_dot(x_ik,curr_node.ikv) / (t * math.sqrt(_fast_dot(x_ik,x_ik)) * (math.sqrt(_fast_dot(curr_node.ikv,curr_node.ikv))))
-
-            #   print("cur_dit: "+'{:f}'.format(cur_dit))
-            #   print("x_dot_cur: "+'{:f}'.format(x_dot_cur))
-
+            
             #   if rate*x_dot_cur >= cur_dit:
             #      curr_node = curr_node
             #      break
@@ -190,6 +184,11 @@ class INode:
             #   elif x_dot_chr < x_dot_chl:
             #     curr_node = curr_node.children[1]
 
+
+              x_dot_chl = _fast_dot(x_ik,chl_ik) / (t * math.sqrt(_fast_dot(x_ik,x_ik)) * (math.sqrt(_fast_dot(chl_ik,chl_ik))))
+              x_dot_chr = _fast_dot(x_ik,chr_ik) / (t * math.sqrt(_fast_dot(x_ik,x_ik)) * (math.sqrt(_fast_dot(chr_ik,chr_ik))))
+              x_dot_cur = _fast_dot(x_ik,curr_node.ikv) / (t * math.sqrt(_fast_dot(x_ik,x_ik)) * (math.sqrt(_fast_dot(curr_node.ikv,curr_node.ikv))))
+              
               if x_dot_cur >= rate:
                    curr_node = curr_node
                    break

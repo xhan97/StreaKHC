@@ -1,3 +1,19 @@
 dataset	algorithm	purity	clustering_time_elapsed	max_psi	max_rt
 vowel_shuffle_0	IKSHC	0.214877	1.621835	21	0.8
 vowel_shuffle_0	PERCH	0.210349	0.661951
+vowel_shuffle_1	IKSHC	0.208244	1.645713	13	0.8
+vowel_shuffle_1	PERCH	0.219252	0.592165
+vowel_shuffle_2	IKSHC	0.227529	1.667460	25	0.6
+vowel_shuffle_2	PERCH	0.247461	0.619586
+vowel_shuffle_3	IKSHC	0.238722	1.615422	17	0.9
+vowel_shuffle_3	PERCH	0.239964	0.576702
+vowel_shuffle_4	IKSHC	0.224781	1.650254	25	0.6
+vowel_shuffle_4	PERCH	0.204766	0.595313
+vowel_shuffle_5	IKSHC	0.212388	1.606501	15	0.7
+vowel_shuffle_5	PERCH	0.197607	0.603825
+vowel_shuffle_6	IKSHC	0.231871	1.687971	25	0.7
+vowel_shuffle_6	PERCH	0.238377	0.611038
+vowel_shuffle_7	IKSHC	0.227131	1.661221	25	0.6
+vowel_shuffle_7	PERCH	0.204986	0.636040
+vowel_shuffle_8	IKSHC	0.230711	1.676130	25	0.7
+vowel_shuffle_8	PERCH	0.223485	0.603877

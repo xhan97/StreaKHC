@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-01-16 16:10:48
-LastEditTime: 2021-05-13 09:28:41
+LastEditTime: 2021-05-13 10:25:59
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: \StreamHC\Code\test\runTest.py
@@ -22,11 +22,11 @@ rates = [0.4,0.5,0.6, 0.7, 0.8,0.9]
 t = 300
 
 remove = False
-inputdir = "Code/data/addData/split4"
+inputdir = "Code/data/addData/split5"
 exp_dir_base = 'Code/testResult/All/'
 dati = time.strftime("%Y%m%d%H%M%S", time.localtime())
 exp_dir_base = exp_dir_base+dati
-shuffle_times = 10 
+shuffle_times = 10
 
 
 for parents, dirnames, filenames in os.walk(inputdir):
