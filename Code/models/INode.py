@@ -195,7 +195,7 @@ class INode:
                    break
               if x_dot_chl >= x_dot_chr:
                    curr_node = curr_node.children[0]
-              elif x_dot_chl < x_dot_chr:
+              else:
                    curr_node = curr_node.children[1]
               
             new_leaf = curr_node._split_down(pt)

@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-01-16 16:10:48
-LastEditTime: 2021-01-16 16:47:08
+LastEditTime: 2021-05-13 09:28:41
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: \StreamHC\Code\test\runTest.py
@@ -22,7 +22,7 @@ rates = [0.4,0.5,0.6, 0.7, 0.8,0.9]
 t = 300
 
 remove = False
-inputdir = "Code/data/addData/split"
+inputdir = "Code/data/addData/split4"
 exp_dir_base = 'Code/testResult/All/'
 dati = time.strftime("%Y%m%d%H%M%S", time.localtime())
 exp_dir_base = exp_dir_base+dati

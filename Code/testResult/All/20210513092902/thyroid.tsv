@@ -1,0 +1,21 @@
+dataset	algorithm	purity	clustering_time_elapsed	max_psi	max_rt
+thyroid_shuffle_0	IKSHC	0.896036	0.391804	5	0.7
+thyroid_shuffle_0	PERCH	0.776181	0.590986
+thyroid_shuffle_1	IKSHC	0.793986	0.383519	21	0.5
+thyroid_shuffle_1	PERCH	0.618994	0.131435
+thyroid_shuffle_2	IKSHC	0.879676	0.373735	17	0.8
+thyroid_shuffle_2	PERCH	0.765616	0.133180
+thyroid_shuffle_3	IKSHC	0.831918	0.379799	3	0.4
+thyroid_shuffle_3	PERCH	0.732269	0.128355
+thyroid_shuffle_4	IKSHC	0.836334	0.386075	5	0.6
+thyroid_shuffle_4	PERCH	0.756560	0.145281
+thyroid_shuffle_5	IKSHC	0.881857	0.375995	3	0.5
+thyroid_shuffle_5	PERCH	0.740227	0.128236
+thyroid_shuffle_6	IKSHC	0.835555	0.389051	13	0.4
+thyroid_shuffle_6	PERCH	0.724296	0.130188
+thyroid_shuffle_7	IKSHC	0.841226	0.386434	13	0.4
+thyroid_shuffle_7	PERCH	0.773474	0.121956
+thyroid_shuffle_8	IKSHC	0.811663	0.384884	5	0.8
+thyroid_shuffle_8	PERCH	0.738467	0.137919
+thyroid_shuffle_9	IKSHC	0.854277	0.383520	3	0.8
+thyroid_shuffle_9	PERCH	0.728414	0.159482
