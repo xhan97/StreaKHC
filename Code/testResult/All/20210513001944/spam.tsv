@@ -11,3 +11,7 @@ spam_shuffle_4	IKSHC	0.690534	12.682966	3	0.6
 spam_shuffle_4	PERCH	0.577919	7.587648
 spam_shuffle_5	IKSHC	0.683334	12.420206	3	0.5
 spam_shuffle_5	PERCH	0.551679	7.483178
+spam_shuffle_6	IKSHC	0.680616	12.402495	7	0.5
+spam_shuffle_6	PERCH	0.573880	7.043970
+spam_shuffle_7	IKSHC	0.671909	11.397729	3	0.8
+spam_shuffle_7	PERCH	0.547770	7.808184

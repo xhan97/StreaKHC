@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-01-17 12:06:42
-LastEditTime: 2021-01-17 12:23:12
+LastEditTime: 2021-05-13 13:49:03
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: \StreamHC\Code\test\format_result_table.py
@@ -58,11 +58,11 @@ def latex_table(alg2dataset2score):
     alg_names = alg2dataset2score.keys()
     alg_names = sorted(alg_names)
     for alg in alg_names:
-        scores = [ "%.2f $\\pm$ %.5f" % (alg2dataset2score[alg][ds][0],alg2dataset2score[alg][ds][1]) if ds in alg2dataset2score[alg] else "-" for ds in ds_names]
+        scores = [ "%.2f $\\pm$ %.2f" % (alg2dataset2score[alg][ds][0],alg2dataset2score[alg][ds][1]) if ds in alg2dataset2score[alg] else "-" for ds in ds_names]
         table_string += "%s & %s \\\\\n" % (alg," & ".join(scores))
     table_string += "\\hline\n\\end{tabular}\n\\end{center}\n\\end{table}"
     return table_string
 
 
 if __name__ == "__main__":
-    print(latex_table(load_result_file("extraalldata.csv")))
+    print(latex_table(load_result_file("newalldata.csv")))
