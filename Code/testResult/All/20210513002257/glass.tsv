@@ -1,0 +1,21 @@
+dataset	algorithm	purity	clustering_time_elapsed	max_psi	max_rt
+glass_shuffle_0	IKSHC	0.483854	0.376508	3	0.5
+glass_shuffle_0	PERCH	0.458939	0.146683
+glass_shuffle_1	IKSHC	0.464297	0.384200	15	0.6
+glass_shuffle_1	PERCH	0.507247	0.131831
+glass_shuffle_2	IKSHC	0.493319	0.382128	3	0.8
+glass_shuffle_2	PERCH	0.463175	0.136027
+glass_shuffle_3	IKSHC	0.564398	0.386635	15	0.8
+glass_shuffle_3	PERCH	0.487745	0.121142
+glass_shuffle_4	IKSHC	0.451280	0.387896	5	0.5
+glass_shuffle_4	PERCH	0.497430	0.176389
+glass_shuffle_5	IKSHC	0.489991	0.375262	17	0.6
+glass_shuffle_5	PERCH	0.428820	0.129315
+glass_shuffle_6	IKSHC	0.507213	0.383704	3	0.7
+glass_shuffle_6	PERCH	0.467111	0.132484
+glass_shuffle_7	IKSHC	0.510052	0.385395	25	0.4
+glass_shuffle_7	PERCH	0.437326	0.124447
+glass_shuffle_8	IKSHC	0.488962	0.378373	3	0.6
+glass_shuffle_8	PERCH	0.418449	0.132062
+glass_shuffle_9	IKSHC	0.506157	0.382344	3	0.4
+glass_shuffle_9	PERCH	0.506526	0.119002

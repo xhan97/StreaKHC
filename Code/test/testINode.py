@@ -227,7 +227,7 @@ if __name__ == "__main__":
     psi = [13, 15, 17, 21, 25]
     #psi = [15]#
     #rates = [0.8]
-    rates = [0.5,0.6, 0.7, 0.8,0.9]
+    rates = [0.4,0.5,0.6, 0.7, 0.8,0.9]
     t = 300
     remove = False
     file_name = "glass"

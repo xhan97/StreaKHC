@@ -1,0 +1,4 @@
+algorithm	dataset	psi	beta	purity
+IKSHC	glass	13	0.400000	0.407355
+IKSHC	glass	13	0.500000	0.432855
+IKSHC	glass	13	0.600000	0.412658
