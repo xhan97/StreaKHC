@@ -1,7 +1,7 @@
 '''
 @Author: Xin Han
 @Date: 2020-06-07 11:24:57
-LastEditTime: 2021-01-17 14:04:24
+LastEditTime: 2021-05-13 17:33:03
 LastEditors: Please set LastEditors
 @Description: In User Settings Edit
 @file_path: \StreamHC\Code\testINode.py
@@ -230,12 +230,12 @@ if __name__ == "__main__":
     rates = [0.4,0.5,0.6, 0.7, 0.8,0.9]
     t = 300
     remove = False
-    file_name = "glass"
-    exp_dir_base_inode = './Code/data/originalData/'
+    file_name = "hard1"
+    exp_dir_base_inode = './Code/data/manual/'
     dati = time.strftime("%Y%m%d%H%M%S", time.localtime())
     exp_dir_base_inode = exp_dir_base_inode+dati
-    shuffle_times = 5
-    dataset = list(load_data("./Code/data/originalData/"+file_name+".tsv"))
+    shuffle_times = 10
+    dataset = list(load_data("./Code/data/manual/"+file_name+".csv"))
     n = int(len(dataset)/4)
 
     if remove:
