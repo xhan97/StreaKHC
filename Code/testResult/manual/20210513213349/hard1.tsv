@@ -1,0 +1,11 @@
+dataset	algorithm	purity	clustering_time_elapsed	max_psi	max_rt
+hard1_shuffle_0	IKSHC	0.945707	2.852989	13	0.8
+hard1_shuffle_1	IKSHC	0.958168	2.825113	7	0.7
+hard1_shuffle_2	IKSHC	0.953461	2.858169	3	0.5
+hard1_shuffle_3	IKSHC	0.962051	2.832292	5	0.4
+hard1_shuffle_4	IKSHC	0.945685	2.943635	17	0.8
+hard1_shuffle_5	IKSHC	0.954765	2.844919	5	0.6
+hard1_shuffle_6	IKSHC	0.965630	2.846898	5	0.5
+hard1_shuffle_7	IKSHC	0.949979	2.867330	25	0.8
+hard1_shuffle_8	IKSHC	0.955953	2.946891	3	0.6
+hard1_shuffle_9	IKSHC	0.964744	2.878764	3	0.9

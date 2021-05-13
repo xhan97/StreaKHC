@@ -1,8 +1,0 @@
-algorithm	dataset	purity
-PERCH	spambase	0.615131
-PERCH	spambase	0.584603
-PERCH	wine	0.751913
-PERCH	aloi	0.000000
-PERCH	aloi	0.000000
-PERCH	aloi	0.419360
-PERCH	wine	0.875133

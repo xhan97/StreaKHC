@@ -1,4 +1,0 @@
-dataset	algorithm	purity	clustering_time_elapsed
-aloi_shuffle_0	PERCH	0.000000	374.273175
-aloi_shuffle_0	PERCH	0.000000	345.104532
-aloi_shuffle_0	PERCH	0.419360	350.005195
