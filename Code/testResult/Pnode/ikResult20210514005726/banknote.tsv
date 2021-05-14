@@ -1,0 +1,11 @@
+dataset	algorithm	purity	clustering_time_elapsed	max_psi	max_rt
+banknote_shuffle_0	IKSHC	0.774815	4.802671	21	0.6
+banknote_shuffle_1	IKSHC	0.768451	5.334040	25	0.5
+banknote_shuffle_2	IKSHC	0.699841	5.440471	25	0.5
+banknote_shuffle_3	IKSHC	0.779382	5.918921	25	0.7
+banknote_shuffle_4	IKSHC	0.920925	5.422927	25	0.9
+banknote_shuffle_5	IKSHC	0.743512	5.717219	25	0.8
+banknote_shuffle_6	IKSHC	0.703578	4.985253	15	0.7
+banknote_shuffle_7	IKSHC	0.820516	4.780838	7	0.7
+banknote_shuffle_8	IKSHC	0.848769	4.564419	25	0.8
+banknote_shuffle_9	IKSHC	0.846473	4.685124	21	0.8

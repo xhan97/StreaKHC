@@ -1,2 +1,11 @@
 dataset	algorithm	purity	clustering_time_elapsed	max_psi	max_rt
 control_shuffle_0	IKSHC	0.792656	1.127830	15	0.4
+control_shuffle_1	IKSHC	0.790630	1.117322	3	0.6
+control_shuffle_2	IKSHC	0.807704	1.213930	13	0.6
+control_shuffle_3	IKSHC	0.782083	1.178806	3	0.4
+control_shuffle_4	IKSHC	0.832832	1.260224	21	0.9
+control_shuffle_5	IKSHC	0.791900	1.107835	25	0.9
+control_shuffle_6	IKSHC	0.812120	1.252645	7	0.8
+control_shuffle_7	IKSHC	0.783554	1.221661	17	0.7
+control_shuffle_8	IKSHC	0.797096	1.263507	17	0.8
+control_shuffle_9	IKSHC	0.791938	1.259902	5	0.5

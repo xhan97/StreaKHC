@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-01-16 16:10:48
-LastEditTime: 2021-05-14 00:59:04
+LastEditTime: 2021-05-14 11:33:23
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: \StreamHC\Code\test\runTest.py
@@ -22,7 +22,7 @@ rates = [0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 t = 300
 
 remove = False
-inputdir = "Code/data/addData/split3"
+inputdir = "Code/data/addData/split5"
 exp_dir_base = 'Code/testResult/Pnode/ikResult'
 dati = time.strftime("%Y%m%d%H%M%S", time.localtime())
 exp_dir_base = exp_dir_base+dati
@@ -46,4 +46,4 @@ for parents, dirnames, filenames in os.walk(inputdir):
             grid_search_inode(dataset=data, n=n, t=t, psi=psi, rates=rates,
                                file_name=f, exp_dir_base=exp_dir_base, shuffle_index=i)
             # grid_research_pnode(dataset=P_data, file_name=f,
-            #                    exp_dir_base=exp_dir_base, shuffle_index=i, use_ik=True)
+            #                     exp_dir_base=exp_dir_base, shuffle_index=i, use_ik=True)
