@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-01-17 12:06:42
-LastEditTime: 2021-05-14 00:41:30
+LastEditTime: 2021-05-14 14:59:53
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: \StreamHC\Code\test\format_result_table.py
@@ -47,7 +47,7 @@ def escape_latex(s):
     return s
 
 def latex_table(alg2dataset2score):
-    table_string = """\\begin{table}\n\\begin{center}\n\\begin{tabular}"""
+    table_string = """\\begin{table}\n\\centering\n\\caption{some caption}\n\\begin{tabular}"""
     num_ds = max([len(alg2dataset2score[x]) for x in alg2dataset2score])
     formatting = "{c" + "c" * num_ds + "}"
     table_string += format(formatting)
@@ -60,7 +60,7 @@ def latex_table(alg2dataset2score):
     for alg in alg_names:
         scores = [ "%.2f $\\pm$ %.2f" % (alg2dataset2score[alg][ds][0],alg2dataset2score[alg][ds][1]) if ds in alg2dataset2score[alg] else "-" for ds in ds_names]
         table_string += "%s & %s \\\\\n" % (alg," & ".join(scores))
-    table_string += "\\bottomrule\n\\end{tabular}\n\\end{center}\n\\end{table}"
+    table_string += "\\bottomrule\n\\end{tabular}\n\\end{table}"
     return table_string
 
 
