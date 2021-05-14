@@ -1,6 +1,0 @@
-dataset	algorithm	purity	clustering_time_elapsed	max_psi	max_rt
-spambase_shuffle_0	IKSHC	0.626868	145.105187	7	0.6
-spambase_shuffle_1	IKSHC	0.622448	142.753920	3	0.8
-spambase_shuffle_2	IKSHC	0.622491	144.293837	7	0.7
-spambase_shuffle_3	IKSHC	0.623953	143.514497	3	0.8
-spambase_shuffle_4	IKSHC	0.620607	143.251200	7	0.8
