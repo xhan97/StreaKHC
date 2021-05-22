@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-01-16 16:10:48
-LastEditTime: 2021-05-15 01:10:10
+LastEditTime: 2021-05-15 10:44:31
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: \StreamHC\Code\test\runTest.py
@@ -17,7 +17,7 @@ from Code.utils.file_utils import load_data, mkdir_p_safe, remove_dirs
 import os
 
 # Inode parameter
-psi = [15, 17, 21, 25, 50, 100, 500, 1000]
+psi = [64, 100, 256, 500, 1000, 2000]
 rates = [0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 t = 300
 
