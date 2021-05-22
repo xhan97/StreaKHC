@@ -183,8 +183,6 @@ class INode:
             #     curr_node = curr_node.children[0]
             #   elif x_dot_chr < x_dot_chl:
             #     curr_node = curr_node.children[1]
-
-
               x_dot_chl = _fast_dot(x_ik,chl_ik) / (t * math.sqrt(_fast_dot(x_ik,x_ik)) * (math.sqrt(_fast_dot(chl_ik,chl_ik))))
               x_dot_chr = _fast_dot(x_ik,chr_ik) / (t * math.sqrt(_fast_dot(x_ik,x_ik)) * (math.sqrt(_fast_dot(chr_ik,chr_ik))))
               x_dot_cur = _fast_dot(x_ik,curr_node.ikv) / (t * math.sqrt(_fast_dot(x_ik,x_ik)) * (math.sqrt(_fast_dot(curr_node.ikv,curr_node.ikv))))

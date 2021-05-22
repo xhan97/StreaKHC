@@ -1,5 +1,4 @@
 {
-    "python.pythonPath": "/home/hanxin/anaconda3/bin/python",
     "files.watcherExclude": {
         "**/target": true
     }

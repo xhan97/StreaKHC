@@ -17,12 +17,8 @@ import pandas as pd
 from Code.models.INode import INode
 from Code.utils.anne_no_pool import add_nne_data, addNNE
 from Code.utils.dendrogram_purity import dendrogram_purity, expected_dendrogram_purity
-from Code.utils.serialize_trees import serliaze_tree_to_file_with_point_ids,serliaze_tree_to_file
 from Code.utils.file_utils import load_data, mkdir_p_safe, remove_dirs
 from Code.utils.Graphviz import Graphviz
-#from graphviz import Source
-#from Code.utils.Graphviz import write_tree
-
 
 def create_i_tree(dataset, n, psi, t, rate):
     """Create trees over the same points.
@@ -53,7 +49,6 @@ def create_i_tree(dataset, n, psi, t, rate):
     print(nne_ed - nne_st)
     root = INode(exact_dist_thres=10)
     run_time = []
-
     tree_st_time = time.time()
 
     # history = []
@@ -67,26 +62,9 @@ def create_i_tree(dataset, n, psi, t, rate):
         if (i % 5000 == 0): 
             tree_mi_time = time.time()
             run_time.append((i, tree_mi_time - tree_st_time))
-            #print(run_time)
-        #if (i > 25000):
-        #    print()
-        # history.append(pt[0])
-
-        # if i > w:
-        #     history.pop(0)
-        # if i>n and (i-n) % l == 0 :
-        #     met = history
-        #     x = cdist(met,met, 'euclidean')
-        #     oneHot, subIndexSet, _= aNNE_similarity(x, psi, t)
 
         root = root.insert(pt, delete_node=True,
                            L=5000, t=300, rate=rate)
-        # if i % 10 == 0:
-        #     gv = Graphviz()
-        #     tree = gv.graphviz_tree(root)
-        #     src = Source(tree)
-        #     src.render('treeResult\\'+'tree'+str(i) +
-        #                '.gv', view=True, format='png')
     return root,run_time
 
 
@@ -179,8 +157,10 @@ def grid_search_inode(dataset, psi, t, n, rates, file_name, exp_dir_base, shuffl
             #print(root.point_counter)
             #print(runTime)
 
-            #pu_sts = time.time()
+            pu_sts = time.time()
             dendrogram_purity = expected_dendrogram_purity(root)
+            pu_ets = time.time()
+            print("purity time: %s" %(pu_ets - pu_sts))
             #dendrogram_purity = 0
             print("dendrogram_purity: %s" % (dendrogram_purity))
             args = {
@@ -224,19 +204,20 @@ if __name__ == "__main__":
     # scaler = MinMaxScaler()
     # dataset.iloc[:,:-2] = scaler.fit_transform(dataset.iloc[:,:-2])
     # dataset = list(load_df(dataset))
-    psi = [13, 15, 17, 21, 25]
-    #psi = [15]#
+    psi = [64, 15, 17, 21, 25]
+    #psi = [15] 
     #rates = [0.8]
     rates = [0.4,0.5,0.6, 0.7, 0.8,0.9]
     t = 300
     remove = False
-    file_name = "hard1"
-    exp_dir_base_inode = './Code/data/manual/'
+    file_name = "aloi"
+    exp_dir_base_inode = './Code/data/aloi/'
     dati = time.strftime("%Y%m%d%H%M%S", time.localtime())
     exp_dir_base_inode = exp_dir_base_inode+dati
     shuffle_times = 10
-    dataset = list(load_data("./Code/data/manual/"+file_name+".csv"))
+    dataset = list(load_data("./Code/data/aloi/"+file_name+".tsv"))[:5000]
     n = int(len(dataset)/4)
+    print(n)
 
     if remove:
         remove_dirs(file_name=file_name, exp_dir_base=exp_dir_base_inode)

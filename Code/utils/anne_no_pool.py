@@ -111,39 +111,11 @@ def addNNE(ind, indData, x, oneHot, subIndexSet):
         [numpy array]: the aNNE value of x.
     """
 
-    # print(ind)
-    #ind = [int(x) for x in ind]
-    # print(len(ind))
-    #ind = list(set(subIndexSet.reshape(-1).astype(int)))
-
-    # p = pp.ProcessPool(8)
-    # print(len(indData))
-    # with Pool() as pool:
-    #st = time.time()
-    #d = np.sqrt(p.map(_fast_norm_diff, [x]*len(indData), indData))
-    # print(d)
-    #mapst = time.time()
-    #distance_dict = get_nearest([x],indData,k_neighbors=len(indData))
     distance = [_fast_norm_diff(x, y) for y in indData]
-    #gendist = time.time()
-    #distDict = {}
-    # for i in range(len(ind)):
-    #    distDict[ind[i]] = distance_dict[i]
     disDict = dict(zip(ind, distance))
-    # print(distDict)
-    # print(disDict)
     ind = [[item.index(min(item, key=lambda x: disDict[x]))]
            for item in subIndexSet]
-    #mapet = time.time()
-    # print(ind)
-    #transti = time.time()
     embSet = oneHot.transform(ind).reshape(-1)
-    #traned = time.time()
-    #print("transtime:%s"%(traned - transti))
-
-    # print("gentime:%s"%(gendist-mapst))
-    # print("listtime:%s"%(liet-st))
-    # print("maptime:%s"%(mapet-gendist))
     return embSet
 
 
