@@ -91,8 +91,8 @@ def expected_dendrogram_purity(root):
                          for c, ls in groupby(sorted(leaves, key=get_cluster),
                                               get_cluster)}
     leaf_to_cluster = {l: l.pts[0][1] for l in leaves}
-    non_singleton_leaves = manager.list([l for l in leaf_to_cluster.keys()
-                            if len(cluster_to_leaves[leaf_to_cluster[l]]) > 1])
+    non_singleton_leaves = [l for l in leaf_to_cluster.keys()
+                            if len(cluster_to_leaves[leaf_to_cluster[l]]) > 1]
     if len(non_singleton_leaves) == 0.0:
         return 1.0
 
@@ -129,7 +129,7 @@ def expected_dendrogram_purity(root):
     # with Pool(processes=8) as pool:
     #     res = pool.map(processor, range(samps))
     
-    with Pool(processes=2) as pool:
+    with Pool(processes=4) as pool:
         res = pool.starmap(process, [(non_singleton_leaves, leaf_to_cluster,cluster_to_leaves)]*samps)
 #    for i in range(samps):
 # #        unnormalized_purity += process(non_singleton_leaves,leaf_to_cluster,cluster_to_leaves)

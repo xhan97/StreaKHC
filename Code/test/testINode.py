@@ -1,7 +1,7 @@
 '''
 @Author: Xin Han
 @Date: 2020-06-07 11:24:57
-LastEditTime: 2021-05-13 17:33:03
+LastEditTime: 2021-05-23 12:20:27
 LastEditors: Please set LastEditors
 @Description: In User Settings Edit
 @file_path: \StreamHC\Code\testINode.py
@@ -204,19 +204,20 @@ if __name__ == "__main__":
     # scaler = MinMaxScaler()
     # dataset.iloc[:,:-2] = scaler.fit_transform(dataset.iloc[:,:-2])
     # dataset = list(load_df(dataset))
-    psi = [64, 15, 17, 21, 25]
+    psi = [5, 15, 17, 21, 25]
     #psi = [15] 
     #rates = [0.8]
     rates = [0.4,0.5,0.6, 0.7, 0.8,0.9]
     t = 300
     remove = False
-    file_name = "aloi"
-    exp_dir_base_inode = './Code/data/aloi/'
+    file_name = "covtype"
+    exp_dir_base_inode = './Code/data/originalData/'
     dati = time.strftime("%Y%m%d%H%M%S", time.localtime())
     exp_dir_base_inode = exp_dir_base_inode+dati
     shuffle_times = 10
-    dataset = list(load_data("./Code/data/aloi/"+file_name+".tsv"))[:5000]
-    n = int(len(dataset)/4)
+    dataset = list(load_data("./Code/data/originalData/"+file_name+".tsv"))
+    # n = int(len(dataset)/4)
+    n = 25000
     print(n)
 
     if remove:

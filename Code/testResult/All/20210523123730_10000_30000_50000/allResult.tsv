@@ -1,0 +1,3 @@
+algorithm	dataset	purity
+IKSHC	covtype	0.256368
+PERCH	covtype	0.231116
