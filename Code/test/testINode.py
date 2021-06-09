@@ -1,7 +1,7 @@
 '''
 @Author: Xin Han
 @Date: 2020-06-07 11:24:57
-LastEditTime: 2021-05-23 12:20:27
+LastEditTime: 2021-06-09 17:06:12
 LastEditors: Please set LastEditors
 @Description: In User Settings Edit
 @file_path: \StreamHC\Code\testINode.py
@@ -151,14 +151,15 @@ def grid_search_inode(dataset, psi, t, n, rates, file_name, exp_dir_base, shuffl
                             item[0],
                             item[1]
                         ))
-            #print(runTime) 
+            print(runTime) 
             #serliaze_tree_to_file_with_point_ids(root, "seriesTree.tsv")
             #Graphviz.write_tree("tree.dot",root)
             #print(root.point_counter)
             #print(runTime)
 
             pu_sts = time.time()
-            dendrogram_purity = expected_dendrogram_purity(root)
+            # dendrogram_purity = expected_dendrogram_purity(root)
+            dendrogram_purity = 0
             pu_ets = time.time()
             print("purity time: %s" %(pu_ets - pu_sts))
             #dendrogram_purity = 0

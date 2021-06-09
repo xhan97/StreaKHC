@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-01-16 16:10:48
-LastEditTime: 2021-05-23 12:36:54
+LastEditTime: 2021-06-09 17:07:29
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: \StreamHC\Code\test\runTest.py
@@ -18,9 +18,9 @@ import os
 
 # Inode parameter
 # psi = [64, 100, 256, 500, 1000, 2000]
-psi = [5, 7, 15, 17]
-rates = [0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-t = 200
+psi = [5] #[5, 7, 15, 17]
+rates =[0.6]  #[0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+t = 300
 
 remove = False
 inputdir = "Code/data/originalData"
@@ -33,21 +33,21 @@ for parents, dirnames, filenames in os.walk(inputdir):
     print(filenames)
     for filename in filenames:
         data = list(load_data(inputdir+"/"+filename))
-        for slice in list(range(len(data)))[10000::20000]:
-            data = data[:slice]
-            n = int(1/4*len(data))
-            exp_dir_base = exp_dir_base + "_"+str(slice)
-            # n = len(data)
-            # n = 50000
-            print(n)
-            f = filename[:-4]
-            print(f)
-            if remove:
-                remove_dirs(file_name=f, exp_dir_base=exp_dir_base)
-            for i in range(shuffle_times):
-                np.random.shuffle(data)
-                P_data = deepcopy(data)
-                grid_search_inode(dataset=data, n=n, t=t, psi=psi, rates=rates,
-                                file_name=f, exp_dir_base=exp_dir_base, shuffle_index=i)
-                grid_research_pnode(dataset=P_data, file_name=f,
-                                   exp_dir_base=exp_dir_base, shuffle_index=i, use_ik=False)
+        # for slice in list(range(len(data)))[10000::20000]:
+        #     data = data[:slice]
+        n = int(1/4*len(data))
+        exp_dir_base = exp_dir_base + "_"
+        # n = len(data)
+        n = 20000
+        print(n)
+        f = filename[:-4]
+        print(f)
+        if remove:
+            remove_dirs(file_name=f, exp_dir_base=exp_dir_base)
+        for i in range(shuffle_times):
+            np.random.shuffle(data)
+            P_data = deepcopy(data)
+            grid_search_inode(dataset=data, n=n, t=t, psi=psi, rates=rates,
+                            file_name=f, exp_dir_base=exp_dir_base, shuffle_index=i)
+            grid_research_pnode(dataset=P_data, file_name=f,
+                                exp_dir_base=exp_dir_base, shuffle_index=i, use_ik=False)
