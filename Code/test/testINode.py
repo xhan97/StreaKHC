@@ -1,7 +1,7 @@
 '''
 @Author: Xin Han
 @Date: 2020-06-07 11:24:57
-LastEditTime: 2021-06-09 17:06:12
+LastEditTime: 2021-06-10 14:15:09
 LastEditors: Please set LastEditors
 @Description: In User Settings Edit
 @file_path: \StreamHC\Code\testINode.py
@@ -137,11 +137,11 @@ def grid_search_inode(dataset, psi, t, n, rates, file_name, exp_dir_base, shuffl
             print(ps,rt)
             data = deepcopy(dataset)
             sts = time.time()
-            try:
-                root,runTime = create_i_tree(
+        #     try:
+            root,runTime = create_i_tree(
                   data, n, ps, t, rate=rt)
-            except:
-                continue
+        #     except:
+        #         continue
             ets = time.time()
             print("time of build tree: %s" % (ets-sts))
             ti += ets-sts

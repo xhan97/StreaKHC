@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-01-16 16:10:48
-LastEditTime: 2021-06-09 17:07:29
+LastEditTime: 2021-06-10 13:59:50
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: \StreamHC\Code\test\runTest.py
@@ -18,7 +18,7 @@ import os
 
 # Inode parameter
 # psi = [64, 100, 256, 500, 1000, 2000]
-psi = [5] #[5, 7, 15, 17]
+psi = [4] #[5, 7, 15, 17]
 rates =[0.6]  #[0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 t = 300
 
@@ -38,7 +38,7 @@ for parents, dirnames, filenames in os.walk(inputdir):
         n = int(1/4*len(data))
         exp_dir_base = exp_dir_base + "_"
         # n = len(data)
-        n = 20000
+        n = 5000
         print(n)
         f = filename[:-4]
         print(f)
@@ -49,5 +49,5 @@ for parents, dirnames, filenames in os.walk(inputdir):
             P_data = deepcopy(data)
             grid_search_inode(dataset=data, n=n, t=t, psi=psi, rates=rates,
                             file_name=f, exp_dir_base=exp_dir_base, shuffle_index=i)
-            grid_research_pnode(dataset=P_data, file_name=f,
-                                exp_dir_base=exp_dir_base, shuffle_index=i, use_ik=False)
+            # grid_research_pnode(dataset=P_data, file_name=f,
+            #                    exp_dir_base=exp_dir_base, shuffle_index=i, use_ik=False)

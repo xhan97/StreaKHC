@@ -110,12 +110,16 @@ def addNNE(ind, indData, x, oneHot, subIndexSet):
     Returns:
         [numpy array]: the aNNE value of x.
     """
-
-    distance = [_fast_norm_diff(x, y) for y in indData]
+    
+    distance = [_fast_norm_diff(x, item) for item in indData]
+    # distance = map(lambda y: _fast_norm_diff(x,y), indData)
     disDict = dict(zip(ind, distance))
-    ind = [[item.index(min(item, key=lambda x: disDict[x]))]
+#     st_time = time.time()
+    ind = [[item.index(min(item, key=lambda i: disDict[i]))]
            for item in subIndexSet]
     embSet = oneHot.transform(ind).reshape(-1)
+#     end_time = time.time()
+#     print(end_time-st_time)
     return embSet
 
 
