@@ -1,7 +1,7 @@
 '''
 Author: your name
 Date: 2021-01-16 16:10:48
-LastEditTime: 2021-06-10 13:59:50
+LastEditTime: 2021-06-10 18:13:04
 LastEditors: Please set LastEditors
 Description: In User Settings Edit
 FilePath: \StreamHC\Code\test\runTest.py
@@ -49,5 +49,5 @@ for parents, dirnames, filenames in os.walk(inputdir):
             P_data = deepcopy(data)
             grid_search_inode(dataset=data, n=n, t=t, psi=psi, rates=rates,
                             file_name=f, exp_dir_base=exp_dir_base, shuffle_index=i)
-            # grid_research_pnode(dataset=P_data, file_name=f,
-            #                    exp_dir_base=exp_dir_base, shuffle_index=i, use_ik=False)
+            grid_research_pnode(dataset=P_data, file_name=f,
+                               exp_dir_base=exp_dir_base, shuffle_index=i, use_ik=False)
