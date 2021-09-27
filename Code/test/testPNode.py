@@ -1,7 +1,7 @@
 '''
 @Author: Xin Han
 @Date: 2020-06-07 11:24:57
-LastEditTime: 2021-05-13 15:55:56
+LastEditTime: 2021-06-09 17:08:42
 LastEditors: Please set LastEditors
 @Description: In User Settings Edit
 @file_path: \StreamHC\Code\testPNode.py
@@ -129,7 +129,8 @@ def grid_research_pnode(dataset, file_name, exp_dir_base, shuffle_index,use_ik=F
         #Graphviz.write_tree("ptree.dot",root)
         #print(run_time)
         ets = time.time()
-        purity = expected_dendrogram_purity(root)
+        # purity = expected_dendrogram_purity(root)
+        purity = 0
         sts = time.time()
         #dendrogram_purity = 0
         ti += ets-sts

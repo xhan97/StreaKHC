@@ -110,40 +110,16 @@ def addNNE(ind, indData, x, oneHot, subIndexSet):
     Returns:
         [numpy array]: the aNNE value of x.
     """
-
-    # print(ind)
-    #ind = [int(x) for x in ind]
-    # print(len(ind))
-    #ind = list(set(subIndexSet.reshape(-1).astype(int)))
-
-    # p = pp.ProcessPool(8)
-    # print(len(indData))
-    # with Pool() as pool:
-    #st = time.time()
-    #d = np.sqrt(p.map(_fast_norm_diff, [x]*len(indData), indData))
-    # print(d)
-    #mapst = time.time()
-    #distance_dict = get_nearest([x],indData,k_neighbors=len(indData))
-    distance = [_fast_norm_diff(x, y) for y in indData]
-    #gendist = time.time()
-    #distDict = {}
-    # for i in range(len(ind)):
-    #    distDict[ind[i]] = distance_dict[i]
+    
+    distance = [_fast_norm_diff(x, item) for item in indData]
+    # distance = map(lambda y: _fast_norm_diff(x,y), indData)
     disDict = dict(zip(ind, distance))
-    # print(distDict)
-    # print(disDict)
-    ind = [[item.index(min(item, key=lambda x: disDict[x]))]
+#     st_time = time.time()
+    ind = [[item.index(min(item, key=lambda i: disDict[i]))]
            for item in subIndexSet]
-    #mapet = time.time()
-    # print(ind)
-    #transti = time.time()
     embSet = oneHot.transform(ind).reshape(-1)
-    #traned = time.time()
-    #print("transtime:%s"%(traned - transti))
-
-    # print("gentime:%s"%(gendist-mapst))
-    # print("listtime:%s"%(liet-st))
-    # print("maptime:%s"%(mapet-gendist))
+#     end_time = time.time()
+#     print(end_time-st_time)
     return embSet
 
 
