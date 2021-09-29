@@ -1,8 +1,0 @@
-algorithm	dataset	purity
-IKSHC	wine	0.947136
-IKSHC	thyroid	0.830644
-IKSHC	lung	0.811057
-IKSHC	WDBC	0.897555
-IKSHC	ALLAML	0.735013
-IKSHC	LandCover	0.556679
-IKSHC	seeds	0.878437
