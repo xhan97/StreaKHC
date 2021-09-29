@@ -51,91 +51,69 @@ def get_nearest(src_points, candidates, k_neighbors=1):
     return distance_dict
 
 
-def add_nne_data(dataset, n, psi, t):
-    """Add ik value to dataset.
-    Args:
-      dataset - a list of points with which to build the tree.
-      n - the number of dataset to build aNNE metrix
-      psi - parameter of ik
-      t - paremeter of ik
-    Return:
-      dataset with ik value
-
-    """
-    #d = len(dataset[0][0])
-    met = [pt[0] for pt in dataset[:n]]
-    #met = np.random.random_sample(size =(n,d))
-    x = cdist(met, met, 'euclidean')
-
-    oneHot, subIndexSet, aNNEMetrix = aNNE_similarity(x, psi, t)
-    for i, pt in enumerate(dataset[:n]):
-        pt.append(aNNEMetrix[i])
-
-    return oneHot, subIndexSet, dataset
-
-
-def aNNE_similarity(m_distance, psi, t):
-
-    aNNEMetrix = []
-    subIndexSet = np.array([])
-    #n = np.array(range(len(m_distance)))
+def isolation_kernel_map(data, psi, t):
+    distance_matrix = cdist(data, data, 'euclidean')
+    embeding_metrix = []
+    center_index_set = np.array([])
     one_hot = preprocessing.OneHotEncoder(sparse=False)
     psi_t = np.array(range(psi)).reshape(psi, 1)
-    oneHot = one_hot.fit(psi_t)
+    one_hot_encoder = one_hot.fit(psi_t)
 
     for i in range(t):
-        subIndex = np.random.choice(len(m_distance), size=psi, replace=False)
-        subIndexSet = np.append(subIndexSet, subIndex)
-        centerIdx = np.argmin(m_distance[subIndex], 0)
-        centerIdxT = centerIdx.reshape(len(centerIdx), 1)
-        embedIdex = oneHot.transform(centerIdxT)
-        if len(aNNEMetrix) == 0:
-            aNNEMetrix = embedIdex
+        center_index = np.random.choice(
+            len(distance_matrix), size=psi, replace=False)
+        center_index_set = np.append(center_index_set, center_index)
+        nearest_center_index = np.argmin(distance_matrix[center_index], 0)
+        nearest_center_index_trans = nearest_center_index.reshape(
+            len(nearest_center_index), 1)
+        ik_value = one_hot_encoder.transform(nearest_center_index_trans)
+        if len(embeding_metrix) == 0:
+            embeding_metrix = ik_value
         else:
-            aNNEMetrix = np.concatenate((aNNEMetrix, embedIdex), axis=1)
-        subIndexSet = subIndexSet.astype(int)
+            embeding_metrix = np.concatenate(
+                (embeding_metrix, ik_value), axis=1)
+        center_index_set = center_index_set.astype(int)
     #aNNEMetrix = csr_matrix(aNNEMetrix)
-    return oneHot, subIndexSet.reshape(t, psi).tolist(), aNNEMetrix
+    return one_hot_encoder, center_index_set.reshape(t, psi).tolist(), embeding_metrix
 
 
-def addNNE(ind, indData, x, oneHot, subIndexSet):
+def add_nne(ind, indData, new_point, oneHot, subIndexSet):
     """Calcute the aNNE value to a new point x.
 
     Args:
         met (2D array): distance matrix
-        x (list): a new x present by vecture
+        new_point (list): a new x present by vecture
         oneHot (oneHot): the used encoding rule
         subIndexSet (2D numpy array): the index of point used to build a Voronoi diagram
 
     Returns:
         [numpy array]: the aNNE value of x.
     """
-    
-    distance = [_fast_norm_diff(x, item) for item in indData]
+
+    distance = [_fast_norm_diff(new_point, item) for item in indData]
     # distance = map(lambda y: _fast_norm_diff(x,y), indData)
     disDict = dict(zip(ind, distance))
 #     st_time = time.time()
     ind = [[item.index(min(item, key=lambda i: disDict[i]))]
            for item in subIndexSet]
-    embSet = oneHot.transform(ind).reshape(-1)
+    ik_value = oneHot.transform(ind).reshape(-1)
 #     end_time = time.time()
 #     print(end_time-st_time)
-    return embSet
+    return ik_value
 
 
 if __name__ == '__main__':
 
-    import time
-    from Code.utils.deltasep_utils import create_dataset
+    from src.utils.deltasep_utils import create_dataset
     dataset = create_dataset(5, 500, num_clusters=3)
     # np.random.shuffle(dataset)
-    met = np.array([pt[:3] for pt in dataset[:400]])
+    data = np.array([pt[:3] for pt in dataset[:400]])
     addx = dataset[401][:3]
-    x = cdist(met, met, 'euclidean')
+    x = cdist(data, data, 'euclidean')
     sts = time.time()
-    oneHot, subIndexSet, aNNEMetrix = aNNE_similarity(x, 13, 200)
+    oneHot, subIndexSet, aNNEMetrix = isolation_kernel_map(x, 13, 200)
     ets = time.time()
-    test = addNNE(met, addx, oneHot, subIndexSet)
+    test = add_nne(data, addx, oneHot, subIndexSet)
     add_end = time.time()
     print("build time:%s" % (ets-sts))
     print("add time:%s" % (add_end-ets))

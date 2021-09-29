@@ -72,9 +72,9 @@ class Graphviz(object):
         try:
             if node.purity() == 1.0:
                 if hasattr(node, 'pts') and len(node.pts) > 0:
-                    w_gt = [x for x in node.pts if x[1] and x[1] != "None"]
+                    w_gt = [x for x in node.pts if x[0] and x[0] != "None"]
                     if w_gt:
-                        color = self.get_color(w_gt[0][1])
+                        color = self.get_color(w_gt[0][0])
                     else:
                         color = self.get_color('None')
         except Exception:
@@ -96,7 +96,7 @@ class Graphviz(object):
                     leaf_m = '%s|%s' % (node.pts[0][0].mid, node.pts[0][0].gt) \
                         if node.is_leaf() else ''
                 else:
-                    leaf_m = '%s|%s' % (node.pts[0][2], node.pts[0][1]) \
+                    leaf_m = '%s|%s' % (node.pts[0][1], node.pts[0][0]) \
                         if node.is_leaf() else ''
             s.append('\n%s[shape=%s;style=filled;color=%s]'
                 % (self.format_id(node.id), shape, color))

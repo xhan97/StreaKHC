@@ -21,10 +21,12 @@ def mkdir_p_safe(dir):
         if exception.errno != errno.EEXIST:
             raise
 
+
 def remove_dirs(exp_dir_base, file_name):
     file_path = os.path.join(exp_dir_base, file_name)
     if os.path.exists(file_path):
-       os.removedirs(file_path)
+        os.removedirs(file_path)
+
 
 def load_data(file_path):
     if file_path[-3:] == "tsv":
@@ -33,10 +35,6 @@ def load_data(file_path):
         data = pd.read_csv(file_path)
     else:
         return None
-    data = data.dropna(how='all')
     data = data.dropna(axis=1, how='all')
-    # scaler = MinMaxScaler()
-    # data.iloc[:, 2:] = scaler.fit_transform(data.iloc[:, 2:])
     for item in data.values:
-        #yield(item[2:])
         yield([item[2:], item[1], item[0]])
