@@ -9,11 +9,7 @@ LastEditors: Please set LastEditors
 # coding: utf-8
 
 import os
-from posixpath import join
 import time
-from copy import deepcopy
-import numpy as np
-import pandas as pd
 
 from src.models.INode import INode
 from src.utils.anne_no_pool import add_nne, isolation_kernel_map
@@ -23,26 +19,7 @@ from src.utils.Graphviz import Graphviz
 from src.utils.serialize_trees import serliaze_tree_to_file
 
 
-def add_nne_data(dataset, n, psi, t):
-    """Add ik value to dataset.
-    Args:
-      dataset - a list of points with which to build the tree.
-      n - the number of dataset to build aNNE metrix
-      psi - parameter of ik
-      t - paremeter of ik
-    Return:
-      dataset with ik value
-
-    """
-    met = [pt[0] for pt in dataset[:n]]
-    one_hot_encoder, sub_index_set, anne_metrix = isolation_kernel_map(
-        met, psi, t)
-    for i, pt in enumerate(dataset[:n]):
-        pt.append(anne_metrix[i])
-    return one_hot_encoder, sub_index_set, dataset
-
-
-def create_streKhc_tree(dataset, n, psi, t, rate):
+def create_streKhc_tree(data_path, n, psi, t, rate):
     """Create trees over the same points.
     Create n trees, online, over the same dataset. Return pointers to the
     roots of all trees for evaluation.  The trees will be created via the insert
@@ -60,34 +37,35 @@ def create_streKhc_tree(dataset, n, psi, t, rate):
         A list of pointers to the trees constructed via the insert methods
         passed in.
     """
-
-    train_dataset = np.array([pt[0] for pt in dataset[:n]])
-    nne_st = time.time()
-    one_hot_encoder, center_index_set, data = add_nne_data(dataset, n, psi, t)
-    unique_index = list(set.union(*map(set, center_index_set)))
-    center_data = train_dataset[unique_index]
-    nne_ed = time.time()
-    print(nne_ed - nne_st)
-
-    root = INode(exact_dist_thres=10)
+    root = INode()
     run_time = []
     tree_st_time = time.time()
 
-    # history = []
-    for i, pt in enumerate(data):
-        if len(pt) == 3:
-            #st = time.time()
+    i = 0
+    train_dataset = []
+    for pt in load_data(data_path):
+        if i <= n:
+            train_dataset.append(pt)
+            if i == n:
+                train_dataset_feature = [pt[0] for pt in train_dataset]
+                one_hot_encoder, center_index_set, anne_metrix = isolation_kernel_map(
+                    train_dataset_feature, psi, t)
+                unique_index = list(set.union(*map(set, center_index_set)))
+                center_data = train_dataset[unique_index]
+                j = 0
+                for train_pt in train_dataset:
+                    train_pt.append(anne_metrix[j])
+                    root = root.insert(train_pt, rate=rate)
+                    j += 1
+        else:
             ikv = add_nne(unique_index, center_data, pt[0],
                           one_hot_encoder, center_index_set)
-            #et = time.time()
-            #print("add time:%s"%(et-st))
-            pt.append(ikv)
+            pt.insert(ikv)
+            root = root.insert(pt, rate=rate)
+        i += 1
         if (i % 5000 == 0):
             tree_mi_time = time.time()
             run_time.append((i, tree_mi_time - tree_st_time))
-
-        root = root.insert(pt, delete_node=True,
-                           L=5000, t=300, rate=rate)
     return root, run_time
 
 
@@ -153,19 +131,19 @@ def save_grid_search_data(args, exp_dir_base, filename):
         ))
 
 
-def grid_search_inode(dataset, psi, t, n, rates, file_name, exp_dir_base, shuffle_index):
+def grid_search_inode(data_path, psi, t, n, rates, file_name, exp_dir_base):
     ti = 0
     purity = 0
     max_ps = psi[0]
     max_rt = rates[0]
+
     for ps in psi:
         for rt in rates:
             print(ps, rt)
-            data = deepcopy(dataset)
             sts = time.time()
         #     try:
             root, runTime = create_streKhc_tree(
-                data, n, ps, t, rate=rt)
+                data_path, n, ps, t, rate=rt)
         #     except:
         #         continue
             ets = time.time()
@@ -178,21 +156,23 @@ def grid_search_inode(dataset, psi, t, n, rates, file_name, exp_dir_base, shuffl
                         item[1]
                     ))
             print(runTime)
-            save_tree_filename = "_".join([file_name, str(ps), str(rt), "tree.csv"])
-            serliaze_tree_to_file(root, os.join(exp_dir_base, save_tree_filename))
+            save_tree_filename = "_".join(
+                [file_name, str(ps), str(rt), "tree.csv"])
+            serliaze_tree_to_file(root, os.join(
+                exp_dir_base, save_tree_filename))
             # Graphviz.write_tree("tree.dot",root)
             # print(root.point_counter)
             # print(runTime)
 
             pu_sts = time.time()
-            # dendrogram_purity = expected_dendrogram_purity(root)
+            dendrogram_purity = expected_dendrogram_purity(root)
             dendrogram_purity = 0
             pu_ets = time.time()
             print("purity time: %s" % (pu_ets - pu_sts))
             #dendrogram_purity = 0
             print("dendrogram_purity: %s" % (dendrogram_purity))
             args = {
-                'dataset': '_'.join([file_name, "shuffle", shuffle_index]),
+                'dataset': '_'.join([file_name, "shuffle",]),
                 'algorithm': "IKSHC",
                 'purity': dendrogram_purity,
                 "psi": ps,
@@ -205,10 +185,9 @@ def grid_search_inode(dataset, psi, t, n, rates, file_name, exp_dir_base, shuffl
                 max_ps = ps
                 max_rt = rt
                 purity = dendrogram_purity
-            del data
     tim = ti/(len(psi)*len(rates))
     args = {
-        'dataset': '_'.join([file_name, "shuffle", shuffle_index]),
+        'dataset': '_'.join([file_name, "shuffle"]),
         'algorithm': "IKSHC",
         'purity': purity,
         'clustering_time_elapsed': tim,
@@ -223,19 +202,15 @@ if __name__ == "__main__":
     rates = [0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
     t = 300
     remove = False
-    file_name = "covtype"
+    file_name = "wine.csv"
     input_data_dir = 'data/raw'
     exp_dir_base_inode = 'exp_out/purity_test/streaKHC'
     start_time = time.strftime("%Y%m%d%H%M%S", time.localtime())
     exp_dir_base_inode = os.path.join(exp_dir_base_inode, start_time)
 
-    shuffle_times = 10
-    file_path = os.path.join(input_data_dir, file_name+".tsv")
-    dataset = list(load_data(file_path))
-    # n = int(len(dataset)/4)
-    n = 25000
+    file_path = os.path.join(input_data_dir, file_name)
+    #n = int(len(dataset)/4)
+    n = 68
 
-    if remove:
-        remove_dirs(file_name=file_name, exp_dir_base=exp_dir_base_inode)
-    grid_search_inode(dataset=dataset, n=n, t=t, psi=psi, rates=rates,
-                      file_name=file_name, exp_dir_base=exp_dir_base_inode, shuffle_index=i)
+    grid_search_inode(data_path=file_path, n=n, t=t, psi=psi, rates=rates,
+                      file_name=file_name[:-3], exp_dir_base=exp_dir_base_inode)
