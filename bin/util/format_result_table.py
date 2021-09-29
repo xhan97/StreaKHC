@@ -1,3 +1,11 @@
+'''
+Author: your name
+Date: 2021-01-17 12:06:42
+LastEditTime: 2021-05-14 14:59:53
+LastEditors: Please set LastEditors
+Description: In User Settings Edit
+FilePath: \StreamHC\Code\test\format_result_table.py
+'''
 import numpy as np
 import sys
 
@@ -18,19 +26,19 @@ def load_result_file(fn):
             try:
                 splt = line.strip().split("\t")
                 alg,dataset,dp = splt
-                if alg not in alg2dataset2score:
-                    alg2dataset2score[alg] = {}
-                if dataset not in alg2dataset2score[alg]:
-                    alg2dataset2score[alg][dataset] = []
-                alg2dataset2score[alg][dataset].append(float(dp))
+                if dataset not in alg2dataset2score:
+                    alg2dataset2score[dataset] = {}
+                if alg not in alg2dataset2score[dataset]:
+                    alg2dataset2score[dataset][alg] = []
+                alg2dataset2score[dataset][alg].append(float(dp))
             except:
                 pass
 
-    for alg in alg2dataset2score:
-        for dataset in alg2dataset2score[alg]:
-            mean = np.mean(alg2dataset2score[alg][dataset])
-            std = np.std(alg2dataset2score[alg][dataset])
-            alg2dataset2score[alg][dataset] = (mean,std)
+    for dataset in alg2dataset2score:
+        for alg in alg2dataset2score[dataset]:
+            mean = np.mean(alg2dataset2score[dataset][alg])
+            std = np.std(alg2dataset2score[dataset][alg])
+            alg2dataset2score[dataset][alg] = (mean,std)
 
     return alg2dataset2score
 
@@ -39,22 +47,23 @@ def escape_latex(s):
     return s
 
 def latex_table(alg2dataset2score):
-    table_string = """\\begin{table}\n\\begin{center}\n\\begin{tabular}"""
+    table_string = """\\begin{table}\n\\centering\n\\caption{some caption}\n\\begin{tabular}"""
     num_ds = max([len(alg2dataset2score[x]) for x in alg2dataset2score])
-    formatting = "{|c" + "|c" * num_ds + "|" + "}"
+    formatting = "{c" + "c" * num_ds + "}"
     table_string += format(formatting)
-    table_string += "\n\\hline\n"
+    table_string += "\n\\toprule\n"
     ds_names = list(set([name for x in alg2dataset2score for name in alg2dataset2score[x]]))
-    table_string += "\\bf Algorithm & \\bf " + " & \\bf ".join([escape_latex(x) for x in ds_names]) + "\\\\\n"
-    table_string += "\\hline\n"
+    table_string += "\\bf Dataset & \\bf " + " & \\bf ".join([escape_latex(x) for x in ds_names]) + "\\\\\n"
+    table_string += "\\midrule\n"
     alg_names = alg2dataset2score.keys()
     alg_names = sorted(alg_names)
     for alg in alg_names:
-        scores = [ "%.5f $\\pm$ %.5f" % (alg2dataset2score[alg][ds][0],alg2dataset2score[alg][ds][1]) if ds in alg2dataset2score[alg] else "-" for ds in ds_names]
+        scores = [ "%.2f $\\pm$ %.2f" % (alg2dataset2score[alg][ds][0],alg2dataset2score[alg][ds][1]) if ds in alg2dataset2score[alg] else "-" for ds in ds_names]
         table_string += "%s & %s \\\\\n" % (alg," & ".join(scores))
-    table_string += "\\hline\n\\end{tabular}\n\\end{center}\n\\end{table}"
+    table_string += "\\bottomrule\n\\end{tabular}\n\\end{table}"
     return table_string
 
 
 if __name__ == "__main__":
+    #print(latex_table(load_result_file("newalldata.csv")))
     print(latex_table(load_result_file(sys.argv[1])))

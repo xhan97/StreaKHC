@@ -1,0 +1,11 @@
+dataset	algorithm	purity	clustering_time_elapsed	max_psi	max_rt
+vowel_shuffle_0	IKSHC	0.200280	0.607064	3	0.6
+vowel_shuffle_1	IKSHC	0.207186	0.599154	15	0.6
+vowel_shuffle_2	IKSHC	0.210840	0.601362	15	0.7
+vowel_shuffle_3	IKSHC	0.209913	0.588591	7	0.6
+vowel_shuffle_4	IKSHC	0.214535	0.626749	15	0.6
+vowel_shuffle_5	IKSHC	0.195546	0.620563	13	0.6
+vowel_shuffle_6	IKSHC	0.224000	0.600720	15	0.7
+vowel_shuffle_7	IKSHC	0.220614	0.608690	15	0.6
+vowel_shuffle_8	IKSHC	0.224257	0.576821	7	0.7
+vowel_shuffle_9	IKSHC	0.223083	0.604991	15	0.6

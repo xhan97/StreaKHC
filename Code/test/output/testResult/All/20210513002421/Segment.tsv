@@ -1,0 +1,21 @@
+dataset	algorithm	purity	clustering_time_elapsed	max_psi	max_rt
+Segment_shuffle_0	IKSHC	0.640826	4.704877	21	0.9
+Segment_shuffle_0	PERCH	0.619465	1.807809
+Segment_shuffle_1	IKSHC	0.645755	4.627514	25	0.5
+Segment_shuffle_1	PERCH	0.616860	1.768528
+Segment_shuffle_2	IKSHC	0.615533	4.730039	21	0.5
+Segment_shuffle_2	PERCH	0.515081	1.704971
+Segment_shuffle_3	IKSHC	0.627643	4.576576	21	0.9
+Segment_shuffle_3	PERCH	0.593962	1.474331
+Segment_shuffle_4	IKSHC	0.665515	4.524927	25	0.5
+Segment_shuffle_4	PERCH	0.470660	1.483738
+Segment_shuffle_5	IKSHC	0.648017	4.514969	25	0.6
+Segment_shuffle_5	PERCH	0.586675	1.430273
+Segment_shuffle_6	IKSHC	0.664441	4.506928	21	0.6
+Segment_shuffle_6	PERCH	0.546663	1.475776
+Segment_shuffle_7	IKSHC	0.630342	4.518980	15	0.7
+Segment_shuffle_7	PERCH	0.584902	1.497437
+Segment_shuffle_8	IKSHC	0.660422	4.532315	25	0.9
+Segment_shuffle_8	PERCH	0.613592	1.493729
+Segment_shuffle_9	IKSHC	0.689516	4.643354	25	0.9
+Segment_shuffle_9	PERCH	0.581781	1.465305
