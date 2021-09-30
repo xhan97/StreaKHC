@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import time
-from Code.utils.file_utils import load_data, mkdir_p_safe, remove_dirs
+from src.utils.file_utils import load_data, mkdir_p_safe, remove_dirs
 from scipy.cluster.hierarchy import linkage, dendrogram
 
 dataset = list(load_data("./Code/data/addData/split1/aloi.tsv"))

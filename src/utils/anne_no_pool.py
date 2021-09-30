@@ -1,14 +1,12 @@
 # coding: utf-8
 
-import pandas as pd
+import math
+import time
+
 import numpy as np
 from numba import jit
-import math
-from sklearn import preprocessing
 from scipy.spatial.distance import cdist
 from sklearn.neighbors import BallTree
-import numpy as np
-import time
 
 
 @jit(nopython=True)
@@ -42,42 +40,32 @@ def get_nearest(src_points, candidates, k_neighbors=1):
     # Create tree from the candidate points
     # st = time.time()
     tree = BallTree(candidates, leaf_size=30, metric='euclidean')
-    # et = time.time()
-    # Find closest points and distances
     distances, indices = tree.query(src_points, k=k_neighbors)
-    #print("search time: %s"%(et-st))
     distance_dict = dict(zip(indices[0], distances[0]))
-
     return distance_dict
 
 
 def isolation_kernel_map(data, psi, t):
     distance_matrix = cdist(data, data, 'euclidean')
-    embeding_metrix = []
-    center_index_set = np.array([])
-    one_hot = preprocessing.OneHotEncoder(sparse=False)
-    psi_t = np.array(range(psi)).reshape(psi, 1)
-    one_hot_encoder = one_hot.fit(psi_t)
-
     for i in range(t):
         center_index = np.random.choice(
-            len(distance_matrix), size=psi, replace=False)
-        center_index_set = np.append(center_index_set, center_index)
+            len(data), size=psi, replace=False)
+        if i == 0:
+            center_index_set = np.array([center_index])
+        else:
+            center_index_set = np.append(
+                center_index_set, np.array([center_index]), axis=0)
         nearest_center_index = np.argmin(distance_matrix[center_index], 0)
-        nearest_center_index_trans = nearest_center_index.reshape(
-            len(nearest_center_index), 1)
-        ik_value = one_hot_encoder.transform(nearest_center_index_trans)
-        if len(embeding_metrix) == 0:
+        ik_value = np.eye(psi, dtype=int)[nearest_center_index]
+        if i == 0:
             embeding_metrix = ik_value
         else:
             embeding_metrix = np.concatenate(
                 (embeding_metrix, ik_value), axis=1)
-        center_index_set = center_index_set.astype(int)
-    #aNNEMetrix = csr_matrix(aNNEMetrix)
-    return one_hot_encoder, center_index_set.reshape(t, psi).tolist(), embeding_metrix
+    return center_index_set, embeding_metrix
 
 
-def add_nne(ind, indData, new_point, oneHot, subIndexSet):
+def add_nne(ind, indData, new_point, subIndexSet):
     """Calcute the aNNE value to a new point x.
 
     Args:
@@ -89,31 +77,34 @@ def add_nne(ind, indData, new_point, oneHot, subIndexSet):
     Returns:
         [numpy array]: the aNNE value of x.
     """
-
     distance = [_fast_norm_diff(new_point, item) for item in indData]
-    # distance = map(lambda y: _fast_norm_diff(x,y), indData)
-    disDict = dict(zip(ind, distance))
-#     st_time = time.time()
-    ind = [[item.index(min(item, key=lambda i: disDict[i]))]
+    dist_diction = dict(zip(ind, distance))
+    ind = [item.index(min(item, key=lambda i: dist_diction[i]))
            for item in subIndexSet]
-    ik_value = oneHot.transform(ind).reshape(-1)
-#     end_time = time.time()
-#     print(end_time-st_time)
+    #psi = len(subIndexSet[0])
+    ts = time.time()
+    ik_value = np.eye(13, dtype=int)[ind].reshape(-1)
+    td = time.time()
+    print(td-ts)
     return ik_value
 
 
 if __name__ == '__main__':
 
     from src.utils.deltasep_utils import create_dataset
-    dataset = create_dataset(5, 500, num_clusters=3)
+    dataset = create_dataset(5, 5000, num_clusters=3)
     # np.random.shuffle(dataset)
-    data = np.array([pt[:3] for pt in dataset[:400]])
-    addx = dataset[401][:3]
+    data = np.array([pt[:3] for pt in dataset[:200]])
     x = cdist(data, data, 'euclidean')
     sts = time.time()
-    oneHot, subIndexSet, aNNEMetrix = isolation_kernel_map(x, 13, 200)
+    center_index_set, embeding_matrix = isolation_kernel_map(x, 13, 200)
+    unique_index = np.unique(center_index_set)
+    center_index_set = center_index_set.tolist()
+    index_data = data[unique_index]
     ets = time.time()
-    test = add_nne(data, addx, oneHot, subIndexSet)
+    for dt in dataset[200:]:
+        addx = dt[:3]
+        test = add_nne(unique_index, index_data, addx, center_index_set)
     add_end = time.time()
-    print("build time:%s" % (ets-sts))
     print("add time:%s" % (add_end-ets))
+# print("build time:%s" % (ets-sts))
