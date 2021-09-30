@@ -65,6 +65,7 @@ def isolation_kernel_map(data, psi, t):
     return center_index_set, embeding_metrix
 
 
+
 def add_nne(ind, indData, new_point, subIndexSet):
     """Calcute the aNNE value to a new point x.
 
@@ -77,15 +78,13 @@ def add_nne(ind, indData, new_point, subIndexSet):
     Returns:
         [numpy array]: the aNNE value of x.
     """
+    
     distance = [_fast_norm_diff(new_point, item) for item in indData]
     dist_diction = dict(zip(ind, distance))
-    ind = [item.index(min(item, key=lambda i: dist_diction[i]))
+    ind = [[item.index(min(item, key=lambda i: dist_diction[i]))]
            for item in subIndexSet]
-    #psi = len(subIndexSet[0])
-    ts = time.time()
-    ik_value = np.eye(13, dtype=int)[ind].reshape(-1)
-    td = time.time()
-    print(td-ts)
+    psi = len(subIndexSet[0])
+    ik_value = np.eye(psi, dtype=int)[ind].reshape(-1)
     return ik_value
 
 
@@ -98,13 +97,12 @@ if __name__ == '__main__':
     x = cdist(data, data, 'euclidean')
     sts = time.time()
     center_index_set, embeding_matrix = isolation_kernel_map(x, 13, 200)
-    unique_index = np.unique(center_index_set)
-    center_index_set = center_index_set.tolist()
+    unique_index = np.unique(center_index_set).tolist()
+    center_index_set_list = center_index_set.tolist()
     index_data = data[unique_index]
     ets = time.time()
     for dt in dataset[200:]:
         addx = dt[:3]
-        test = add_nne(unique_index, index_data, addx, center_index_set)
+        test= add_nne(unique_index, index_data, addx, center_index_set_list)
     add_end = time.time()
     print("add time:%s" % (add_end-ets))
-# print("build time:%s" % (ets-sts))

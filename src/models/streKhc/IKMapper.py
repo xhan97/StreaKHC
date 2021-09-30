@@ -89,7 +89,7 @@ class IKMapper():
             else:
                 self.embeding_metrix = np.concatenate(
                     (self.embeding_metrix, ik_value), axis=1)
-        self.unique_index = np.unique(self.center_index_set)
+        self.unique_index = np.unique(self.center_index_set).tolist()
         self.center_data = X[self.unique_index]
         self.center_index_set = self.center_index_set.tolist()
         return self

@@ -14,15 +14,14 @@
 
 # coding: utf-8
 
-import pandas as pd
+import math
+import time
+
 import numpy as np
 from numba import jit
-import math
-from sklearn import preprocessing
 from scipy.spatial.distance import cdist
+from sklearn import preprocessing
 from sklearn.neighbors import BallTree
-import numpy as np
-import time
 
 
 @jit(nopython=True)
@@ -107,14 +106,12 @@ def add_nne(ind, indData, new_point, oneHot, subIndexSet):
     distance = [_fast_norm_diff(new_point, item) for item in indData]
     # distance = map(lambda y: _fast_norm_diff(x,y), indData)
     disDict = dict(zip(ind, distance))
-#     
+    st_time = time.time()  
     ind = [[item.index(min(item, key=lambda i: disDict[i]))]
            for item in subIndexSet]
-    #st_time = time.time()
+    end_time = time.time()
     ik_value = oneHot.transform(ind).reshape(-1)
-    #end_time = time.time()
-    #print(end_time-st_time)
-    return ik_value
+    return ik_value, end_time-st_time
 
 
 if __name__ == '__main__':
@@ -123,16 +120,16 @@ if __name__ == '__main__':
     dataset = create_dataset(5, 5000, num_clusters=3)
     # np.random.shuffle(dataset)
     data = np.array([pt[:3] for pt in dataset[:200]])
-    x = cdist(data, data, 'euclidean')
     sts = time.time()
-    oneHot, subIndexSet, aNNEMetrix = isolation_kernel_map(x, 13, 200)
-    
+    oneHot, subIndexSet, aNNEMetrix = isolation_kernel_map(data, 13, 200)
     unique_index = list(set.union(*map(set, subIndexSet)))
     center_data = data[unique_index]
+    tr_t = 0
     ets = time.time()
     for dt in dataset[200:]:
         addx = dt[:3]
-        test = add_nne(unique_index, center_data, addx,  oneHot, subIndexSet)
+        test,trs_t = add_nne(unique_index, center_data, addx,  oneHot, subIndexSet)
+        tr_t+=trs_t
     add_end = time.time()
-    #print("build time:%s" % (ets-sts))
+    print("trans time:%s" % (tr_t))
     print("add time:%s" % (add_end-ets))
