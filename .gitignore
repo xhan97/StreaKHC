@@ -86,4 +86,4 @@ target/
 .mypy_cache/
 
 # data
-Code/data/addData/Mnist1M.mat
+data/raw/Mnist1M.mat

@@ -77,8 +77,8 @@ class INode:
             # print(self.point_counter)
         root = self.root()
         if self.pts is not None and len(self.pts) == 0:
-            self.add_pt(pt[1:3])
-            self.ikv = pt[3]
+            self.add_pt(pt[:2])
+            self.ikv = pt[2]
             # self._update_params_recursively()
             return root
         else:
@@ -231,8 +231,8 @@ class INode:
             new_internal.add_child(self)
 
         new_leaf = INode()
-        new_leaf.ikv = pt[3]
-        new_leaf.add_pt(pt[1:3])  # This updates the points counter.
+        new_leaf.ikv = pt[2]
+        new_leaf.add_pt(pt[:2])  # This updates the points counter.
         new_internal.add_child(new_leaf)
         return new_leaf
 

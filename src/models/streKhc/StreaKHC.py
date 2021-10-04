@@ -21,7 +21,7 @@ from src.utils.Graphviz import Graphviz
 from src.utils.serialize_trees import serliaze_tree_to_file
 
 
-def create_streKhc_tree(data_path, n, psi, t, rate):
+def build_streKhc_tree(data_path, n, psi, t, rate):
     """Create trees over the same points.
     Create n trees, online, over the same dataset. Return pointers to the
     roots of all trees for evaluation.  The trees will be created via the insert
@@ -33,7 +33,6 @@ def create_streKhc_tree(data_path, n, psi, t, rate):
         psi - parameter of ik
         t - parameter of ik
         w - windows size
-        l - ik metrix update length
 
     Returns:
         A list of pointers to the trees constructed via the insert methods
@@ -49,23 +48,19 @@ def create_streKhc_tree(data_path, n, psi, t, rate):
         if i <= n:
             train_dataset.append(pt)
             if i == n:
-                train_dataset_feature = np.array(
+                train_dataset_vec = np.array(
                     [pt[0] for pt in train_dataset])
                 ik_mapper = IKMapper(n_members=t, sample_size=psi)
-                ik_mapper = ik_mapper.fit(train_dataset_feature)
-                print("fit over")
+                ik_mapper = ik_mapper.fit(train_dataset_vec)
                 j = 0
                 for train_pt in train_dataset:
-                    train_pt.append(ik_mapper.embeding_metrix[j])
-                    root = root.insert(train_pt, rate=rate)
+                    pid, l, ikv = train_pt[0], train_pt[1], ik_mapper.embeding_metrix[j]
+                    root = root.insert((pid, l, ikv), rate=rate)
                     j += 1
-                print("insert over")
         else:
             ikv = ik_mapper.transform(pt[0])
-            # print(sys.getsizeof(ikv))
             pt.append(ikv)
             root = root.insert(pt, rate=rate)
-            # print(sys.getsizeof(root))
         i += 1
         if i % 5000 == 0:
             print(i)
@@ -147,7 +142,7 @@ def grid_search_inode(data_path, psi, t, n, rates, file_name, exp_dir_base):
             print(ps, rt)
             sts = time.time()
         #     try:
-            root, runTime = create_streKhc_tree(
+            root, runTime = build_streKhc_tree(
                 data_path, n, ps, t, rate=rt)
         #     except:
         #         continue

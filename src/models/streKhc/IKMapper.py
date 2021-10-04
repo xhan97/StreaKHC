@@ -80,8 +80,7 @@ class IKMapper():
                 self.center_index_set = np.array([center_index])
             else:
                 self.center_index_set = np.append(
-                    self.center_index_set, np.array([center_index]), axis=0
-                )
+                    self.center_index_set, np.array([center_index]), axis=0)
             nearest_center_index = np.argmin(distance_matrix[center_index], 0)
             ik_value = np.eye(self.n_members, dtype=int)[nearest_center_index]
             if i == 0:
