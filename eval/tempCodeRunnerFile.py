@@ -1,0 +1,1 @@
+plt.style.use('science')

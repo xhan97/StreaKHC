@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
 
-export XCLUSTER_ROOT=`pwd`
-export XCLUSTER_DATA=$XCLUSTER_ROOT/data
-export XCLUSTER_JARPATH=$XCLUSTER_ROOT/target/xcluster-0.1-SNAPSHOT-jar-with-dependencies.jar
-export PYTHONPATH=$XCLUSTER_ROOT/src/python:$PYTHONPATH
-export PATH=$XCLUSTER_ROOT/dep/apache-maven-3.6.1/bin:$PATH
+export STREASKH_ROOT=`pwd`
+export STREASKH_data=$STREASKH_ROOT/data
+export XCLUSTER_JARPATH=$SKHUSTER_ROOT/target/xcluster-0.1-SNAPSHOT-jar-with-dependencies.jar
+export PYTHONPATH=$STREASKH_ROOT/src/python:$PYTHONPATH
+export PATH=$STREASKH_ROOT/dep/apache-maven-3.6.1/bin:$PATH
 
-if [ ! -f $XCLUSTER_ROOT/.gitignore ]; then
-    echo ".gitignore" > $XCLUSTER_ROOT/.gitignore
-    echo "target" >> $XCLUSTER_ROOT/.gitignore
-    echo ".idea" >> $XCLUSTER_ROOT/.gitignore
-    echo "__pycache__" >> $XCLUSTER_ROOT/.gitignore
-    echo "dep" >> $XCLUSTER_ROOT/.gitignore
-    echo "data" >> $XCLUSTER_ROOT/.gitignore
-    echo "test_out" >> $XCLUSTER_ROOT/.gitignore
-    echo "experiments_out" >> $XCLUSTER_ROOT/.gitignore
-    echo ".DS_STORE" >> $XCLUSTER_ROOT/.gitignore
-    echo "*.iml" >> $XCLUSTER_ROOT/.gitignore
+if [ ! -f $STREASKH_ROOT/.gitignore ]; then
+    echo ".gitignore" > $STREASKH_ROOT/.gitignore
+    echo "target" >> $STREASKH_ROOT/.gitignore
+    echo ".idea" >> $STREASKH_ROOT/.gitignore
+    echo "__pycache__" >> $STREASKH_ROOT/.gitignore
+    echo "dep" >> $STREASKH_ROOT/.gitignore
+    echo "data" >> $STREASKH_ROOT/.gitignore
+    echo "test_out" >> $STREASKH_ROOT/.gitignore
+    echo "experiments_out" >> $STREASKH_ROOT/.gitignore
+    echo ".DS_STORE" >> $STREASKH_ROOT/.gitignore
+    echo "*.iml" >> $STREASKH_ROOT/.gitignore
 fi

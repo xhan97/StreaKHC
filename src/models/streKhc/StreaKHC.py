@@ -1,12 +1,16 @@
-'''
-@Author: Xin Han
-@Date: 2020-06-07 11:24:57
-LastEditTime: 2021-06-10 14:15:09
-LastEditors: Please set LastEditors
-@Description: In User Settings Edit
-@file_path: \StreamHC\Code\testINode.py
-'''
-# coding: utf-8
+# Copyright 2021 Xin Han
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import os
 import time
@@ -49,18 +53,18 @@ def build_streKhc_tree(data_path, n, psi, t, rate):
             train_dataset.append(pt)
             if i == n:
                 train_dataset_vec = np.array(
-                    [pt[0] for pt in train_dataset])
-                ik_mapper = IKMapper(n_members=t, sample_size=psi)
+                    [pt[2] for pt in train_dataset])
+                ik_mapper = IKMapper(t=t, psi=psi)
                 ik_mapper = ik_mapper.fit(train_dataset_vec)
                 j = 0
                 for train_pt in train_dataset:
-                    pid, l, ikv = train_pt[0], train_pt[1], ik_mapper.embeding_metrix[j]
-                    root = root.insert((pid, l, ikv), rate=rate)
+                    l, pid, ikv = train_pt[0], train_pt[1], ik_mapper.embeding_metrix[j]
+                    root = root.insert((l, pid, ikv), rate=rate)
                     j += 1
         else:
-            ikv = ik_mapper.transform(pt[0])
-            pt.append(ikv)
-            root = root.insert(pt, rate=rate)
+            ikv = ik_mapper.transform(pt[2])
+            l, pid = pt[:2]
+            root = root.insert((l, pid, ikv), rate=rate)
         i += 1
         if i % 5000 == 0:
             print(i)
@@ -155,22 +159,22 @@ def grid_search_inode(data_path, psi, t, n, rates, file_name, exp_dir_base):
                         item[0],
                         item[1]
                     ))
-            print(runTime)
-            save_tree_filename = "_".join(
-                [file_name, str(ps), str(rt), "tree.txt"])
-            mkdir_p_safe(exp_dir_base)
-            serliaze_tree_to_file(root, os.path.join(
-                exp_dir_base, save_tree_filename))
+            #print(runTime)
+            # save_tree_filename = "_".join(
+            #     [file_name, str(ps), str(rt), "tree.txt"])
+            # mkdir_p_safe(exp_dir_base)
+            # serliaze_tree_to_file(root, os.path.join(
+            #     exp_dir_base, save_tree_filename))
             # Graphviz.write_tree("tree.dot",root)
             # print(root.point_counter)
             # print(runTime)
 
-            pu_sts = time.time()
-            #dendrogram_purity = expected_dendrogram_purity(root)
-            pu_ets = time.time()
-            print("purity time: %s" % (pu_ets - pu_sts))
+            # pu_sts = time.time()
+            # #dendrogram_purity = expected_dendrogram_purity(root)
+            # pu_ets = time.time()
+            # print("purity time: %s" % (pu_ets - pu_sts))
             dendrogram_purity = 0
-            print("dendrogram_purity: %s" % (dendrogram_purity))
+            # print("dendrogram_purity: %s" % (dendrogram_purity))
             args = {
                 'dataset': '_'.join([file_name, "shuffle", ]),
                 'algorithm': "IKSHC",
@@ -198,19 +202,18 @@ def grid_search_inode(data_path, psi, t, n, rates, file_name, exp_dir_base):
 
 
 if __name__ == "__main__":
-    psi = [7, 15, 17, 21, 25]
-    rates = [0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+    #psi = [7, 15, 17, 21, 25]
+    psi = [7]
+    #rates = [0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+    rates = [0.7]
     t = 200
-    remove = False
-    file_name = "covtype.tsv"
+    file_name = "aloi_1.tsv"
     input_data_dir = 'data\\raw'
     exp_dir_base_inode = 'exp_out\\purity_test\\streaKHC'
     start_time = time.strftime("%Y%m%d%H%M%S", time.localtime())
     exp_dir_base_inode = os.path.join(exp_dir_base_inode, start_time)
-
     file_path = os.path.join(input_data_dir, file_name)
-    #n = int(len(dataset)/4)
-    n = 20000
+    n = 5000
 
     grid_search_inode(data_path=file_path, n=n, t=t, psi=psi, rates=rates,
                       file_name=file_name[:-3], exp_dir_base=exp_dir_base_inode)

@@ -1,11 +1,11 @@
-# Copyright 2021 hanxin
-#
+# Copyright 2021 Xin Han
+# 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#
+# 
 #     http://www.apache.org/licenses/LICENSE-2.0
-#
+# 
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,7 +35,6 @@ def _fast_dot(x, y):
       x_T.y
       """
     return np.dot(x, y)
-
 
 class INode:
     """Isolation hc node."""
@@ -79,16 +78,14 @@ class INode:
         if self.pts is not None and len(self.pts) == 0:
             self.add_pt(pt[:2])
             self.ikv = pt[2]
-            # self._update_params_recursively()
             return root
         else:
             curr_node = root
-            x_ik = pt[3].astype(float)  # .toarray().reshape(-1)
+            x_ik = pt[2].astype(float) 
             while not curr_node.is_leaf():
-                chl_ik = curr_node.children[0].ikv.astype(float)  # .toarray().reshape(-1)
-                chr_ik = curr_node.children[1].ikv.astype(float)  # .toarray().reshape(-1)
+                chl_ik = curr_node.children[0].ikv.astype(float)
+                chr_ik = curr_node.children[1].ikv.astype(float)
                 curr_ik = curr_node.ikv.astype(float)
-
                 x_dot_chl = _fast_dot(x_ik, chl_ik) / (t * math.sqrt(
                     _fast_dot(x_ik, x_ik)) * (math.sqrt(_fast_dot(chl_ik, chl_ik))))
                 x_dot_chr = _fast_dot(x_ik, chr_ik) / (t * math.sqrt(
@@ -106,7 +103,7 @@ class INode:
             new_leaf = curr_node._split_down(pt)
             ancs = new_leaf._ancestors()
             for a in ancs:
-                a.add_pt(pt[1:3])
+                a.add_pt(pt[:2])
             _ = new_leaf._update_ik_value_recursively()
 
             return new_leaf.root()

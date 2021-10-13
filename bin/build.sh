@@ -2,6 +2,6 @@
 
 set -exu
 
-pushd $XCLUSTER_ROOT
+pushd $SKHUSTER_ROOT
 mvn clean package
 popd

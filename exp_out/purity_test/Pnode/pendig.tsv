@@ -1,0 +1,3 @@
+dataset	algorithm	purity	psi	clustering_time_elapsed
+pendig_shuffle_0	PERCH	0.000000	3.000000	13.060098
+pendig_shuffle_0	PERCH	0.000000	5.000000	29.894726

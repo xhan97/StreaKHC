@@ -85,12 +85,12 @@ def expected_dendrogram_purity(root):
     manager = Manager()
 
     def get_cluster(x):
-        return x.pts[0][0]
+        return x.pts[0][1]
 
     cluster_to_leaves = {c: list(ls)
                          for c, ls in groupby(sorted(leaves, key=get_cluster),
                                               get_cluster)}
-    leaf_to_cluster = {l: l.pts[0][0] for l in leaves}
+    leaf_to_cluster = {l: l.pts[0][1] for l in leaves}
     non_singleton_leaves = [l for l in leaf_to_cluster.keys()
                             if len(cluster_to_leaves[leaf_to_cluster[l]]) > 1]
     if len(non_singleton_leaves) == 0.0:

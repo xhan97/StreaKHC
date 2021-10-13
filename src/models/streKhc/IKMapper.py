@@ -17,6 +17,7 @@ import time
 
 import numpy as np
 from numba import jit
+from numpy.core.defchararray import center
 from scipy.spatial.distance import cdist
 
 
@@ -49,11 +50,11 @@ def _fast_norm_diff(x, y):
 class IKMapper():
 
     def __init__(self,
-                 n_members,
-                 sample_size,
+                 t,
+                 psi,
                  ) -> None:
-        self.n_members = n_members
-        self.sample_size = sample_size
+        self.t = t
+        self.psi = psi
         self.embeding_metrix = None
         self.center_index_set = None
         self.center_data = None
@@ -72,25 +73,26 @@ class IKMapper():
         """
         # correct sample size
         n = X.shape[0]
-        self.sample_size = min(self.sample_size, n)
+        self.psi = min(self.psi, n)
         distance_matrix = cdist(X, X, 'euclidean')
-        for i in range(self.n_members):
-            center_index = np.random.choice(n, self.sample_size, replace=False)
+        for i in range(self.t):
+            center_index = np.random.choice(n, self.psi, replace=False)
             if i == 0:
                 self.center_index_set = np.array([center_index])
             else:
                 self.center_index_set = np.append(
                     self.center_index_set, np.array([center_index]), axis=0)
             nearest_center_index = np.argmin(distance_matrix[center_index], 0)
-            ik_value = np.eye(self.n_members, dtype=int)[nearest_center_index]
+            ik_value = np.eye(self.psi, dtype=int)[nearest_center_index]
             if i == 0:
                 self.embeding_metrix = ik_value
             else:
                 self.embeding_metrix = np.concatenate(
                     (self.embeding_metrix, ik_value), axis=1)
-        self.unique_index = np.unique(self.center_index_set).tolist()
+        assert self.embeding_metrix.shape == (
+            n, self.psi * self.t), "Shape of ik_value is incorrect ! Except: %s, Get:%s" % ((n, self.psi * self.t), self.embeding_metrix.shape)
+        self.unique_index = np.unique(self.center_index_set)
         self.center_data = X[self.unique_index]
-        self.center_index_set = self.center_index_set.tolist()
         return self
 
     def embeding_mat(self):
@@ -111,31 +113,43 @@ class IKMapper():
         ik_value: np.array of shape (sample_size times n_members,)
             The isolation kernel map of the input instance.
         """
-        x_dists = [_fast_norm_diff(x, center) for center in self.center_data]
-        dist_diction = dict(zip(self.unique_index, x_dists))
+        #st = time.time()
+        x_dists = np.array([_fast_norm_diff(x, center)
+                           for center in self.center_data])
+        #et = time.time()
+        mapping_array = np.zeros(self.unique_index.max()+1,
+                                 dtype=x_dists.dtype)
+        mapping_array[self.unique_index] = x_dists
+        x_center_dist_mat = mapping_array[self.center_index_set]
 
         # nearest center index
-        nearest_center_index = [item.index(min(item, key=lambda i: dist_diction[i]))
-                                for item in self.center_index_set]
+        nearest_center_index = np.argmin(x_center_dist_mat, axis=1)
+        ik_value = np.eye(self.psi, dtype=int)[
+            nearest_center_index].flatten()
+        assert ik_value.shape == (
+            self.psi * self.t,), "Shape of ik_value is incorrect ! Except: %s, Get:%s" % ((self.psi * self.t,), ik_value.shape)
 
-        ik_value = np.eye(self.n_members, dtype=int)[
-            nearest_center_index].reshape(-1)
-
+        #print(et - st)
         return ik_value
 
 
 if __name__ == '__main__':
 
     from src.utils.deltasep_utils import create_dataset
-    dataset = create_dataset(5, 5000, num_clusters=3)
+    dataset = create_dataset(128, 5000, num_clusters=3)
+    n = 10000
     # np.random.shuffle(dataset)
-    data = np.array([pt[:3] for pt in dataset[:200]])
+    data = np.array([pt[:3] for pt in dataset[:n]])
     sts = time.time()
-    ikm = IKMapper(n_members=200, sample_size=13)
-    ik_maper = ikm.fit(data)
+    ikm = IKMapper(t=200, psi=13)
+    print("start train")
     ets = time.time()
-    for dt in dataset[200:]:
+    ik_maper = ikm.fit(data)
+    f_ets = time.time()
+    cal_time = 0
+    for dt in dataset[n:]:
         addx = dt[:3]
         test = ik_maper.transform(addx)
     add_end = time.time()
-    print("add time:%s" % (add_end-ets))
+    print("add time:%s" % (add_end-f_ets))
+    print("fit time: %s" % (f_ets-ets))

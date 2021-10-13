@@ -2,5 +2,5 @@
 
 set -exu
 
-$XCLUSTER_ROOT/bin/data_processing/download_aloi.sh
-$XCLUSTER_ROOT/bin/data_processing/download_glass.sh
+$SKHUSTER_ROOT/bin/data_processing/download_aloi.sh
+$SKHUSTER_ROOT/bin/data_processing/download_glass.sh

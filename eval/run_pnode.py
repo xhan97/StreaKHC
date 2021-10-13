@@ -13,11 +13,12 @@ from copy import deepcopy
 
 import numpy as np
 from src.models.PNode import PNode
-from src.utils.dendrogram_purity import  expected_dendrogram_purity
+from src.utils.dendrogram_purity import  expected_dendrogram_purity,dendrogram_purity
 from src.utils.file_utils import load_data, remove_dirs, mkdir_p_safe
 from src.utils.Graphviz import Graphviz
-from src.utils.anne_no_pool import aNNE_similarity
+from src.utils.anne_no_pool_pro import isolation_kernel_map
 from scipy.spatial.distance import cdist
+from src.utils.serialize_trees import serliaze_tree_to_file
 
 def create_p_tree(dataset):
     """Create trees over the same points.
@@ -42,6 +43,7 @@ def create_p_tree(dataset):
         if (i % 5000 == 0): 
             tree_mi_time = time.time()
             run_time.append((i, tree_mi_time - tree_st_time))
+            print(run_time)
     return root,run_time
 
 
@@ -93,16 +95,22 @@ def grid_research_pnode(dataset, file_name, exp_dir_base, shuffle_index,use_ik=F
         met = [pt[0] for pt in data]
         x = cdist(met, met, 'euclidean')
         for pi in psi:
-            oneHot, subIndexSet, aNNEMetrix = aNNE_similarity(x, pi, 300)
+            oneHot, subIndexSet, aNNEMetrix = isolation_kernel_map(x, pi, 300)
             for i, pt in enumerate(data):
                 pt[0] = aNNEMetrix[i]
             sts = time.time()
             root,run_time = create_p_tree(data)
             #Graphviz.write_tree("ptree.dot",root)
-            #print(run_time)
+            print(run_time)
             ets = time.time()
-            dendrogram_purity = expected_dendrogram_purity(root)
-            #dendrogram_purity = 0
+            save_tree_filename = "_".join(
+                [file_name,"shuffle_index", str(shuffle_index),str(pi), "tree.txt"])
+            
+            mkdir_p_safe(exp_dir_base)
+            serliaze_tree_to_file(root, os.path.join(
+                exp_dir_base, save_tree_filename))
+            # dendrogram_purity = dendrogram_purity(root)
+            dendrogram_purity = 0
             ti += ets-sts
             if dendrogram_purity > purity:
                 purity = dendrogram_purity
@@ -122,6 +130,7 @@ def grid_research_pnode(dataset, file_name, exp_dir_base, shuffle_index,use_ik=F
                         item[0],
                         item[1]
                     ))
+                    
         #Graphviz.write_tree("ptree.dot",root)
         #print(run_time)
         ets = time.time()
@@ -143,13 +152,13 @@ def grid_research_pnode(dataset, file_name, exp_dir_base, shuffle_index,use_ik=F
 if __name__ == "__main__":
 
     remove = False
-    file_name = "wine"
-    exp_dir_base = './Code/testResult/Pnode'
+    file_name = "pendig"
+    exp_dir_base = './exp_out/purity_test/Pnode/'
     # mkdir_p_safe(exp_dir_base)
-    dataset = list(load_data("./Code/data/addData/split5/"+file_name+".csv"))
+    dataset = list(load_data("./data/raw/"+file_name+".csv"))
     if remove:
         remove_dirs(file_name=file_name, exp_dir_base=exp_dir_base)
-    for i in range(1):
+    for i in range(5):
         np.random.shuffle(dataset)
         grid_research_pnode(dataset=dataset, file_name=file_name,
-                            exp_dir_base=exp_dir_base, shuffle_index=i, use_ik=False)
+                            exp_dir_base=exp_dir_base, shuffle_index=i, use_ik=True)

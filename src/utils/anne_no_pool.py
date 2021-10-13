@@ -1,3 +1,17 @@
+# Copyright 2021 Xin Han
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # coding: utf-8
 
 import math
@@ -78,30 +92,32 @@ def add_nne(ind, indData, new_point, subIndexSet):
     Returns:
         [numpy array]: the aNNE value of x.
     """
-    
+    st = time.time()
     distance = [_fast_norm_diff(new_point, item) for item in indData]
     dist_diction = dict(zip(ind, distance))
     ind = [[item.index(min(item, key=lambda i: dist_diction[i]))]
            for item in subIndexSet]
     psi = len(subIndexSet[0])
     ik_value = np.eye(psi, dtype=int)[ind].reshape(-1)
+    et = time.time()
+    print(et - st)
     return ik_value
 
 
 if __name__ == '__main__':
 
     from src.utils.deltasep_utils import create_dataset
-    dataset = create_dataset(5, 5000, num_clusters=3)
+    dataset = create_dataset(128, 108000, num_clusters=1000)
     # np.random.shuffle(dataset)
-    data = np.array([pt[:3] for pt in dataset[:200]])
+    data = np.array([pt[:3] for pt in dataset[:20000]])
     x = cdist(data, data, 'euclidean')
     sts = time.time()
-    center_index_set, embeding_matrix = isolation_kernel_map(x, 13, 200)
+    center_index_set, embeding_matrix = isolation_kernel_map(x, 25, 200)
     unique_index = np.unique(center_index_set).tolist()
     center_index_set_list = center_index_set.tolist()
     index_data = data[unique_index]
     ets = time.time()
-    for dt in dataset[200:]:
+    for dt in dataset[20000:]:
         addx = dt[:3]
         test= add_nne(unique_index, index_data, addx, center_index_set_list)
     add_end = time.time()

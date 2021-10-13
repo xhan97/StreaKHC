@@ -1,11 +1,17 @@
-'''
-Author: your name
-Date: 2020-11-12 11:41:39
-LastEditTime: 2021-01-16 16:08:55
-LastEditors: Please set LastEditors
-Description: In User Settings Edit
-FilePath: /StreamHC/Code/utils/file_utils.py
-'''
+# Copyright 2021 Xin Han
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # coding: utf-8
 
 import errno
@@ -28,17 +34,6 @@ def remove_dirs(exp_dir_base, file_name):
         os.removedirs(file_path)
 
 
-# def load_data(file_path):
-#     if file_path[-3:] == "tsv":
-#         data = pd.read_csv(file_path, delimiter='\t')
-#     elif file_path[-3:] == "csv":
-#         data = pd.read_csv(file_path)
-#     else:
-#         return None
-#     data = data.dropna(axis=1, how='all')
-#     for item in data.values:
-#         yield([item[2:], item[1], item[0]])
-
 def load_data(filename):
     if filename.endswith(".csv"):
         split_sep = ","
@@ -49,4 +44,4 @@ def load_data(filename):
             splits = line.strip().split(sep=split_sep)
             pid, l, vec = splits[0], splits[1], np.array([float(x)
                                                           for x in splits[2:]])
-            yield ((vec, l, pid))
+            yield ((l, pid, vec))

@@ -1,0 +1,2 @@
+dataset	algorithm	purity	clustering_time_elapsed	max_psi	max_rt
+aloi._shuffle	IKSHC	0.000000	169.369612	7	0.7
