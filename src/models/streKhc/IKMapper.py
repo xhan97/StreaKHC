@@ -74,7 +74,7 @@ class IKMapper():
         # correct sample size
         n = X.shape[0]
         self.psi = min(self.psi, n)
-        distance_matrix = cdist(X, X, 'euclidean')
+        # distance_matrix = cdist(X, X)
         for i in range(self.t):
             center_index = np.random.choice(n, self.psi, replace=False)
             if i == 0:
@@ -82,7 +82,9 @@ class IKMapper():
             else:
                 self.center_index_set = np.append(
                     self.center_index_set, np.array([center_index]), axis=0)
-            nearest_center_index = np.argmin(distance_matrix[center_index], 0)
+            center = X[center_index]
+            nt_dis = cdist(center, X)
+            nearest_center_index = np.argmin(nt_dis, 0)
             ik_value = np.eye(self.psi, dtype=int)[nearest_center_index]
             if i == 0:
                 self.embeding_metrix = ik_value
@@ -136,8 +138,8 @@ class IKMapper():
 if __name__ == '__main__':
 
     from src.utils.deltasep_utils import create_dataset
-    dataset = create_dataset(128, 5000, num_clusters=3)
-    n = 10000
+    dataset = create_dataset(10, 1000, num_clusters=3)
+    n = 500
     # np.random.shuffle(dataset)
     data = np.array([pt[:3] for pt in dataset[:n]])
     sts = time.time()
