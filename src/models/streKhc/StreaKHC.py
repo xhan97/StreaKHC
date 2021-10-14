@@ -58,7 +58,7 @@ def build_streKhc_tree(data_path, n, psi, t, rate):
                 ik_mapper = ik_mapper.fit(train_dataset_vec)
                 j = 0
                 for train_pt in train_dataset:
-                    l, pid, ikv = train_pt[0], train_pt[1], ik_mapper.embeding_metrix[j]
+                    l, pid, ikv = train_pt[0], train_pt[1], ik_mapper.embeding_mat[j]
                     root = root.insert((l, pid, ikv), rate=rate)
                     j += 1
         else:

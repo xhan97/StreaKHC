@@ -44,4 +44,4 @@ def load_data(filename):
             splits = line.strip().split(sep=split_sep)
             pid, l, vec = splits[0], splits[1], np.array([float(x)
                                                           for x in splits[2:]])
-            yield ((l, pid, vec))
+            yield ([vec, l, pid])

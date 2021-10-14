@@ -16,9 +16,8 @@ from src.models.PNode import PNode
 from src.utils.dendrogram_purity import  expected_dendrogram_purity,dendrogram_purity
 from src.utils.file_utils import load_data, remove_dirs, mkdir_p_safe
 from src.utils.Graphviz import Graphviz
-from src.utils.anne_no_pool_pro import isolation_kernel_map
-from scipy.spatial.distance import cdist
-from src.utils.serialize_trees import serliaze_tree_to_file
+from src.models.streKhc.IKMapper import IKMapper
+from src.utils.serialize_trees import serliaze_tree_to_file, serliaze_collapsed_tree_to_file_with_point_ids
 
 def create_p_tree(dataset):
     """Create trees over the same points.
@@ -40,7 +39,7 @@ def create_p_tree(dataset):
     tree_st_time = time.time()
     for i, pt in enumerate(dataset):
         root = root.insert(pt, collapsibles=None, L=5000)
-        if (i % 5000 == 0): 
+        if (i % 10000 == 0): 
             tree_mi_time = time.time()
             run_time.append((i, tree_mi_time - tree_st_time))
             print(run_time)
@@ -90,14 +89,15 @@ def grid_research_pnode(dataset, file_name, exp_dir_base, shuffle_index,use_ik=F
     ti = 0
     purity = 0
     if (use_ik):
-        psi = [3, 5, 7, 13, 15, 17, 21, 25]
+        psi = [3, 5, 7, 13, 15]
         data = deepcopy(dataset)
-        met = [pt[0] for pt in data]
-        x = cdist(met, met, 'euclidean')
+        met = np.array([pt[0] for pt in data])
         for pi in psi:
-            oneHot, subIndexSet, aNNEMetrix = isolation_kernel_map(x, pi, 300)
+            ik_mapper = IKMapper(t=200, psi=pi)
+            ik_mapper = ik_mapper.fit(met)
+            #oneHot, subIndexSet, aNNEMetrix = isolation_kernel_map(x, pi, 300)
             for i, pt in enumerate(data):
-                pt[0] = aNNEMetrix[i]
+                pt[0] = ik_mapper.embeding_mat[i]
             sts = time.time()
             root,run_time = create_p_tree(data)
             #Graphviz.write_tree("ptree.dot",root)
@@ -105,12 +105,8 @@ def grid_research_pnode(dataset, file_name, exp_dir_base, shuffle_index,use_ik=F
             ets = time.time()
             save_tree_filename = "_".join(
                 [file_name,"shuffle_index", str(shuffle_index),str(pi), "tree.txt"])
-            
-            mkdir_p_safe(exp_dir_base)
-            serliaze_tree_to_file(root, os.path.join(
-                exp_dir_base, save_tree_filename))
-            # dendrogram_purity = dendrogram_purity(root)
-            dendrogram_purity = 0
+            dendrogram_purity = expected_dendrogram_purity(root)
+            #dendrogram_purity = 0
             ti += ets-sts
             if dendrogram_purity > purity:
                 purity = dendrogram_purity
@@ -152,10 +148,10 @@ def grid_research_pnode(dataset, file_name, exp_dir_base, shuffle_index,use_ik=F
 if __name__ == "__main__":
 
     remove = False
-    file_name = "pendig"
+    file_name = "covtype"
     exp_dir_base = './exp_out/purity_test/Pnode/'
     # mkdir_p_safe(exp_dir_base)
-    dataset = list(load_data("./data/raw/"+file_name+".csv"))
+    dataset = list(load_data("./data/raw/"+file_name+".tsv"))
     if remove:
         remove_dirs(file_name=file_name, exp_dir_base=exp_dir_base)
     for i in range(5):
