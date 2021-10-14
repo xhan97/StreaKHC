@@ -37,8 +37,10 @@ def create_p_tree(dataset):
     root = PNode(exact_dist_thres=10)
     run_time = []
     tree_st_time = time.time()
+    L = 5000
+    collapsibles = [] if L < float("Inf") else None
     for i, pt in enumerate(dataset):
-        root = root.insert(pt, collapsibles=None, L=5000)
+        root = root.insert(pt, collapsibles=collapsibles, L=L)
         if (i % 10000 == 0): 
             tree_mi_time = time.time()
             run_time.append((i, tree_mi_time - tree_st_time))
@@ -150,7 +152,9 @@ if __name__ == "__main__":
     remove = False
     file_name = "covtype"
     exp_dir_base = './exp_out/purity_test/Pnode/'
-    # mkdir_p_safe(exp_dir_base)
+    start_time = time.strftime("%Y%m%d%H%M%S", time.localtime())
+    exp_dir_base = os.path.join(exp_dir_base,"use_ik" ,start_time)
+    mkdir_p_safe(exp_dir_base)
     dataset = list(load_data("./data/raw/"+file_name+".tsv"))
     if remove:
         remove_dirs(file_name=file_name, exp_dir_base=exp_dir_base)
