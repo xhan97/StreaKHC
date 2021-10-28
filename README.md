@@ -34,7 +34,7 @@ Run test on data set:
 ```
  ./bin/run_evalation.sh
 ```
-The experiment result is shown in /exp_out/ defaulty.
+The experiment result is shown in /exp_out/ defautly.
 
 
 ## Notes ##
