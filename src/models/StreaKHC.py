@@ -122,7 +122,7 @@ def grid_search_inode(data_path, psi, t, m, rates, file_name, exp_dir_base_data)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Evaluate PERCH clustering.')
+    parser = argparse.ArgumentParser(description='Evaluate StreaKHC clustering.')
     parser.add_argument('--input', '-i', type=str,
                         help='<Required> Path to the dataset.', required=True)
     parser.add_argument('--outdir', '-o', type=str,
