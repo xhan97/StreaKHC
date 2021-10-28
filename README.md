@@ -34,7 +34,8 @@ Run test on data set:
 ```
  ./bin/run_evalation.sh
 ```
-The evaluation result is shown in /exp_out/ defautly. For each of the randomly shuffled data of a specified data set, the dengrogram purity result and figure of built tree is shown in score.tsv and tree.png, respectively.
+
+The evaluation result is shown in /exp_out/ default. For each of the randomly shuffled data of a specified data set, the dengrogram purity result and figure of built tree is shown in score.tsv and tree.png, respectively.
 
 ## Notes ##
 
