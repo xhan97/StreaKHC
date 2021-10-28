@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import time
+
 import numpy as np
 from numpy.core.defchararray import center
 from scipy.spatial.distance import cdist
@@ -87,13 +88,12 @@ class IKMapper():
             The isolation kernel map of the input instance.
         """
 
-        x_dists = cdist(x.reshape(1,-1), self._center_data).flatten()
+        x_dists = cdist(x.reshape(1, -1), self._center_data).flatten()
         mapping_array = np.zeros(self._unique_index.max()+1,
                                  dtype=x_dists.dtype)
         mapping_array[self._unique_index] = x_dists
         x_center_dist_mat = mapping_array[self._center_index_set]
 
-        # nearest center index
         nearest_center_index = np.argmin(x_center_dist_mat, axis=1)
         ik_value = np.eye(self._psi, dtype=int)[
             nearest_center_index].flatten()
@@ -107,7 +107,6 @@ if __name__ == '__main__':
     from src.utils.deltasep_utils import create_dataset
     dataset = create_dataset(5, 5000, num_clusters=3)
     n = 200
-    # np.random.shuffle(dataset)
     data = np.array([pt[:3] for pt in dataset[:n]])
     sts = time.time()
     ikm = IKMapper(t=200, psi=13)

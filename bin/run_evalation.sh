@@ -23,7 +23,7 @@ dataset_path=$STREASKH_ROOT/data/raw/
 shuffle_data_path=$STREASKH_ROOT/data/shuffle_data/
 dataset_runned_path=$STREASKH_ROOT/data/runned/
 
-num_runs=10
+num_runs=5
 TIME=`(date +%Y-%m-%d-%H-%M-%S-%3N)`
 
 output_dir="${output_dir}/$TIME"

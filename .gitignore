@@ -89,4 +89,7 @@ target/
 .mypy_cache/
 
 # data
-data/raw/Mnist1M.mat
+data/shuffle_data/*
+
+# output
+exp_out/*

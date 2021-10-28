@@ -13,12 +13,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from itertools import combinations, groupby
+
 import numpy as np
-
-from itertools import groupby, combinations
-
 from tqdm import tqdm
 from tqdm._tqdm import trange
+
 
 def expected_dendrogram_purity(root):
     """Compute the expected dendrogram purity.
@@ -38,7 +38,7 @@ def expected_dendrogram_purity(root):
     # Construct a map from leaf to cluster and from cluster to a list of leaves.
     # Filter out the singletons in the leaf to cluster map.
     leaves = root.leaves()
-    get_cluster = lambda x: x.pts[0][0]
+    def get_cluster(x): return x.pts[0][0]
     cluster_to_leaves = {c: list(ls)
                          for c, ls in groupby(sorted(leaves, key=get_cluster),
                                               get_cluster)}
@@ -48,7 +48,6 @@ def expected_dendrogram_purity(root):
     if len(non_singleton_leaves) == 0.0:
         return 1.0
     assert(len(non_singleton_leaves) > 0)
-
 
     # For n samples, sample a leaf uniformly at random then select another leaf
     # from the same class unformly at random.
@@ -60,14 +59,17 @@ def expected_dendrogram_purity(root):
         rand_cluster_member = np.random.choice(cluster_to_leaves[cluster])
         # Make sure we get two distinct leaves
         while rand_cluster_member == rand_leaf:
-            assert(leaf_to_cluster[rand_leaf] == leaf_to_cluster[rand_cluster_member])
+            assert(leaf_to_cluster[rand_leaf] ==
+                   leaf_to_cluster[rand_cluster_member])
             rand_cluster_member = np.random.choice(cluster_to_leaves[cluster])
 
         # Find their lowest common ancestor and compute cluster purity.
-        assert(leaf_to_cluster[rand_leaf] == leaf_to_cluster[rand_cluster_member])
+        assert(leaf_to_cluster[rand_leaf] ==
+               leaf_to_cluster[rand_cluster_member])
         lca = rand_leaf.lca(rand_cluster_member)
         unnormalized_purity += lca.purity(cluster=cluster)
     return unnormalized_purity / samps
+
 
 def dendrogram_purity(root):
     """
@@ -97,4 +99,3 @@ def dendrogram_purity(root):
         return 1.0
     else:
         return sum_purity / count
-

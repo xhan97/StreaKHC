@@ -1,26 +1,25 @@
 # Copyright 2021 Xin Han
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
-from collections import defaultdict
+import math
 import random
 import string
+from collections import defaultdict
 from queue import Queue
-from numba import jit
-import time
 
-import math
+import numpy as np
+from numba import jit
 
 
 @jit(nopython=True)
@@ -35,6 +34,7 @@ def _fast_dot(x, y):
       x_T.y
       """
     return np.dot(x, y)
+
 
 class INode:
     """Isolation hc node."""
@@ -81,7 +81,7 @@ class INode:
             return root
         else:
             curr_node = root
-            x_ik = pt[2].astype(float) 
+            x_ik = pt[2].astype(float)
             while not curr_node.is_leaf():
                 chl_ik = curr_node.children[0].ikv.astype(float)
                 chr_ik = curr_node.children[1].ikv.astype(float)
