@@ -38,11 +38,11 @@ def expected_dendrogram_purity(root):
     # Construct a map from leaf to cluster and from cluster to a list of leaves.
     # Filter out the singletons in the leaf to cluster map.
     leaves = root.leaves()
-    get_cluster = lambda x: x.pts[0][1]
+    get_cluster = lambda x: x.pts[0][0]
     cluster_to_leaves = {c: list(ls)
                          for c, ls in groupby(sorted(leaves, key=get_cluster),
                                               get_cluster)}
-    leaf_to_cluster = {l: l.pts[0][1] for l in leaves}
+    leaf_to_cluster = {l: l.pts[0][0] for l in leaves}
     non_singleton_leaves = [l for l in leaf_to_cluster.keys()
                             if len(cluster_to_leaves[leaf_to_cluster[l]]) > 1]
     if len(non_singleton_leaves) == 0.0:
@@ -76,7 +76,7 @@ def dendrogram_purity(root):
     leaves = root.leaves()
 
     def get_cluster(x):
-        return x.pts[0][1]
+        return x.pts[0][0]
 
     sorted_lvs = sorted(leaves, key=get_cluster)
     leaves_by_true_class = {c: list(ls) for c, ls in groupby(sorted_lvs,
