@@ -1,6 +1,6 @@
 # StreaKHC #
-**StreaKHC**  is a novel incremental hierarchical clus-tering algorithm for efficiently mining massive streaming data. It utilises a top-down search strategy to identify the deepest node that has the point-set similarity to the new point greater than or equal to a given similarity threshold, and then insert the new point into this node and its all parents. Technical details and analysis of the algorithm can be found in paper.
 
+**StreaKHC**  is a novel incremental hierarchical clus-tering algorithm for efficiently mining massive streaming data. It utilises a top-down search strategy to identify the deepest node that has the point-set similarity to the new point greater than or equal to a given similarity threshold, and then insert the new point into this node and its all parents. Technical details and analysis of the algorithm can be found in paper.
 
 ## Setup ##
 

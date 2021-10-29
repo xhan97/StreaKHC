@@ -23,10 +23,8 @@ from src.utils.file_utils import load_data, mkdir_p_safe
 from src.utils.Graphviz import Graphviz
 from src.utils.serialize_trees import serliaze_tree_to_file
 
-from IKMapper import IKMapper
-from INode import INode
-
-# process = psutil.Process(os.getpid())
+from src.IKMapper import IKMapper
+from src.INode import INode
 
 
 def build_streKhc_tree(data_path, m, psi, t, rate):
@@ -107,10 +105,10 @@ def grid_search_inode(data_path, psi, t, m, rates, file_name, exp_dir_base_data)
                 max_rt = rt
                 max_root = root
                 max_purity = purity
-    serliaze_tree_to_file(max_root, os.path.join(
-        exp_dir_base_data, 'tree.tsv'))
-    Graphviz.write_tree(os.path.join(
-        exp_dir_base_data, "tree.dot"), max_root)
+    # serliaze_tree_to_file(max_root, os.path.join(
+    #     exp_dir_base_data, 'tree.tsv'))
+    # Graphviz.write_tree(os.path.join(
+    #     exp_dir_base_data, "tree.dot"), max_root)
     args = {
         'dataset': file_name,
         'algorithm': "StreaKHC",
