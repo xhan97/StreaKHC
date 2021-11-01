@@ -117,9 +117,9 @@ class INode:
                     curr_node, os.path.join('exp_out/test', 'tree.tsv'))
                 print(p_id)
             curr_node.pts.remove(p_id)
-            assert (p_id in curr_node.children[0].pts) != (p_id in curr_node.children[1].pts), "Except: Exsiting only in  one subtree, \
-                                                                 Get: %s %s" % (p_id in curr_node.children[0].pts,
-                                                                                p_id in curr_node.children[1].pts)                                                             
+            # assert (p_id in curr_node.children[0].pts) != (p_id in curr_node.children[1].pts), "Except: Exsiting only in  one subtree, \
+            #                                                      Get: %s %s" % (p_id in curr_node.children[0].pts,
+            #                                                                     p_id in curr_node.children[1].pts)                                                             
             if p_id in curr_node.children[0].pts:
                 curr_node = curr_node.children[0]
             elif p_id in curr_node.children[1].pts:
@@ -129,8 +129,8 @@ class INode:
         parent_node = curr_node.parent
         if parent_node.parent:
             parent_node.parent.children.remove(parent_node)
-            sibling.ikv = parent_node.ikv
-            sibling.point_counter = parent_node.point_counter
+            # sibling.ikv = parent_node.ikv
+            # sibling.point_counter = parent_node.point_counter
             parent_node.parent.add_child(sibling)
         else:
             return sibling

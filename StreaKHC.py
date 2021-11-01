@@ -92,24 +92,6 @@ def save_data(args, exp_dir_base):
             args["max_rt"]))
 
 
-def save_grid_data(args, exp_dir_base):
-    file_path = os.path.join(exp_dir_base, 'score.tsv')
-    if not os.path.exists(file_path):
-        with open(file_path, 'w') as fout:
-            fout.write('%s\t%s\t%s\t%s\t%s\n' % (
-                'dataset',
-                'algorithm',
-                'purity',
-                "psi",
-                "rate"))
-    with open(file_path, 'a') as fout:
-        fout.write('%s\t%s\t%.2f\t%s\t%s\n' % (
-            args['dataset'],
-            args['algorithm'],
-            args['purity'],
-            args["psi"],
-            args["rate"]))
-
 
 def grid_search_inode(data_path, psi, t, m, rates, file_name, exp_dir_base_data):
     max_purity = 0
@@ -132,11 +114,11 @@ def grid_search_inode(data_path, psi, t, m, rates, file_name, exp_dir_base_data)
                    "psi": ps,
                    "rate": rt
                    }
-            save_grid_data(res, exp_dir_base=exp_dir_base_data)
-    # serliaze_tree_to_file(max_root, os.path.join(
-    #     exp_dir_base_data, 'tree.tsv'))
-    # Graphviz.write_tree(os.path.join(
-    #     exp_dir_base_data, "tree.dot"), max_root)
+           
+    serliaze_tree_to_file(max_root, os.path.join(
+        exp_dir_base_data, 'tree.tsv'))
+    Graphviz.write_tree(os.path.join(
+        exp_dir_base_data, "tree.dot"), max_root)
     args = {
         'dataset': file_name,
         'algorithm': "StreaKHC",
@@ -174,13 +156,4 @@ def main():
 
 
 if __name__ == "__main__":
-    #main()
-    data_path = "data/shuffle_data/2021-11-02-01-32-45-756/covtype_1.tsv"
-    m = 145000
-    t = 200
-    psi = [15, 17, 21, 25]
-    rates = [0.8]
-    file_name = "covtype"
-    exp_dir_base_data = "exp_out/2021-11-02-01-32-45-756/covtype"
-    grid_search_inode(data_path=data_path, m=m, t=t, psi=psi, rates=rates,
-                      file_name=file_name, exp_dir_base_data=exp_dir_base_data)
+    main()

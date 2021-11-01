@@ -19,13 +19,13 @@ set -exu
 output_dir=${1:-"exp_out"}
 run_id=${2:-1}
 
-dataset_path=$STREASKH_ROOT/data/runned/
+dataset_path=$STREASKH_ROOT/data/raw/
 shuffle_data_path=$STREASKH_ROOT/data/shuffle_data/
-dataset_runned_path=$STREASKH_ROOT/data/raw/
+dataset_runned_path=$STREASKH_ROOT/data/runned/
 
 num_runs=5
 
-for rate in `seq 0.6 0.1 0.6`
+for rate in `seq 0.7 0.1 0.7`
     do
     TIME=`(date +%Y-%m-%d-%H-%M-%S-%3N)`
     output_dir="${output_dir}/$TIME"
@@ -49,9 +49,9 @@ for rate in `seq 0.6 0.1 0.6`
                                                     --outdir  ${exp_output_dir} \
                                                     --dataset ${dataset_name}\
                                                     --rates  ${rate}  \
-                                                    --psi 15 17 21 25 \
+                                                    --psi 3 5 7 13 15 17 21 25 \
                                                     --train_size ${t_size}
-                        #dot -Kdot -Tpng $exp_output_dir/tree.dot  -o $exp_output_dir/tree.png
+                        dot -Kdot -Tpng $exp_output_dir/tree.dot  -o $exp_output_dir/tree.png
                     done
                 #mv $dataset_file $dataset_runned_path
             done
