@@ -110,8 +110,8 @@ def serliaze_tree_to_file(root, fn):
         queue.put(root)
         while not queue.empty():
             curr_node = queue.get()
-            fout.write("%s\t%s\t%s\n" % (curr_node.id, curr_node.parent.id if curr_node.parent else "None",
-                       curr_node.pts[0][1] if curr_node.is_leaf() else "None"))
+            fout.write("%s\t%s\t%s\t%s\n" % (curr_node.id, curr_node.parent.id if curr_node.parent else "None",
+                       curr_node.pts[0][1] if curr_node.is_leaf() else "None", len(curr_node.pts)))
             for c in curr_node.children:
                 queue.put(c)
 

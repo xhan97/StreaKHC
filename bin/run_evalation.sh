@@ -19,19 +19,19 @@ set -exu
 output_dir=${1:-"exp_out"}
 run_id=${2:-1}
 
-dataset_path=$STREASKH_ROOT/data/raw/
+dataset_path=$STREASKH_ROOT/data/runned/
 shuffle_data_path=$STREASKH_ROOT/data/shuffle_data/
-dataset_runned_path=$STREASKH_ROOT/data/runned/
+dataset_runned_path=$STREASKH_ROOT/data/raw/
 
-num_runs=10
+num_runs=5
 
-for rate in `seq 0.8 0.1 1`
+for rate in `seq 0.6 0.1 0.6`
     do
     TIME=`(date +%Y-%m-%d-%H-%M-%S-%3N)`
     output_dir="${output_dir}/$TIME"
     shuffle_data_path="$shuffle_data_path/$TIME"
     mkdir -p $output_dir
-    for suffix in '.csv' '.tsv'
+    for suffix in '.tsv'
         do
         data_files=$(ls $dataset_path*$suffix)
         for dataset_file in $data_files
@@ -49,7 +49,7 @@ for rate in `seq 0.8 0.1 1`
                                                     --outdir  ${exp_output_dir} \
                                                     --dataset ${dataset_name}\
                                                     --rates  ${rate}  \
-                                                    --psi 3 5 7 13 15 17 21 25 \
+                                                    --psi 15 17 21 25 \
                                                     --train_size ${t_size}
                         #dot -Kdot -Tpng $exp_output_dir/tree.dot  -o $exp_output_dir/tree.png
                     done

@@ -20,6 +20,14 @@ from queue import Queue
 
 import numpy as np
 from numba import jit
+import os
+
+from src.utils.logger import Logger
+
+from src.utils.serialize_trees import serliaze_tree_to_file
+
+log_path = "./Log/Inode.log"
+log = Logger(log_path, level='debug')
 
 
 @jit(nopython=True)
@@ -68,21 +76,15 @@ class INode:
         """
 
         if delete_node and self.point_counter >= L:
-            # print(self.point_counter)
-            #delti = time.time()
             self = self.delete()
-            #deled = time.time()
-            #print("delete time:%s"%(deled-delti))
-            # print(self.point_counter)
-        root = self.root()
         if self.pts is not None and len(self.pts) == 0:
             self.add_pt(pt[:2])
             self.ikv = pt[2]
-            return root
+            return self
         else:
-            curr_node = root
+            curr_node = self.root()
             x_ik = pt[2].astype(float)
-            while not curr_node.is_leaf():
+            while curr_node.is_internal():
                 chl_ik = curr_node.children[0].ikv.astype(float)
                 chr_ik = curr_node.children[1].ikv.astype(float)
                 curr_ik = curr_node.ikv.astype(float)
@@ -92,7 +94,6 @@ class INode:
                     _fast_dot(x_ik, x_ik)) * (math.sqrt(_fast_dot(chr_ik, chr_ik))))
                 x_dot_cur = _fast_dot(x_ik, curr_ik) / (t * math.sqrt(
                     _fast_dot(x_ik, x_ik)) * (math.sqrt(_fast_dot(curr_ik, curr_ik))))
-
                 if x_dot_cur >= rate:
                     curr_node = curr_node
                     break
@@ -105,29 +106,32 @@ class INode:
             for a in ancs:
                 a.add_pt(pt[:2])
             _ = new_leaf._update_ik_value_recursively()
-
             return new_leaf.root()
 
     def delete(self):
         curr_node = self.root()
-       
-        p_id = curr_node.pts[0][1]
-        while not curr_node.is_leaf():
+        p_id = curr_node.pts[0]
+        while curr_node.is_internal():
             if len(curr_node.pts) == 0:
-                 print("error")
-            curr_node.pts.pop(0)
-            #curr_node.point_counter -= 1
-            if curr_node.children[0].pts[0][1] == p_id:
+                serliaze_tree_to_file(
+                    curr_node, os.path.join('exp_out/test', 'tree.tsv'))
+                print(p_id)
+            curr_node.pts.remove(p_id)
+            assert (p_id in curr_node.children[0].pts) != (p_id in curr_node.children[1].pts), "Except: Exsiting only in  one subtree, \
+                                                                 Get: %s %s" % (p_id in curr_node.children[0].pts,
+                                                                                p_id in curr_node.children[1].pts)                                                             
+            if p_id in curr_node.children[0].pts:
                 curr_node = curr_node.children[0]
-            elif curr_node.children[1].pts[0][1] == p_id:
+            elif p_id in curr_node.children[1].pts:
                 curr_node = curr_node.children[1]
+        assert curr_node.is_leaf() == True
         sibling = curr_node.siblings()[0]
         parent_node = curr_node.parent
         if parent_node.parent:
             parent_node.parent.children.remove(parent_node)
+            sibling.ikv = parent_node.ikv
+            sibling.point_counter = parent_node.point_counter
             parent_node.parent.add_child(sibling)
-            del parent_node
-            del curr_node
         else:
             return sibling
         return self

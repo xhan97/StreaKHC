@@ -21,7 +21,7 @@ import numpy as np
 from src.IKMapper import IKMapper
 from src.INode import INode
 from src.utils.dendrogram_purity_pool import (dendrogram_purity,
-                                         expected_dendrogram_purity)
+                                              expected_dendrogram_purity)
 from src.utils.file_utils import load_data, mkdir_p_safe
 from src.utils.Graphviz import Graphviz
 from src.utils.serialize_trees import serliaze_tree_to_file
@@ -57,6 +57,7 @@ def build_streKhc_tree(data_path, m, psi, t, rate):
                 ik_mapper = IKMapper(t=t, psi=psi)
                 ik_mapper = ik_mapper.fit(train_dataset_vec)
                 j = 0
+                print("start insert")
                 for train_pt in train_dataset:
                     l, pid, ikv = train_pt[0], train_pt[1], ik_mapper.embeding_mat[j]
                     root = root.insert((l, pid, ikv), L=L,
@@ -91,6 +92,25 @@ def save_data(args, exp_dir_base):
             args["max_rt"]))
 
 
+def save_grid_data(args, exp_dir_base):
+    file_path = os.path.join(exp_dir_base, 'score.tsv')
+    if not os.path.exists(file_path):
+        with open(file_path, 'w') as fout:
+            fout.write('%s\t%s\t%s\t%s\t%s\n' % (
+                'dataset',
+                'algorithm',
+                'purity',
+                "psi",
+                "rate"))
+    with open(file_path, 'a') as fout:
+        fout.write('%s\t%s\t%.2f\t%s\t%s\n' % (
+            args['dataset'],
+            args['algorithm'],
+            args['purity'],
+            args["psi"],
+            args["rate"]))
+
+
 def grid_search_inode(data_path, psi, t, m, rates, file_name, exp_dir_base_data):
     max_purity = 0
     max_ps = psi[0]
@@ -106,6 +126,13 @@ def grid_search_inode(data_path, psi, t, m, rates, file_name, exp_dir_base_data)
                 max_rt = rt
                 max_root = root
                 max_purity = purity
+            res = {'dataset': file_name,
+                   'algorithm': "StreaKHC",
+                   'purity': purity,
+                   "psi": ps,
+                   "rate": rt
+                   }
+            save_grid_data(res, exp_dir_base=exp_dir_base_data)
     # serliaze_tree_to_file(max_root, os.path.join(
     #     exp_dir_base_data, 'tree.tsv'))
     # Graphviz.write_tree(os.path.join(
@@ -120,7 +147,7 @@ def grid_search_inode(data_path, psi, t, m, rates, file_name, exp_dir_base_data)
 
 
 def main():
-    
+
     parser = argparse.ArgumentParser(
         description='Evaluate StreaKHC clustering.')
     parser.add_argument('--input', '-i', type=str,
@@ -144,14 +171,16 @@ def main():
     mkdir_p_safe(args.outdir)
     grid_search_inode(data_path=args.input, m=args.train_size, t=args.sample_size, psi=args.psi,
                       rates=args.rates, file_name=args.dataset, exp_dir_base_data=args.outdir)
-    
+
+
 if __name__ == "__main__":
-    main()
-    # data_path = "data/shuffle_data/2021-11-01-01-32-21-501/covtype_1.tsv"
-    # m = 145000
-    # t = 200
-    # psi = [3, 5, 7, 13, 15, 17, 21, 25]
-    # rates = [0.7]
-    # file_name = "covtype"
-    # exp_dir_base_data = "exp_out/test/2021-11-01-01-32-21-501/covtype"
-    # grid_search_inode(data_path=data_path,m=m,t=t,psi=psi,rates=rates,file_name=file_name,exp_dir_base_data=exp_dir_base_data)
+    #main()
+    data_path = "data/shuffle_data/2021-11-02-01-32-45-756/covtype_1.tsv"
+    m = 145000
+    t = 200
+    psi = [15, 17, 21, 25]
+    rates = [0.8]
+    file_name = "covtype"
+    exp_dir_base_data = "exp_out/2021-11-02-01-32-45-756/covtype"
+    grid_search_inode(data_path=data_path, m=m, t=t, psi=psi, rates=rates,
+                      file_name=file_name, exp_dir_base_data=exp_dir_base_data)
