@@ -41,7 +41,7 @@ class INode:
 
     def __init__(self):
         self.id = "id" + ''.join(random.choice(
-            string.ascii_uppercase + string.digits) for _ in range(12))
+            string.ascii_uppercase + string.digits) for _ in range(15))
         self.children = []
         self.parent = None
         self.pts = []  # each pt is a tuple of (label, id).
@@ -110,8 +110,11 @@ class INode:
 
     def delete(self):
         curr_node = self.root()
+       
         p_id = curr_node.pts[0][1]
         while not curr_node.is_leaf():
+            if len(curr_node.pts) == 0:
+                 print("error")
             curr_node.pts.pop(0)
             #curr_node.point_counter -= 1
             if curr_node.children[0].pts[0][1] == p_id:
@@ -121,12 +124,8 @@ class INode:
         sibling = curr_node.siblings()[0]
         parent_node = curr_node.parent
         if parent_node.parent:
-            if parent_node.parent.children[0] == parent_node:
-                parent_node.parent.children[0] = sibling
-                sibling.parent = parent_node.parent
-            elif parent_node.parent.children[1] == parent_node:
-                parent_node.parent.children[1] = sibling
-                sibling.parent = parent_node.parent
+            parent_node.parent.children.remove(parent_node)
+            parent_node.parent.add_child(sibling)
             del parent_node
             del curr_node
         else:
@@ -214,8 +213,6 @@ class INode:
         A pointer to the new node containing pt.
         """
         new_internal = INode()
-        # If we are splitting down from a collapsed node, then the pts array
-        # is already set to None and we shouldn't instantiate one.
         if self.pts is not None:
             new_internal.pts = self.pts[:]  # Copy points to the new node.
         else:

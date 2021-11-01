@@ -17,14 +17,14 @@ import argparse
 import os
 
 import numpy as np
-from src.utils.dendrogram_purity import (dendrogram_purity,
+
+from src.IKMapper import IKMapper
+from src.INode import INode
+from src.utils.dendrogram_purity_pool import (dendrogram_purity,
                                          expected_dendrogram_purity)
 from src.utils.file_utils import load_data, mkdir_p_safe
 from src.utils.Graphviz import Graphviz
 from src.utils.serialize_trees import serliaze_tree_to_file
-
-from src.IKMapper import IKMapper
-from src.INode import INode
 
 
 def build_streKhc_tree(data_path, m, psi, t, rate):
@@ -100,6 +100,7 @@ def grid_search_inode(data_path, psi, t, m, rates, file_name, exp_dir_base_data)
             root = build_streKhc_tree(
                 data_path, m, ps, t, rate=rt)
             purity = expected_dendrogram_purity(root)
+            #purity = 0
             if purity > max_purity:
                 max_ps = ps
                 max_rt = rt
@@ -118,7 +119,8 @@ def grid_search_inode(data_path, psi, t, m, rates, file_name, exp_dir_base_data)
     save_data(args, exp_dir_base_data)
 
 
-if __name__ == "__main__":
+def main():
+    
     parser = argparse.ArgumentParser(
         description='Evaluate StreaKHC clustering.')
     parser.add_argument('--input', '-i', type=str,
@@ -142,3 +144,14 @@ if __name__ == "__main__":
     mkdir_p_safe(args.outdir)
     grid_search_inode(data_path=args.input, m=args.train_size, t=args.sample_size, psi=args.psi,
                       rates=args.rates, file_name=args.dataset, exp_dir_base_data=args.outdir)
+    
+if __name__ == "__main__":
+    main()
+    # data_path = "data/shuffle_data/2021-11-01-01-32-21-501/covtype_1.tsv"
+    # m = 145000
+    # t = 200
+    # psi = [3, 5, 7, 13, 15, 17, 21, 25]
+    # rates = [0.7]
+    # file_name = "covtype"
+    # exp_dir_base_data = "exp_out/test/2021-11-01-01-32-21-501/covtype"
+    # grid_search_inode(data_path=data_path,m=m,t=t,psi=psi,rates=rates,file_name=file_name,exp_dir_base_data=exp_dir_base_data)
