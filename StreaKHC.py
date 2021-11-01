@@ -20,7 +20,7 @@ import numpy as np
 
 from src.IKMapper import IKMapper
 from src.INode import INode
-from src.utils.dendrogram_purity_pool import (dendrogram_purity,
+from src.utils.dendrogram_purity import (dendrogram_purity,
                                               expected_dendrogram_purity)
 from src.utils.file_utils import load_data, mkdir_p_safe
 from src.utils.Graphviz import Graphviz
@@ -57,7 +57,6 @@ def build_streKhc_tree(data_path, m, psi, t, rate):
                 ik_mapper = IKMapper(t=t, psi=psi)
                 ik_mapper = ik_mapper.fit(train_dataset_vec)
                 j = 0
-                print("start insert")
                 for train_pt in train_dataset:
                     l, pid, ikv = train_pt[0], train_pt[1], ik_mapper.embeding_mat[j]
                     root = root.insert((l, pid, ikv), L=L,

@@ -23,7 +23,7 @@ dataset_path=$STREASKH_ROOT/data/raw/
 shuffle_data_path=$STREASKH_ROOT/data/shuffle_data/
 dataset_runned_path=$STREASKH_ROOT/data/runned/
 
-num_runs=5
+num_runs=10
 
 for rate in `seq 0.7 0.1 0.7`
     do
@@ -31,7 +31,7 @@ for rate in `seq 0.7 0.1 0.7`
     output_dir="${output_dir}/$TIME"
     shuffle_data_path="$shuffle_data_path/$TIME"
     mkdir -p $output_dir
-    for suffix in '.tsv'
+    for suffix in '.csv' '.tsv' 
         do
         data_files=$(ls $dataset_path*$suffix)
         for dataset_file in $data_files
