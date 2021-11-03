@@ -22,13 +22,7 @@ import numpy as np
 from numba import jit
 import os
 
-from src.utils.logger import Logger
-
 from src.utils.serialize_trees import serliaze_tree_to_file
-
-log_path = "./Log/Inode.log"
-log = Logger(log_path, level='debug')
-
 
 @jit(nopython=True)
 def _fast_dot(x, y):
