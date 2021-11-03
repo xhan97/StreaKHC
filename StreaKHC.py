@@ -90,6 +90,23 @@ def save_data(args, exp_dir_base):
             args["max_psi"],
             args["max_rt"]))
 
+def save_grid_data(args, exp_dir_base):
+    file_path = os.path.join(exp_dir_base, 'grid_score.tsv')
+    if not os.path.exists(file_path):
+        with open(file_path, 'w') as fout:
+            fout.write('%s\t%s\t%s\t%s\t%s\n' % (
+                'dataset',
+                'algorithm',
+                'purity',
+                "psi",
+                "rate"))
+    with open(file_path, 'a') as fout:
+        fout.write('%s\t%s\t%.2f\t%s\t%s\n' % (
+            args['dataset'],
+            args['algorithm'],
+            args['purity'],
+            args["psi"],
+            args["rate"]))
 
 
 def grid_search_inode(data_path, psi, t, m, rates, file_name, exp_dir_base_data):
@@ -113,7 +130,7 @@ def grid_search_inode(data_path, psi, t, m, rates, file_name, exp_dir_base_data)
                    "psi": ps,
                    "rate": rt
                    }
-           
+            save_grid_data(res, exp_dir_base_data)
     serliaze_tree_to_file(max_root, os.path.join(
         exp_dir_base_data, 'tree.tsv'))
     Graphviz.write_tree(os.path.join(
