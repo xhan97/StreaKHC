@@ -27,18 +27,18 @@ from src.utils.Graphviz import Graphviz
 from src.utils.serialize_trees import serliaze_tree_to_file
 
 
-def build_streKhc_tree(data_path, m, psi, t, rate):
+def build_streKhc_tree(data_path, m, psi, t, beta):
     """Create trees over the same points.
     Create n trees, online, over the same dataset. Return pointers to the
     roots of all trees for evaluation.  The trees will be created via the insert
     methods passed in.
 
     Args:
-        data_path - a list of points with which to build the tree.
-        n - numuber of point to intitial ik metrix
+        data_path - path to dataset.
+        m - numuber of point to intitial ik metrix
         psi - particial size  to build isolation kernel mapper
         t - sample size to build isolation kernel mapper
-        rate - windows size
+        beta - range in [0, 1]
 
     Returns:
         A list of pointers to the trees constructed via the insert methods
@@ -60,12 +60,12 @@ def build_streKhc_tree(data_path, m, psi, t, rate):
                 for train_pt in train_dataset:
                     l, pid, ikv = train_pt[0], train_pt[1], ik_mapper.embeding_mat[j]
                     root = root.insert((l, pid, ikv), L=L,
-                                       rate=rate, delete_node=True)
+                                       beta=beta, t=t, delete_node=True)
                     j += 1
         else:
             l, pid = pt[:2]
             root = root.insert((l, pid, ik_mapper.transform(
-                pt[2])), L=L, rate=rate, delete_node=True)
+                pt[2])), L=L, beta=beta, t=t, delete_node=True)
         i += 1
         if i % 5000 == 0:
             print(i)
@@ -76,18 +76,21 @@ def save_data(args, exp_dir_base):
     file_path = os.path.join(exp_dir_base, 'score.tsv')
     if not os.path.exists(file_path):
         with open(file_path, 'w') as fout:
-            fout.write('%s\t%s\t%s\t%s\n' % (
+            fout.write('%s\t%s\t%s\t%s\t%s\n' % (
                 'dataset',
                 'algorithm',
                 'purity',
                 "max_psi",
+                "beta"
             ))
     with open(file_path, 'a') as fout:
-        fout.write('%s\t%s\t%.2f\t%s\n' % (
+        fout.write('%s\t%s\t%.2f\t%s\t%s\n' % (
             args['dataset'],
             args['algorithm'],
             args['purity'],
-            args["max_psi"]))
+            args["max_psi"],
+            args["beta"]
+            ))
 
 
 def save_grid_data(args, exp_dir_base):
@@ -99,47 +102,50 @@ def save_grid_data(args, exp_dir_base):
                 'algorithm',
                 'purity',
                 "psi",
-                "rate"))
+                "beta"))
     with open(file_path, 'a') as fout:
         fout.write('%s\t%s\t%.2f\t%s\t%s\n' % (
             args['dataset'],
             args['algorithm'],
             args['purity'],
             args["psi"],
-            args["rate"]))
+            args["beta"]))
 
 
-def grid_search_inode(data_path, psi, t, m, rates, file_name, exp_dir_base_data):
+def grid_search_inode(data_path, psi, t, m, beta, file_name, exp_dir_base):
 
-    for rt in rates:
-        max_purity = 0
-        for ps in psi:
-            root = build_streKhc_tree(
-                data_path, m, ps, t, rate=rt)
-            purity = expected_dendrogram_purity(root)
-            #purity = 0
-            if purity > max_purity:
-                max_ps = ps
-                max_root = root
-                max_purity = purity
-            res = {'dataset': file_name,
-                   'algorithm': "StreaKHC",
-                   'purity': purity,
-                   "psi": ps,
-                   "rate": rt
-                   }
-            save_grid_data(res, exp_dir_base_data)
-        alg = '_'.join(["StreaKHC", str(int(rt*10))])
-        args = {'dataset': file_name,
-                'algorithm': alg,
-                'purity': max_purity,
-                "max_psi": max_ps
-                }
-        save_data(args, exp_dir_base_data)
-        # serliaze_tree_to_file(max_root, os.path.join(
-        #     exp_dir_base_data, '_'.join(alg, 'tree.tsv')))
-        # Graphviz.write_tree(os.path.join(
-        #     exp_dir_base_data, '_'.join(alg, 'tree.dot')), max_root)
+    exp_dir_base = os.path.join(
+        exp_dir_base,  '_'.join(["beta", str(int(beta*10))]))
+    mkdir_p_safe(exp_dir_base)
+    alg = '_'.join(["StremKHC", str(int(beta*10))])
+    max_purity = 0
+    for ps in psi:
+        root = build_streKhc_tree(
+            data_path, m, ps, t, beta=beta)
+        purity = expected_dendrogram_purity(root)
+        if purity > max_purity:
+            max_ps = ps
+            max_root = root
+            max_purity = purity
+        res = {'dataset': file_name,
+               'algorithm': alg,
+               'purity': purity,
+               "psi": ps,
+               "beta": beta
+               }
+        save_grid_data(res, exp_dir_base)
+
+    args = {'dataset': file_name,
+            'algorithm': alg,
+            'purity': max_purity,
+            "max_psi": max_ps,
+            "beta": beta
+            }
+    save_data(args, exp_dir_base)
+    serliaze_tree_to_file(max_root, os.path.join(
+        exp_dir_base, 'tree.tsv'))
+    Graphviz.write_tree(os.path.join(
+        exp_dir_base, 'tree.dot'), max_root)
 
 
 def main():
@@ -152,10 +158,10 @@ def main():
                         help='<Required> The output directory', required=True)
     parser.add_argument('--dataset', '-n', type=str,
                         help='<Required> The name of the dataset', required=True)
-    parser.add_argument('--rates', '-r', nargs='+',
-                        type=float, help="<Required> rates")
-    parser.add_argument('--sample_size', '-t', type=int,
-                        help='<Required> Sample size for isolation kernel mapper', default=300)
+    parser.add_argument('--beta', '-b', type=float, default=0.7, required=True,
+                        help='<Required> value of beta')
+    parser.add_argument('--sample_size', '-t', type=int, default=200,
+                        help='<Required> Sample size for isolation kernel mapper')
     parser.add_argument('--psi', '-p', nargs='+', type=int,
                         help='<Required> Particial size for isolation kernel mapper', required=True)
     parser.add_argument('--train_size', '-m', type=int,
@@ -164,9 +170,9 @@ def main():
                         help='<Required> suffix of dataset')
 
     args = parser.parse_args()
-    mkdir_p_safe(args.outdir)
+
     grid_search_inode(data_path=args.input, m=args.train_size, t=args.sample_size, psi=args.psi,
-                      rates=args.rates, file_name=args.dataset, exp_dir_base_data=args.outdir)
+                      beta=args.beta, file_name=args.dataset, exp_dir_base=args.outdir)
 
 
 if __name__ == "__main__":

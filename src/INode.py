@@ -60,7 +60,7 @@ class INode:
         """An arbitrary way to determine an order when comparing 2 nodes."""
         return self.id < other.id
 
-    def insert(self, pt, delete_node=False, L=float("Inf"), t=200, rate=0.7):
+    def insert(self, pt, delete_node=False, L=float("Inf"), t=200, beta=0.7):
         """Insert a new pt into the tree.
 
         Apply recurse masking and balance rotations where appropriate.
@@ -94,7 +94,7 @@ class INode:
                     _fast_dot(x_ik, x_ik)) * (math.sqrt(_fast_dot(chr_ik, chr_ik))))
                 x_dot_cur = _fast_dot(x_ik, curr_ik) / (t * math.sqrt(
                     _fast_dot(x_ik, x_ik)) * (math.sqrt(_fast_dot(curr_ik, curr_ik))))
-                if x_dot_cur >= rate:
+                if x_dot_cur >= beta:
                     curr_node = curr_node
                     break
                 if x_dot_chl >= x_dot_chr:
@@ -119,7 +119,7 @@ class INode:
             curr_node.pts.remove(p_id)
             # assert (p_id in curr_node.children[0].pts) != (p_id in curr_node.children[1].pts), "Except: Exsiting only in  one subtree, \
             #                                                      Get: %s %s" % (p_id in curr_node.children[0].pts,
-            #                                                                     p_id in curr_node.children[1].pts)                                                             
+            #                                                                     p_id in curr_node.children[1].pts)
             if p_id in curr_node.children[0].pts:
                 curr_node = curr_node.children[0]
             elif p_id in curr_node.children[1].pts:

@@ -23,7 +23,7 @@ dataset_path=$STREASKH_ROOT/data/raw/
 shuffle_data_path=$STREASKH_ROOT/data/shuffle_data/
 dataset_runned_path=$STREASKH_ROOT/data/runned/
 
-num_runs=5
+num_runs=3
 TIME=`(date +%Y-%m-%d-%H-%M-%S-%3N)`
 
 output_dir="${output_dir}/$TIME"
@@ -41,18 +41,21 @@ for dataset_file in $data_files
         data_size=`wc -l < $dataset_file`
         t_size=`expr ${data_size} / 4`
         for i in `seq 1 $num_runs`
-            do
-                shuffled_data="${shuffle_data_path}/${dataset_name}_${i}$suffix"
-                exp_output_dir="$output_dir/$dataset_name/run_$i"
-                python3 StreaKHC.py --input   $shuffled_data\
-                                               --outdir  $exp_output_dir \
-                                               --dataset ${dataset_name} \
-                                               --rates 0.5 0.6  \
-                                               --psi 3 5  \
-                                               --train_size ${t_size}
-                #dot -Kdot -Tpng $exp_output_dir/tree.dot  -o $exp_output_dir/tree.png
+            do  
+                for beta in `seq 0.5 0.1 1`
+                    do
+                        shuffled_data="${shuffle_data_path}/${dataset_name}_${i}$suffix"
+                        exp_output_dir="$output_dir/$dataset_name/run_$i"
+                        python3 StreaKHC.py --input   $shuffled_data\
+                                                    --outdir  $exp_output_dir \
+                                                    --dataset ${dataset_name} \
+                                                    --beta ${beta}  \
+                                                    --psi 3 5 7 13 15 17 21 25  \
+                                                    --train_size ${t_size}
+                    done
+                    #dot -Kdot -Tpng $exp_output_dir/tree.dot  -o $exp_output_dir/tree.png
             done
         #mv $dataset_file $dataset_runned_path
     done
 
-#sh bin/util/collect_and_format_results.sh $output_dir
+sh bin/util/collect_and_format_results.sh $output_dir
