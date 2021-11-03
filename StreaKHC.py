@@ -114,9 +114,6 @@ def save_grid_data(args, exp_dir_base):
 
 def grid_search_inode(data_path, psi, t, m, beta, file_name, exp_dir_base):
 
-    exp_dir_base = os.path.join(
-        exp_dir_base,  '_'.join(["beta", str(int(beta*10))]))
-    mkdir_p_safe(exp_dir_base)
     alg = '_'.join(["StremKHC", str(int(beta*10))])
     max_purity = 0
     for ps in psi:
