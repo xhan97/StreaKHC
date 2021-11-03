@@ -93,3 +93,4 @@ data/shuffle_data/*
 
 # output
 exp_out/*
+*cifar10ICH.csv

@@ -21,7 +21,7 @@ import numpy as np
 from src.IKMapper import IKMapper
 from src.INode import INode
 from src.utils.dendrogram_purity import (dendrogram_purity,
-                                              expected_dendrogram_purity)
+                                         expected_dendrogram_purity)
 from src.utils.file_utils import load_data, mkdir_p_safe
 from src.utils.Graphviz import Graphviz
 from src.utils.serialize_trees import serliaze_tree_to_file
@@ -76,19 +76,19 @@ def save_data(args, exp_dir_base):
     file_path = os.path.join(exp_dir_base, 'score.tsv')
     if not os.path.exists(file_path):
         with open(file_path, 'w') as fout:
-            fout.write('%s\t%s\t%s\t%s\t%s\n' % (
+            fout.write('%s\t%s\t%s\t%s\n' % (
                 'dataset',
                 'algorithm',
                 'purity',
                 "max_psi",
-                "max_rt"))
+            ))
     with open(file_path, 'a') as fout:
-        fout.write('%s\t%s\t%.2f\t%s\t%s\n' % (
+        fout.write('%s\t%s\t%.2f\t%s\n' % (
             args['dataset'],
             args['algorithm'],
             args['purity'],
-            args["max_psi"],
-            args["max_rt"]))
+            args["max_psi"]))
+
 
 def save_grid_data(args, exp_dir_base):
     file_path = os.path.join(exp_dir_base, 'grid_score.tsv')
@@ -110,18 +110,16 @@ def save_grid_data(args, exp_dir_base):
 
 
 def grid_search_inode(data_path, psi, t, m, rates, file_name, exp_dir_base_data):
-    max_purity = 0
-    max_ps = psi[0]
-    max_rt = rates[0]
-    for ps in psi:
-        for rt in rates:
+
+    for rt in rates:
+        max_purity = 0
+        for ps in psi:
             root = build_streKhc_tree(
                 data_path, m, ps, t, rate=rt)
             purity = expected_dendrogram_purity(root)
             #purity = 0
             if purity > max_purity:
                 max_ps = ps
-                max_rt = rt
                 max_root = root
                 max_purity = purity
             res = {'dataset': file_name,
@@ -131,17 +129,17 @@ def grid_search_inode(data_path, psi, t, m, rates, file_name, exp_dir_base_data)
                    "rate": rt
                    }
             save_grid_data(res, exp_dir_base_data)
-    serliaze_tree_to_file(max_root, os.path.join(
-        exp_dir_base_data, 'tree.tsv'))
-    Graphviz.write_tree(os.path.join(
-        exp_dir_base_data, "tree.dot"), max_root)
-    args = {
-        'dataset': file_name,
-        'algorithm': "StreaKHC",
-        'purity': max_purity,
-        "max_psi": max_ps,
-        "max_rt": max_rt}
-    save_data(args, exp_dir_base_data)
+        alg = '_'.join(["StreaKHC", str(int(rt*10))])
+        args = {'dataset': file_name,
+                'algorithm': alg,
+                'purity': max_purity,
+                "max_psi": max_ps
+                }
+        save_data(args, exp_dir_base_data)
+        # serliaze_tree_to_file(max_root, os.path.join(
+        #     exp_dir_base_data, '_'.join(alg, 'tree.tsv')))
+        # Graphviz.write_tree(os.path.join(
+        #     exp_dir_base_data, '_'.join(alg, 'tree.dot')), max_root)
 
 
 def main():

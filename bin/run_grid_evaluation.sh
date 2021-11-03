@@ -27,6 +27,7 @@ num_runs=5
 TIME=`(date +%Y-%m-%d-%H-%M-%S-%3N)`
 
 output_dir="${output_dir}/$TIME"
+shuffle_data_path="$shuffle_data_path/$TIME"
 suffix=".csv"
 
 mkdir -p $output_dir
@@ -43,15 +44,15 @@ for dataset_file in $data_files
             do
                 shuffled_data="${shuffle_data_path}/${dataset_name}_${i}$suffix"
                 exp_output_dir="$output_dir/$dataset_name/run_$i"
-
                 python3 StreaKHC.py --input   $shuffled_data\
                                                --outdir  $exp_output_dir \
-                                               --dataset ${dataset_name}\
-                                               --rates 0.5 0.6 0.7 0.8 0.9 1  \
-                                               --psi 3 5 7 13 15 17 21 25  \
+                                               --dataset ${dataset_name} \
+                                               --rates 0.5 0.6  \
+                                               --psi 3 5  \
                                                --train_size ${t_size}
-                dot -Kdot -Tpng $exp_output_dir/tree.dot  -o $exp_output_dir/tree.png
+                #dot -Kdot -Tpng $exp_output_dir/tree.dot  -o $exp_output_dir/tree.png
             done
         #mv $dataset_file $dataset_runned_path
     done
 
+#sh bin/util/collect_and_format_results.sh $output_dir

@@ -51,7 +51,7 @@ for rate in `seq 0.7 0.1 0.7`
                                                     --rates  ${rate}  \
                                                     --psi 3 5 7 13 15 17 21 25 \
                                                     --train_size ${t_size}
-                        dot -Kdot -Tpng $exp_output_dir/tree.dot  -o $exp_output_dir/tree.png
+                        #dot -Kdot -Tpng $exp_output_dir/tree.dot  -o $exp_output_dir/tree.png
                     done
                 #mv $dataset_file $dataset_runned_path
             done
