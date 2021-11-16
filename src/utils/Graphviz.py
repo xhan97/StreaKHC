@@ -42,19 +42,19 @@ class Graphviz(object):
 
     def get_node_label(self, node):
         lbl = []
-        # lbl.append(self.format_id(node.id))
-        # lbl.append('<BR/>')
-        #lbl.append('num pts: %d' % len(node.leaves()))
-        # lbl.append('<BR/>')
-        # try:
-        #    lbl.append('purity: %f' % node.purity())
-        # except Exception:
-        #    pass
-        # try:
-        #    lbl.append('<BR/>')
-        #    lbl.append('across: %s' % node.best_across_debug)
-        # except Exception:
-        #    pass
+        lbl.append(self.format_id(node.id))
+        lbl.append('<BR/>')
+        lbl.append('num pts: %d' % len(node.leaves()))
+        lbl.append('<BR/>')
+        try:
+            lbl.append('purity: %f' % node.purity())
+        except Exception:
+            pass
+        try:
+            lbl.append('<BR/>')
+            lbl.append('across: %s' % node.best_across_debug)
+        except Exception:
+            pass
         return ''.join(lbl)
 
     def get_color(self, lbl):
@@ -71,19 +71,23 @@ class Graphviz(object):
         color = self.internal_color
         try:
             if node.purity() == 1.0:
-                if hasattr(node, 'pts') and len(node.pts) > 0:
-                    w_gt = [x for x in node.pts if x[0] and x[0] != "None"]
-                    if w_gt:
-                        color = self.get_color(w_gt[0][0])
-                    else:
-                        color = self.get_color('None')
+                if hasattr(node, 'pts'):
+                    curr_node = node
+                    while curr_node.pts == None:
+                        curr_node = curr_node.children[0]
+                    if len(curr_node.pts)>0:
+                        w_gt = [x for x in curr_node.pts if x[1] and x[1] != "None"]
+                        if w_gt:
+                            color = self.get_color(w_gt[0][0])
+                        else:
+                            color = self.get_color('None')
         except Exception:
             pass
-        shape = 'circle'
+        shape = 'point'
 
         if node.parent is None:
             s.append(
-                '\n%s[shape=%s;style=filled;color=%s;label=<%s<BR/>%s<BR/>>]'
+                '\n%s[shape=%s;style=filled;width=1;color=%s;label=<%s<BR/>%s<BR/>>]'
                 % (self.format_id(node.id), shape, color,
                    self.get_node_label(node), color))
             s.append(
@@ -98,8 +102,10 @@ class Graphviz(object):
                 else:
                     leaf_m = '%s|%s' % (node.pts[0][1], node.pts[0][0]) \
                         if node.is_leaf() else ''
-            s.append('\n%s[shape=%s;style=filled;color=%s]'
-                     % (self.format_id(node.id), shape, color))
+            s.append('\n%s[shape=%s;style=filled;width=1;color=%s;label=<%s<BR/>'
+                     '%s<BR/>%s<BR/>>]'
+                     % (self.format_id(node.id), shape, color,
+                        self.get_node_label(node), color, leaf_m))
             s.append('\n%s->%s' % (self.format_id(node.parent.id),
                                    self.format_id(node.id)))
         return ''.join(s)

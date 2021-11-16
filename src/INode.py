@@ -22,7 +22,6 @@ import numpy as np
 from numba import jit
 import os
 
-from src.utils.serialize_trees import serliaze_tree_to_file
 
 @jit(nopython=True)
 def _fast_dot(x, y):
@@ -54,7 +53,7 @@ class INode:
         """An arbitrary way to determine an order when comparing 2 nodes."""
         return self.id < other.id
 
-    def insert(self, pt, delete_node=False, L=float("Inf"), t=200, beta=0.7):
+    def insert(self, pt, delete_node=False, L=float("Inf"), t=200):
         """Insert a new pt into the tree.
 
         Apply recurse masking and balance rotations where appropriate.
@@ -81,16 +80,10 @@ class INode:
             while curr_node.is_internal():
                 chl_ik = curr_node.children[0].ikv.astype(float)
                 chr_ik = curr_node.children[1].ikv.astype(float)
-                curr_ik = curr_node.ikv.astype(float)
                 x_dot_chl = _fast_dot(x_ik, chl_ik) / (t * math.sqrt(
                     _fast_dot(x_ik, x_ik)) * (math.sqrt(_fast_dot(chl_ik, chl_ik))))
                 x_dot_chr = _fast_dot(x_ik, chr_ik) / (t * math.sqrt(
                     _fast_dot(x_ik, x_ik)) * (math.sqrt(_fast_dot(chr_ik, chr_ik))))
-                x_dot_cur = _fast_dot(x_ik, curr_ik) / (t * math.sqrt(
-                    _fast_dot(x_ik, x_ik)) * (math.sqrt(_fast_dot(curr_ik, curr_ik))))
-                if x_dot_cur >= beta:
-                    curr_node = curr_node
-                    break
                 if x_dot_chl >= x_dot_chr:
                     curr_node = curr_node.children[0]
                 else:
@@ -106,25 +99,21 @@ class INode:
         curr_node = self.root()
         p_id = curr_node.pts[0]
         while curr_node.is_internal():
-            if len(curr_node.pts) == 0:
-                serliaze_tree_to_file(
-                    curr_node, os.path.join('exp_out/test', 'tree.tsv'))
-                print(p_id)
             curr_node.pts.remove(p_id)
-            # assert (p_id in curr_node.children[0].pts) != (p_id in curr_node.children[1].pts), "Except: Exsiting only in  one subtree, \
-            #                                                      Get: %s %s" % (p_id in curr_node.children[0].pts,
-            #                                                                     p_id in curr_node.children[1].pts)
+            # assert (p_id in curr_node.children[0].pts[0]) != (p_id in curr_node.children[1].pts[0]), "Except: Exsiting only in  one subtree, \
+            #                                                      Get: %s %s" % (p_id in curr_node.children[0].pts[0],
+            #                                                                     p_id in curr_node.children[1].pts[0])
             if p_id in curr_node.children[0].pts:
                 curr_node = curr_node.children[0]
             elif p_id in curr_node.children[1].pts:
                 curr_node = curr_node.children[1]
-        assert curr_node.is_leaf() == True
         sibling = curr_node.siblings()[0]
+        ancs = curr_node._ancestors()
+        for a in ancs:
+            a.ikv = a.ikv - curr_node.ikv
         parent_node = curr_node.parent
         if parent_node.parent:
             parent_node.parent.children.remove(parent_node)
-            # sibling.ikv = parent_node.ikv
-            # sibling.point_counter = parent_node.point_counter
             parent_node.parent.add_child(sibling)
         else:
             return sibling

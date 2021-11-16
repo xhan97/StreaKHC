@@ -98,7 +98,7 @@ def expected_dendrogram_purity(root):
     # For n samples, sample a leaf uniformly at random then select another leaf
     # from the same class unformly at random.
     samps = len(non_singleton_leaves) * 5  # TODO (AK): pick 5 in a better way.
-    with Pool(processes=4) as pool:
+    with Pool(processes=6) as pool:
         res = pool.starmap(
             process, [(non_singleton_leaves, leaf_to_cluster, cluster_to_leaves)]*samps)
     return sum(res) / samps
