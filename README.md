@@ -1,6 +1,6 @@
 # StreaKHC #
 
-**StreaKHC**  is a novel incremental hierarchical clustering algorithm for efficiently mining massive streaming data. It utilises a top-down search strategy to identify the deepest node that has the point-set similarity to the new point greater than or equal to a given similarity threshold, and then insert the new point into this node and its all parents. Technical details and analysis of the algorithm can be found in paper.
+**StreaKHC**  is a novel incremental hierarchical clustering algorithm for efficiently mining massive streaming data. It uses a scalable point-set kernel to measurethe similarity between an existing cluster in the cluster tree and a new point in a stream. It also has an efficient hierarchical structure updating mechanism to continuously maintain a high-qualitycluster tree in real-time. Technical details and analysis of the algorithm can be found in paper.
 
 ## Setup ##
 
@@ -32,7 +32,7 @@ sudo apt install graphviz
 
 Run test on data set:
 ```
- ./bin/run_evaluation.sh
+ ./bin/run_grid_evaluation.sh
 ```
 
 The evaluation result is shown in /exp_out/ default. For each of the randomly shuffled data of a specified data set, the dengrogram purity result and figure of built tree is shown in score.tsv and tree.png, respectively.
