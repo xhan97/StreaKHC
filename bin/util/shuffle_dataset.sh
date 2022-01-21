@@ -7,7 +7,7 @@ shuffle_data_path=$3
 mkdir -p $shuffle_data_path
 
 data_name=`basename $dataset`
-seed=40
+seed=33
 rseed=$seed
 pshuf() { perl -MList::Util=shuffle -e "srand($1); print shuffle(<>);" "$2"; }
 for i in `seq 1  $num_shuffles`

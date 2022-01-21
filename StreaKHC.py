@@ -22,7 +22,7 @@ from src.IKMapper import IKMapper
 from src.INode import INode
 from src.utils.dendrogram_purity import (dendrogram_purity,
                                          expected_dendrogram_purity)
-from src.utils.file_utils import load_data, mkdir_p_safe
+from src.utils.file_utils import load_data
 from src.utils.Graphviz import Graphviz
 from src.utils.serialize_trees import serliaze_tree_to_file
 
@@ -158,7 +158,6 @@ if __name__ == "__main__":
     # m = 2748
     # t = 300
     # psi = [3, 5, 10, 17, 21, 25]
-    # beta = 0.3
     # file_name = "covertype"
     # exp_dir_base = "exp_out/test"
     # grid_search_inode(data_path=data_path, m=m, t=t, psi=psi,
