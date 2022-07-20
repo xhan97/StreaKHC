@@ -27,8 +27,8 @@ for suffix in '.csv' '.tsv'; do
                 python3 StreaKHC.py --input ${shuffled_data} \
                     --outdir ${exp_output_dir} \
                     --dataset ${dataset_name} \
-                    --psi 30 35 40 45 55 \
-                    --train_size ${t_size}
+                    --psi 3 5 7 13 15 17 21 25 \
+                    --train_size 5000 #${t_size}
                 dot -Kdot -Tpng $exp_output_dir/tree.dot -o $exp_output_dir/tree.png
             ) &
         done

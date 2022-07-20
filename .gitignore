@@ -88,8 +88,10 @@ target/
 # Mypy cache
 .mypy_cache/
 
-# data
-data/shuffle_data/*
+# Data
+data/shuffle_data/
 
-# output
+# Output
 exp_out/*
+
+data/*
