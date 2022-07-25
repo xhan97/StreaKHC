@@ -18,16 +18,16 @@ import os
 
 import numpy as np
 
-from src.IKMapper import IKMapper
-from src.INode import INode
-from src.utils.dendrogram_purity import (dendrogram_purity,
+from models.streakhc.IKMapper import IKMapper
+from INode import INode
+from utils.dendrogram_purity import (dendrogram_purity,
                                          expected_dendrogram_purity)
-from src.utils.file_utils import load_data
-from src.utils.Graphviz import Graphviz
-from src.utils.serialize_trees import serliaze_tree_to_file
+from utils.file_utils import load_data
+from utils.Graphviz import Graphviz
+from utils.serialize_trees import serliaze_tree_to_file
 
 
-def build_streKhc_tree(data_path, m, psi, t):
+def streKHC(data_path, m, psi, t):
     """Create trees over the same points.
     Create n trees, online, over the same dataset. Return pointers to the
     roots of all trees for evaluation.  The trees will be created via the insert
@@ -106,7 +106,7 @@ def grid_search_inode(data_path, psi, t, m, file_name, exp_dir_base):
     alg = 'StremKHC'
     max_purity = 0
     for ps in psi:
-        root = build_streKhc_tree(
+        root = streKHC(
             data_path, m, ps, t)
         purity = expected_dendrogram_purity(root)
         if purity > max_purity:
@@ -154,11 +154,11 @@ def main():
 
 if __name__ == "__main__":
     main()
-    # data_path = "data/shuffle_data/2021-11-16-11-23-29-795/pendig_1.csv"
+    # data_path = "data/shuffle_data/2022-07-21-13-16-57-560/ALLAML_5.csv"
     # m = 2748
     # t = 300
     # psi = [3, 5, 10, 17, 21, 25]
-    # file_name = "covertype"
+    # file_name = "ALLAML"
     # exp_dir_base = "exp_out/test"
     # grid_search_inode(data_path=data_path, m=m, t=t, psi=psi,
     #                   file_name=file_name, exp_dir_base=exp_dir_base)

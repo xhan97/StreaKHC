@@ -104,7 +104,7 @@ class IKMapper():
 
 if __name__ == '__main__':
 
-    from src.utils.deltasep_utils import create_dataset
+    from streakhc.utils.deltasep_utils import create_dataset
     dataset = create_dataset(5, 5000, num_clusters=3)
     n = 200
     data = np.array([pt[:3] for pt in dataset[:n]])
