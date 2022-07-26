@@ -24,7 +24,7 @@ for suffix in '.csv' '.tsv'; do
                 shuffled_data="${shuffle_data_path}/${dataset_name}_${i}$suffix"
                 exp_output_dir="${output_dir}/${dataset_name}/run_$i"
                 mkdir -p ${exp_output_dir}
-                python3 src/StreaKHC.py --input ${shuffled_data} \
+                python3 models/streakhc/StreaKHC.py --input ${shuffled_data} \
                     --outdir ${exp_output_dir} \
                     --dataset ${dataset_name} \
                     --psi 3 5 7 13 15 17 21 25 \

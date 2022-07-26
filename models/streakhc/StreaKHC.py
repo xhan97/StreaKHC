@@ -20,9 +20,9 @@ import numpy as np
 
 from INode import INode
 from models.IsoKernel import IsolationKernel
+from models.utils.file_utils import load_data_stream
 from utils.Graphviz import Graphviz
 from utils.dendrogram_purity import expected_dendrogram_purity
-from utils.file_utils import load_data
 from utils.serialize_trees import serliaze_tree_to_file
 
 
@@ -45,7 +45,7 @@ def streKHC(data_path, m, psi, t):
     root = INode()
     train_dataset = []
     L = 5000
-    for i, pt in enumerate(load_data(data_path), start=1):
+    for i, pt in enumerate(load_data_stream(data_path), start=1):
         if i <= m:
             train_dataset.append(pt)
             if i == m:
@@ -152,8 +152,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-    # data_path = "./data/shuffle_data/2022-07-21-13-16-57-560/ALLAML_5.csv"
+    # main()
+    data_path = "./data/shuffle_data/2022-07-21-13-16-57-560/ALLAML_5.csv"
     # m = 18
     # t = 200
     # psi = [3, 5, 10, 17, 21, 25]

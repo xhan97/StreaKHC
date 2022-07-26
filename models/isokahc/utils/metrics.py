@@ -40,7 +40,6 @@ def dendrogram_purity(dendrogram: np.ndarray, y: np.array):
                                         parent_matrix, node_purity, n_instance)
                 s += 1
     purity = purity / s
-
     return purity
 
 
@@ -72,7 +71,6 @@ def _get_parent(dendrogram: np.ndarray, n_instance: int):
 
     for i in range(n_instance - 1):
         current_ind = []
-
         if dendrogram[i, 0] >= n_instance:
             ind = np.argwhere(
                 parent_matrix[:, int(dendrogram[i, 0])] == 1).flatten()
@@ -80,7 +78,6 @@ def _get_parent(dendrogram: np.ndarray, n_instance: int):
                 current_ind.append(item)
         else:
             current_ind.append(int(dendrogram[i, 0]))
-
         if dendrogram[i, 1] >= n_instance:
             ind = np.argwhere(
                 parent_matrix[:, int(dendrogram[i, 1])] == 1).flatten()
@@ -88,11 +85,8 @@ def _get_parent(dendrogram: np.ndarray, n_instance: int):
                 current_ind.append(item)
         else:
             current_ind.append(int(dendrogram[i, 1]))
-
         parent_matrix[current_ind, int(dendrogram[i, 4])] = 1
-
     parent_matrix = np.delete(parent_matrix, np.s_[:n_instance], axis=1)
-
     return parent_matrix
 
 
@@ -105,14 +99,11 @@ def _get_node_purity(parent_matrix: np.ndarray, y: np.array):
     for ci in range(len(y_label)):
         ind = np.argwhere(y == y_label[ci]).flatten()
         node_purity[ci, ind] = 1
-
         for ti in range(2 * n_instance - 1)[n_instance:]:
             Tinstances = np.argwhere(
                 parent_matrix[:, ti - n_instance] == 1).flatten()
             p = 0
-
             for item in Tinstances:
                 p = p + node_purity[ci, item] * subtree_sum[item]
-
             node_purity[ci, ti] = p / sum(subtree_sum[Tinstances])
     return node_purity
