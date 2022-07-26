@@ -18,12 +18,11 @@ import os
 
 import numpy as np
 
-from models.streakhc.IKMapper import IKMapper
 from INode import INode
-from utils.dendrogram_purity import (dendrogram_purity,
-                                         expected_dendrogram_purity)
-from utils.file_utils import load_data
+from models.IsoKernel import IsolationKernel
 from utils.Graphviz import Graphviz
+from utils.dendrogram_purity import expected_dendrogram_purity
+from utils.file_utils import load_data
 from utils.serialize_trees import serliaze_tree_to_file
 
 
@@ -35,8 +34,8 @@ def streKHC(data_path, m, psi, t):
 
     Args:
         data_path - path to dataset.
-        m - numuber of point to intitial ik metrix
-        psi - particial size  to build isolation kernel mapper
+        m - number of point to initial ik matrix
+        psi - partial size  to build isolation kernel mapper
         t - sample size to build isolation kernel mapper
 
     Returns:
@@ -50,17 +49,17 @@ def streKHC(data_path, m, psi, t):
         if i <= m:
             train_dataset.append(pt)
             if i == m:
-                ik_mapper = IKMapper(t=t, psi=psi)
-                ik_mapper = ik_mapper.fit(np.array(
+                ik = IsolationKernel(n_estimators=t, max_samples=psi)
+                ik = ik.fit(np.array(
                     [pt[2] for pt in train_dataset]))
                 for j, train_pt in enumerate(train_dataset, start=1):
-                    l, pid, ikv = train_pt[0], train_pt[1], ik_mapper.embeding_mat[j-1]
+                    l, pid, ikv = train_pt[0], train_pt[1], ik.transform([train_pt[2]])[0]
                     root = root.insert((l, pid, ikv), L=L,
                                        t=t, delete_node=True)
         else:
             l, pid = pt[:2]
-            root = root.insert((l, pid, ik_mapper.transform(
-                pt[2])), L=L, t=t, delete_node=True)
+            root = root.insert((l, pid, ik.transform(
+                [pt[2]])[0]), L=L, t=t, delete_node=True)
     return root
 
 
@@ -103,7 +102,7 @@ def save_grid_data(args, exp_dir_base):
 
 
 def grid_search_inode(data_path, psi, t, m, file_name, exp_dir_base):
-    alg = 'StremKHC'
+    alg = 'StreaKHC'
     max_purity = 0
     for ps in psi:
         root = streKHC(
@@ -154,11 +153,11 @@ def main():
 
 if __name__ == "__main__":
     main()
-    # data_path = "data/shuffle_data/2022-07-21-13-16-57-560/ALLAML_5.csv"
-    # m = 2748
-    # t = 300
+    # data_path = "./data/shuffle_data/2022-07-21-13-16-57-560/ALLAML_5.csv"
+    # m = 18
+    # t = 200
     # psi = [3, 5, 10, 17, 21, 25]
     # file_name = "ALLAML"
-    # exp_dir_base = "exp_out/test"
+    # exp_dir_base = "./exp_out/test"
     # grid_search_inode(data_path=data_path, m=m, t=t, psi=psi,
     #                   file_name=file_name, exp_dir_base=exp_dir_base)

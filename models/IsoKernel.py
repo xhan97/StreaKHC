@@ -78,6 +78,7 @@ class IsolationKernel(TransformerMixin, BaseEstimator):
         self.n_estimators = n_estimators
         self.max_samples = max_samples
         self.random_state = random_state
+        self.embedding = None
 
     def fit(self, X, y=None):
         """ Fit the model on data X.
@@ -116,9 +117,9 @@ class IsolationKernel(TransformerMixin, BaseEstimator):
         else:  # float
             if not 0.0 < self.max_samples <= 1.0:
                 raise ValueError(
-                    "max_samples must be in (0, 1], got %r" % self.max_samples
+                    "max_samples must be in (0, 1], got %r" % self.max_samples_
                 )
-            max_samples = int(self.max_samples * X.shape[0])
+            max_samples = int(self.max_samples_ * X.shape[0])
         self.max_samples_ = max_samples
         self._fit(X)
         self.is_fitted_ = True
@@ -126,7 +127,7 @@ class IsolationKernel(TransformerMixin, BaseEstimator):
 
     def _fit(self, X):
         n_samples = X.shape[0]
-        self.max_samples = min(self.max_samples, n_samples)
+        self.max_samples_ = min(self.max_samples_, n_samples)
         random_state = check_random_state(self.random_state)
         self._seeds = random_state.randint(MAX_INT, size=self.n_estimators)
 
@@ -167,11 +168,11 @@ class IsolationKernel(TransformerMixin, BaseEstimator):
             x_center_dist_mat = mapping_array[self.center_index_set]
 
             nearest_center_index = np.argmin(x_center_dist_mat, axis=1)
-            ik_value = np.eye(self.max_samples, dtype=int)[
-                nearest_center_index].flatten()
+            ik_value = np.eye(self.max_samples_, dtype=int)[
+                nearest_center_index].flatten()[np.newaxis]
             if i == 0:
-                embedding = np.array([ik_value])
+                embedding = ik_value
             else:
-                embedding = np.append(self.embedding, ik_value, axis=0)
-
-            return embedding
+                embedding = np.append(embedding, ik_value, axis=0)
+        self.embedding = embedding
+        return embedding

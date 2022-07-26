@@ -13,34 +13,84 @@
 # limitations under the License.
 
 import numpy as np
-from IsoKernel import IsolationKernel
 from scipy.cluster.hierarchy import linkage
 from sklearn.base import BaseEstimator
-from sklearn.preprocessing import MinMaxScaler
+
+from models.IsoKernel import IsolationKernel
 
 
 class IsoKAHC(BaseEstimator):
-    def __init__(self, n_estimators=200, max_samples="auto", method='single', ik=None):
+    """ IsoKAHC is a novel hierarchical clustering algorithm.
+        It uses a data-dependent kernel called Isolation Kernel to measure the the similarity between clusters.
+
+        Parameters
+        ----------
+        n_estimators : int, default=200
+            The number of base estimators in the ensemble.
+
+        max_samples : int, default="auto"
+            The number of samples to draw from X to train each base estimator.
+
+                - If int, then draw `max_samples` samples.
+                - If float, then draw `max_samples` * X.shape[0]` samples.
+                - If "auto", then `max_samples=min(8, n_samples)`.
+
+        iso_kernel : IsolationKernel or None, default=None
+            A fitted Isolaiton Kernel could be given.
+
+                - If None, then build a Isolation Kernel with 'n_estimators' and 'max_samples'.
+                - If a IsolationKernel given, then it will be used.
+
+        method : str, default="single"
+            The linkage algorithm to use. The supported  Linkage Methods are 'single', 'complete', 'average' and
+            'weighted'.
+
+        random_state : int, RandomState instance or None, default=None
+            Controls the pseudo-randomness of the selection of the samples to
+            fit the Isolation Kernel.
+
+            Pass an int for reproducible results across multiple function calls.
+            See :term:`Glossary <random_state>`.
+
+        References
+        ----------
+        .. [1] Xin Han, Ye Zhu, Kai Ming Ting, and Gang Li,
+               "The Impact of Isolation Kernel on Agglomerative Hierarchical Clustering Algorithms",
+               arXiv e-prints, 2020.
+
+        Examples
+        --------
+        >>> from IsoKernel import IsoKernel
+        >>> import numpy as np
+        >>> X = [[0.4,0.3], [0.3,0.8], [0.5, 0.4], [0.5, 0.1]]
+        >>> ik = IsoKernel.fit(X)
+        >>> ik.transform(X)
+        """
+
+    def __init__(self,
+                 n_estimators=200,
+                 max_samples="auto",
+                 method='single',
+                 iso_kernel=None,
+                 random_state=None):
         self.n_estimators = n_estimators
         self.max_samples = max_samples
-        self.isokernel = ik
+        self.iso_kernel = iso_kernel
         self.method = method
+        self.random_state = random_state
 
-    def _get_ikfeture(self, X):
-        self.isokernel = IsolationKernel(
-            X, self.n_estimators, self.max_samples)
-        X = self.isokernel.fit_transform(X)
+    def _get_ik_feature(self, X):
+        self.iso_kernel = IsolationKernel(self.n_estimators, self.max_samples, self.random_state)
+        X = self.iso_kernel.fit_transform(X)
         return X
 
     def fit(self, X) -> 'IsoKAHC':
         # Check data
         X = self._validate_data(X, accept_sparse=False)
-        # scaler = MinMaxScaler()
-        # X = scaler.fit_transform(X)
-        if isinstance(self.isokernel, IsolationKernel):
-            X = self.isokernel.transform(X)
+        if isinstance(self.iso_kernel, IsolationKernel):
+            X = self.iso_kernel.transform(X)
         else:
-            X = self._get_ikfeture(X)
+            X = self._get_ik_feature(X)
         similarity_matrix = np.inner(X, X) / self.n_estimators
         self.dendrogram_ = linkage(1 - similarity_matrix, method=self.method)
         return self

@@ -17,15 +17,43 @@ import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 # temporary solution for relative imports in case pyod is not installed
-# if pyod is installed, no need to use the following line                
+# if pyod is installed, no need to use the following line
 
+import pytest
 from IsoKAHC import IsoKAHC
+from models.IsoKernel import IsolationKernel
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.datasets import load_wine
 from utils import metrics
 
-def test_isokahc():
-    test_idk = IsoKAHC(t=200, psi=8)
-    X, y = load_wine(return_X_y=True)
+
+@pytest.fixture
+def data():
+    return load_wine(return_X_y=True)
+
+
+def test_isokhc_performance(data):
+    X, y = data
+    test_idk = IsoKAHC(n_estimators=200, max_samples=3, method="average")
+    scaler = MinMaxScaler()
+    X = scaler.fit_transform(X)
     ik_den = test_idk.fit_transform(X)
-    dp = metrics.dendrogram_purity(ik_den, y)
-    print(dp)
+    assert metrics.dendrogram_purity(ik_den, y) > 0.8
+
+
+@pytest.mark.parametrize("method", ['single', 'complete', 'average', 'weighted'])
+def test_isokhc_work(data, method):
+    X, y = data
+    # Test IsoKHC
+    clf = IsoKAHC(max_samples=8, method=method)
+    clf.fit(X)
+    pred = clf.fit_transform(X)
+
+
+def test_pre_kernel(data):
+    X, y = data
+    ik = IsolationKernel(n_estimators=200, max_samples=3)
+    ik = ik.fit(X[:44])
+    test_idk = IsoKAHC(method="single", iso_kernel=ik)
+    ik_den = test_idk.fit_transform(X)
+    print(metrics.dendrogram_purity(ik_den, y))
