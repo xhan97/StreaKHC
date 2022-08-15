@@ -14,8 +14,11 @@
 
 import argparse
 import os
+import sys
 
 import numpy as np
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from models.isokahc.IsoKAHC import IsoKAHC
 from models.IsoKernel import IsolationKernel
 from models.streakhc.INode import INode
@@ -23,6 +26,7 @@ from models.streakhc.utils.dendrogram_purity import expected_dendrogram_purity
 from models.utils.file_utils import load_data_stream, load_static_data
 
 from models.isokahc.utils import metrics
+
 
 
 def streKHC(data_path, m, psi, t):
