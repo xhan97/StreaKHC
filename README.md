@@ -48,23 +48,23 @@ The evaluation result is shown in /exp_out/ default. For each of the randomly sh
 If you have used this codebase in a scientific publication and wish to
 cite it, please use the following publication (Bibtex format):
 
-.. code:: bibtex
-
-  @inproceedings{HZTZL22Streaming,
-    author = {Han, Xin and Zhu, Ye and Ting, Kai Ming and Zhan, De-Chuan and Li, Gang},
-    title = {Streaming Hierarchical Clustering Based on Point-Set Kernel},
-    year = {2022},
-    isbn = {9781450393850},
-    publisher = {Association for Computing Machinery},
-    address = {New York, NY, USA},
-    url = {https://doi.org/10.1145/3534678.3539323},
-    doi = {10.1145/3534678.3539323},
-    pages = {525–533},
-    numpages = {9},
-    keywords = {streaming data, hierarchical clustering, isolation kernel},
-    location = {Washington DC, USA},
-    series = {KDD '22}
-    }
+```
+@inproceedings{HZTZL22Streaming,
+     author = {Han, Xin and Zhu, Ye and Ting, Kai Ming and Zhan, De-Chuan and Li, Gang},
+     title = {Streaming Hierarchical Clustering Based on Point-Set Kernel},
+     year = {2022},
+     isbn = {9781450393850},
+     publisher = {Association for Computing Machinery},
+     address = {New York, NY, USA},
+     url = {https://doi.org/10.1145/3534678.3539323},
+     doi = {10.1145/3534678.3539323},
+     pages = {525–533},
+     numpages = {9},
+     keywords = {streaming data, hierarchical clustering, isolation kernel},
+     location = {Washington DC, USA},
+     series = {KDD '22}
+}
+ ```
 
 ## License ##
 
