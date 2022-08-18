@@ -48,7 +48,7 @@ The evaluation result is shown in /exp_out/ default. For each of the randomly sh
 If you have used this codebase in a scientific publication and wish to
 cite it, please use the following publication (Bibtex format):
 
-```
+```bibtex
 @inproceedings{HZTZL22Streaming,
      author = {Han, Xin and Zhu, Ye and Ting, Kai Ming and Zhan, De-Chuan and Li, Gang},
      title = {Streaming Hierarchical Clustering Based on Point-Set Kernel},
