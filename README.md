@@ -64,7 +64,7 @@ cite it, please use the following publication (Bibtex format):
     keywords = {streaming data, hierarchical clustering, isolation kernel},
     location = {Washington DC, USA},
     series = {KDD '22}
-}
+    }
 
 ## License ##
 
