@@ -21,7 +21,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import pytest
 from IsoKAHC import IsoKAHC
-from models.IsoKernel import IsolationKernel
+from src.utils.IsoKernel import IsolationKernel
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.datasets import load_wine
 from utils import metrics

@@ -37,6 +37,22 @@ def _fast_dot(x, y):
     return np.dot(x, y)
 
 
+def _fast_normalize_dot(x, y, t):
+    """Compute the dot product of x and y using numba.
+
+      Args:
+      x - a numpy vector (or list).
+      y - a numpy vector (or list).
+      t - an integel
+
+      Returns:
+      Normalized x_T.y
+      """
+    
+    return _fast_dot(x, y) / (t * math.sqrt(
+        _fast_dot(x, x)) * (math.sqrt(_fast_dot(y, y))))
+
+
 class INode:
     """Isolation hc node."""
 
@@ -53,7 +69,7 @@ class INode:
         """An arbitrary way to determine an order when comparing 2 nodes."""
         return self.id < other.id
 
-    def insert(self, pt, delete_node=False, L=float("Inf"), t=200):
+    def grow(self, pt, delete_node=False, L=float("Inf"), t=200):
         """Insert a new pt into the tree.
 
         Apply recurse masking and balance rotations where appropriate.
@@ -69,7 +85,7 @@ class INode:
         """
 
         if delete_node and self.point_counter >= L:
-            self = self.delete()
+            self = self.prune()
         if self.pts is not None and len(self.pts) == 0:
             self.add_pt(pt[:2])
             self.ikv = pt[2]
@@ -78,12 +94,15 @@ class INode:
             curr_node = self.root()
             x_ik = pt[2].astype(float)
             while curr_node.is_internal():
+                curr_ik = curr_node.ikv.astype(float)
                 chl_ik = curr_node.children[0].ikv.astype(float)
                 chr_ik = curr_node.children[1].ikv.astype(float)
-                x_dot_chl = _fast_dot(x_ik, chl_ik) / (t * math.sqrt(
-                    _fast_dot(x_ik, x_ik)) * (math.sqrt(_fast_dot(chl_ik, chl_ik))))
-                x_dot_chr = _fast_dot(x_ik, chr_ik) / (t * math.sqrt(
-                    _fast_dot(x_ik, x_ik)) * (math.sqrt(_fast_dot(chr_ik, chr_ik))))
+                x_dot_curr = _fast_normalize_dot(x_ik, curr_ik, t)
+                chl_dot_chr = _fast_normalize_dot(chl_ik, chr_ik, t)
+                # if x_dot_curr < chl_dot_chr:
+                #     break
+                x_dot_chl = _fast_normalize_dot(x_ik, chl_ik, t)
+                x_dot_chr = _fast_normalize_dot(x_ik, chr_ik, t)
                 if x_dot_chl >= x_dot_chr:
                     curr_node = curr_node.children[0]
                 else:
@@ -95,7 +114,7 @@ class INode:
             _ = new_leaf._update_ik_value_recursively()
             return new_leaf.root()
 
-    def delete(self):
+    def prune(self):
         curr_node = self.root()
         p_id = curr_node.pts[0]
         while curr_node.is_internal():

@@ -12,15 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
+
 
 import argparse
-import os
-
 import numpy as np
 
 from INode import INode
-from models.IsoKernel import IsolationKernel
-from models.utils.file_utils import load_data_stream
+from src.utils.IsoKernel import IsolationKernel
+from src.utils.file_utils import load_data_stream
 from utils.Graphviz import Graphviz
 from utils.dendrogram_purity import expected_dendrogram_purity
 from utils.serialize_trees import serliaze_tree_to_file
@@ -54,11 +56,11 @@ def streKHC(data_path, m, psi, t):
                     [pt[2] for pt in train_dataset]))
                 for j, train_pt in enumerate(train_dataset, start=1):
                     l, pid, ikv = train_pt[0], train_pt[1], ik.transform([train_pt[2]])[0]
-                    root = root.insert((l, pid, ikv), L=L,
+                    root = root.grow((l, pid, ikv), L=L,
                                        t=t, delete_node=True)
         else:
             l, pid = pt[:2]
-            root = root.insert((l, pid, ik.transform(
+            root = root.grow((l, pid, ik.transform(
                 [pt[2]])[0]), L=L, t=t, delete_node=True)
     return root
 
@@ -152,12 +154,12 @@ def main():
 
 
 if __name__ == "__main__":
-    # main()
-    data_path = "./data/shuffle_data/2022-07-21-13-16-57-560/ALLAML_5.csv"
-    # m = 18
+    main()
+    # data_path = "./data/shuffle_data/2022-08-15-17-25-15-890/Synthetic_0.csv"
+    # m = 1800
     # t = 200
     # psi = [3, 5, 10, 17, 21, 25]
-    # file_name = "ALLAML"
+    # file_name = "Synthetic"
     # exp_dir_base = "./exp_out/test"
     # grid_search_inode(data_path=data_path, m=m, t=t, psi=psi,
     #                   file_name=file_name, exp_dir_base=exp_dir_base)

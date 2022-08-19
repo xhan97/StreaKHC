@@ -19,13 +19,13 @@ import sys
 import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from models.isokahc.IsoKAHC import IsoKAHC
-from models.IsoKernel import IsolationKernel
-from models.streakhc.INode import INode
-from models.streakhc.utils.dendrogram_purity import expected_dendrogram_purity
-from models.utils.file_utils import load_data_stream, load_static_data
+from src.isokahc.IsoKAHC import IsoKAHC
+from src.utils.IsoKernel import IsolationKernel
+from src.streakhc.INode import INode
+from src.streakhc.utils.dendrogram_purity import expected_dendrogram_purity
+from src.utils.file_utils import load_data_stream, load_static_data
 
-from models.isokahc.utils import metrics
+from src.isokahc.utils import metrics
 
 
 
@@ -58,11 +58,11 @@ def streKHC(data_path, m, psi, t):
                 for j, train_pt in enumerate(train_dataset, start=1):
                     l, pid, ikv = train_pt[0], train_pt[1], ik.transform([train_pt[2]])[
                         0]
-                    root = root.insert((l, pid, ikv), L=L,
+                    root = root.grow((l, pid, ikv), L=L,
                                        t=t, delete_node=True)
         else:
             l, pid = pt[:2]
-            root = root.insert((l, pid, ik.transform(
+            root = root.grow((l, pid, ik.transform(
                 [pt[2]])[0]), L=L, t=t, delete_node=True)
     return root, ik
 

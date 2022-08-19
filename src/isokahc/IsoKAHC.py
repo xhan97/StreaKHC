@@ -12,11 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
+
 import numpy as np
 from scipy.cluster.hierarchy import linkage
 from sklearn.base import BaseEstimator
 
-from models.IsoKernel import IsolationKernel
+from src.utils.IsoKernel import IsolationKernel
 
 
 class IsoKAHC(BaseEstimator):
