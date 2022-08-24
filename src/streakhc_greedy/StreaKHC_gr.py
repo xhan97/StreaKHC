@@ -11,21 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 
-
-import argparse
-import numpy as np
-
-from INode_gr import INode_gr
-from src.utils.IsoKernel import IsolationKernel
-from src.utils.file_utils import load_data_stream
-from utils.Graphviz import Graphviz
-from utils.dendrogram_purity import expected_dendrogram_purity
+import time
 from utils.serialize_trees import serliaze_tree_to_file
+from utils.dendrogram_purity import expected_dendrogram_purity
+from utils.Graphviz import Graphviz
+from src.utils.file_utils import load_data_stream
+from src.utils.IsoKernel import IsolationKernel
+from INode_gr import INode_gr
+import numpy as np
+import argparse
+
 
 
 def streKHC_gr(data_path, m, psi, t):
@@ -47,6 +46,7 @@ def streKHC_gr(data_path, m, psi, t):
     root = INode_gr()
     train_dataset = []
     L = 5000
+    st = time.time()
     for i, pt in enumerate(load_data_stream(data_path), start=1):
         if i <= m:
             train_dataset.append(pt)
@@ -55,13 +55,16 @@ def streKHC_gr(data_path, m, psi, t):
                 ik = ik.fit(np.array(
                     [pt[2] for pt in train_dataset]))
                 for j, train_pt in enumerate(train_dataset, start=1):
-                    l, pid, ikv = train_pt[0], train_pt[1], ik.transform([train_pt[2]])[0]
+                    l, pid, ikv = train_pt[0], train_pt[1], ik.transform([train_pt[2]])[
+                        0]
                     root = root.grow((l, pid, ikv), L=L,
-                                       t=t, delete_node=True)
+                                     t=t, delete_node=True)
         else:
             l, pid = pt[:2]
             root = root.grow((l, pid, ik.transform(
                 [pt[2]])[0]), L=L, t=t, delete_node=True)
+    ed = time.time()
+    print(ed-st)
     return root
 
 

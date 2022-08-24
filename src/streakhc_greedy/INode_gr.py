@@ -23,6 +23,19 @@ import numpy as np
 from numba import jit
 import os
 
+MIN_FLOAT = np.finfo(float).eps
+# @jit(nopython=True)
+# def _fast_dot(x, y):
+#     """Compute the dot product of x and y using numba.
+
+#       Args:
+#       x - a numpy vector (or list).
+#       y - a numpy vector (or list).
+
+#       Returns:
+#       x_T.y
+#       """
+#     return np.logical_and(x, y).sum()
 
 @jit(nopython=True)
 def _fast_dot(x, y):
@@ -35,8 +48,7 @@ def _fast_dot(x, y):
       Returns:
       x_T.y
       """
-    return np.logical_and(x, y).sum()
-
+    return np.dot(x, y)
 
 def _fast_normalize_dot(x, y, t):
     """Compute the dot product of x and y using numba.
@@ -49,7 +61,7 @@ def _fast_normalize_dot(x, y, t):
       Returns:
       Normalized x_T.y
       """
-    
+
     return _fast_dot(x, y) / (t * math.sqrt(
         _fast_dot(x, x)) * (math.sqrt(_fast_dot(y, y))))
 
@@ -120,7 +132,7 @@ class INode_gr:
         else:
             return sibling
         return self
-    
+
     def max_similarity(self, x):
         """Compute the max similarity between a point x and this node.
         Args:
@@ -131,40 +143,40 @@ class INode_gr:
         if self.pts and self.point_counter == 1:
             return _fast_dot(x, self.pts[0][2])
         elif self.pts:
-            mn = float('inf')
+            ma = MIN_FLOAT
             for pt in self.pts:
                 d = _fast_dot(x, pt[2])
-                if d > mn:
-                    mn = d
-            return mn
+                if d > ma:
+                    ma = d
+            return ma
         else:
             assert False
             # return _fast_min_to_box(self.mins, self.maxes, x)
-    
+
     def a_star_exact(self, pt, heuristic=lambda n, x: n.max_similarity(x)):
-            """A* search for the nearest neighbor of pt in tree rooted at self.
-            Args:
-            pt - a tuple with the third element a numpy vector of floats.
-            heuristic - a function of a node and a point that returns a float.
-            Returns:
-            A pointer to a node (that contains the nearest neighbor of x).
-            """
-            dp = pt[2]
-            if not self.children:
-                return self
-            else:
-                frontier = []
-                priority = heuristic(self, dp)
-                heappush(frontier, (priority, self))
-                while frontier:
-                    priority, target = heappop(frontier)
-                    if target.children:
-                        for child in target.children:
-                            max_s = heuristic(child, dp)
-                            heappush(frontier, (max_s, child))
-                    else:
-                        return target
-            assert(False)   # This line should never be executed.
+        """A* search for the nearest neighbor of pt in tree rooted at self.
+        Args:
+        pt - a tuple with the third element a numpy vector of floats.
+        heuristic - a function of a node and a point that returns a float.
+        Returns:
+        A pointer to a node (that contains the nearest neighbor of x).
+        """
+        dp = pt[2]
+        if not self.children:
+            return self
+        else:
+            frontier = []
+            priority = heuristic(self, dp)
+            heappush(frontier, (priority, self))
+            while frontier:
+                priority, target = heappop(frontier)
+                if target.children:
+                    for child in target.children:
+                        max_s = heuristic(child, dp)
+                        heappush(frontier, (max_s, child))
+                else:
+                    return target
+        assert(False)   # This line should never be executed.
 
     def _update_ik_value(self):
         """

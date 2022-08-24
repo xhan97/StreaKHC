@@ -175,4 +175,4 @@ class IsolationKernel(TransformerMixin, BaseEstimator):
             else:
                 embedding = np.append(embedding, ik_value, axis=0)
         self.embedding = embedding
-        return embedding.astype(bool)
+        return embedding.astype(float)
