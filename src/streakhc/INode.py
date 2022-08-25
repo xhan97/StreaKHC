@@ -37,7 +37,7 @@ def _fast_dot(x, y):
     return np.dot(x, y)
 
 
-def _fast_normalize_dot(x, y, t):
+def _fast_normalize_dot(x, y):
     """Compute the dot product of x and y using numba.
 
       Args:
@@ -48,8 +48,8 @@ def _fast_normalize_dot(x, y, t):
       Returns:
       Normalized x_T.y
       """
-    
-    return _fast_dot(x, y) / (t * math.sqrt(
+
+    return _fast_dot(x, y) / (math.sqrt(
         _fast_dot(x, x)) * (math.sqrt(_fast_dot(y, y))))
 
 
@@ -69,7 +69,7 @@ class INode:
         """An arbitrary way to determine an order when comparing 2 nodes."""
         return self.id < other.id
 
-    def grow(self, pt, delete_node=False, L=float("Inf"), t=200):
+    def grow(self, pt, delete_node=False, L=float("Inf")):
         """Insert a new pt into the tree.
 
         Apply recurse masking and balance rotations where appropriate.
@@ -92,17 +92,12 @@ class INode:
             return self
         else:
             curr_node = self.root()
-            x_ik = pt[2].astype(float)
+            x_ik = pt[2]
             while curr_node.is_internal():
-                curr_ik = curr_node.ikv.astype(float)
-                chl_ik = curr_node.children[0].ikv.astype(float)
-                chr_ik = curr_node.children[1].ikv.astype(float)
-                x_dot_curr = _fast_normalize_dot(x_ik, curr_ik, t)
-                chl_dot_chr = _fast_normalize_dot(chl_ik, chr_ik, t)
-                # if x_dot_curr < chl_dot_chr:
-                #     break
-                x_dot_chl = _fast_normalize_dot(x_ik, chl_ik, t)
-                x_dot_chr = _fast_normalize_dot(x_ik, chr_ik, t)
+                chl_ik = curr_node.children[0].ikv
+                chr_ik = curr_node.children[1].ikv
+                x_dot_chl = _fast_normalize_dot(x_ik, chl_ik)
+                x_dot_chr = _fast_normalize_dot(x_ik, chr_ik)
                 if x_dot_chl >= x_dot_chr:
                     curr_node = curr_node.children[0]
                 else:

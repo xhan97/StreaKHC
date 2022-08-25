@@ -20,7 +20,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 import argparse
 import numpy as np
 
-from INode import INode
+from src.streakhc_global.INode_gl import INode_gl
 from src.utils.IsoKernel import IsolationKernel
 from src.utils.file_utils import load_data_stream
 from utils.Graphviz import Graphviz
@@ -44,7 +44,7 @@ def streKHC(data_path, m, psi, t):
         A list of pointers to the trees constructed via the insert methods
         passed in.
     """
-    root = INode()
+    root = INode_gl()
     train_dataset = []
     L = 5000
     for i, pt in enumerate(load_data_stream(data_path), start=1):
@@ -103,7 +103,7 @@ def save_grid_data(args, exp_dir_base):
 
 
 def grid_search_inode(data_path, psi, t, m, file_name, exp_dir_base):
-    alg = 'StreaKHC'
+    alg = 'StreaKHC_gl'
     max_purity = 0
     for ps in psi:
         root = streKHC(
