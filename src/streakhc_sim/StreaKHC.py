@@ -108,6 +108,8 @@ def grid_search_inode(data_path, psi, t, m, file_name, exp_dir_base):
     for ps in psi:
         root = streKHC(
             data_path, m, ps, t)
+        print(root.get_pre_similarity())
+        print(root.get_update_simiarity())
         purity = expected_dendrogram_purity(root)
         if purity > max_purity:
             max_ps = ps
@@ -153,12 +155,12 @@ def main():
 
 
 if __name__ == "__main__":
-    #main()
+    # main()
     data_path = "./data/shuffle_data/2022-08-26-11-17-32-579/wine_2.csv"
     m = 44
     t = 200
     psi = [3, 5, 10, 17, 21, 25]
-    file_name = "wine"
+    file_name = "Synthetic"
     exp_dir_base = "./exp_out/test"
     grid_search_inode(data_path=data_path, m=m, t=t, psi=psi,
                       file_name=file_name, exp_dir_base=exp_dir_base)

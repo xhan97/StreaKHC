@@ -15,14 +15,12 @@
 import math
 import random
 import string
-from collections import defaultdict, deque
+from collections import defaultdict
 from queue import Queue
 
 import numpy as np
 from numba import jit
 import os
-
-MIN_FLOAT = np.finfo(float).eps
 
 
 @jit(nopython=True)
@@ -55,7 +53,7 @@ def _fast_normalize_dot(x, y):
         _fast_dot(x, x)) * (math.sqrt(_fast_dot(y, y))))
 
 
-class INode_gl:
+class INode:
     """Isolation hc node."""
 
     def __init__(self):
@@ -65,6 +63,8 @@ class INode_gl:
         self.parent = None
         self.pts = []  # each pt is a tuple of (label, id).
         self.ikv = None
+        self.sim = None
+        self.path = None
         self.point_counter = 0
 
     def __lt__(self, other):
@@ -93,13 +93,32 @@ class INode_gl:
             self.ikv = pt[2]
             return self
         else:
-            curr_node = self.dfs_exact(pt)
+            curr_node = self.root()
+            x_ik = pt[2]
+            while curr_node.is_internal():
+                chl_ik = curr_node.children[0].ikv
+                chr_ik = curr_node.children[1].ikv
+                x_dot_chl = _fast_normalize_dot(x_ik, chl_ik)
+                x_dot_chr = _fast_normalize_dot(x_ik, chr_ik)
+                if x_dot_chl >= x_dot_chr:
+                    curr_node = curr_node.children[0]
+                else:
+                    curr_node = curr_node.children[1]
+            self.pre_similarity = curr_node._get_path()
             new_leaf = curr_node._split_down(pt)
-            ancs = new_leaf._ancestors()
-            for a in ancs:
-                a.add_pt(pt[:2])
-            _ = new_leaf._update_ik_value_recursively()
+            _ = new_leaf._update_parameter_recursively(pt[:2])
+            self.update_similarity = new_leaf._get_path()
             return new_leaf.root()
+    
+    def _get_path(self):
+        ancs = self._ancestors()
+        return [a.sim for a in ancs]
+            
+    def get_pre_similarity(self):
+        return self.pre_similarity
+
+    def get_update_simiarity(self):
+        return self.update_similarity
 
     def prune(self):
         curr_node = self.root()
@@ -124,58 +143,6 @@ class INode_gl:
         else:
             return sibling
         return self
-    
-    def node_similarity(self, x):
-        """Compute the similarity between a point x and this node.
-        Args:
-        x - a numpy array of floats.
-        Returns:
-        A float representing the lower bound.
-        """
-        # if self.pts and self.point_counter == 1:
-        #     return _fast_dot(x, self.ikv)
-        # elif self.pts:
-        return _fast_normalize_dot(x, self.ikv)
-        # else:
-        #     assert False
-    
-    def dfs_exact(self, pt, heuristic=lambda n, x: n.node_similarity(x)):
-        """Depth First Search for the nearest neighbor of pt in tree rooted at self.
-        Args:
-        pt - a tuple with the third element a numpy vector of floats.
-        heuristic - a function of a node and a point that returns a float.
-        Returns:
-        A pointer to a node (that contains the nearest neighbor of x).
-        """
-        dp = pt[2]
-        if not self.children:
-            return self
-        else:
-            # create an empty stack
-            stack = deque()
-            #start from the root node (set current node to the root node)
-            curr = self
-            target = self
-            ma = MIN_FLOAT
-            # if the current node is None and the stack is also empty, we are done
-            while stack or curr:
-                if  curr:
-                    stack.append(curr)
-                    if len(curr.children) == 0:
-                        curr = None
-                    else:
-                        curr = curr.children[0]
-                else:
-                    curr = stack.pop()
-                    d = heuristic(curr, dp)
-                    if  d > ma:
-                        ma = d
-                        target = curr
-                    if len(curr.children) == 0:
-                        curr = None
-                    else:
-                        curr = curr.children[1]
-            return target
 
     def _update_ik_value(self):
         """
@@ -194,8 +161,25 @@ class INode_gl:
             else:
                 self.ikv = self.children[0].ikv + self.children[1].ikv
             return self
+        
+    def _update_node_similarity(self):
+        """
+        updata node similarity between its two children
 
-    def _update_ik_value_recursively(self):
+        Args:
+        None.
+
+        Returns:
+        A tuple of this node and a bool that is true if the parent may need an
+        update.
+        """
+        if self.children:
+            self.sim = _fast_normalize_dot(self.children[0].ikv, self.children[1].ikv)
+        else:
+            self.sim = None
+        return self
+
+    def _update_parameter_recursively(self, pt):
         """Update a node's parameters recursively.
 
         Args:
@@ -206,7 +190,9 @@ class INode_gl:
         """
         curr_node = self
         while curr_node.parent:
+            _ = curr_node.parent.add_pt(pt)
             _ = curr_node.parent._update_ik_value()
+            _ = curr_node.parent._update_node_similarity()
             curr_node = curr_node.parent
         return curr_node
 
@@ -257,7 +243,7 @@ class INode_gl:
         Returns:
         A pointer to the new node containing pt.
         """
-        new_internal = INode_gl()
+        new_internal = INode()
         if self.pts is not None:
             new_internal.pts = self.pts[:]  # Copy points to the new node.
         else:
@@ -271,7 +257,7 @@ class INode_gl:
         else:
             new_internal.add_child(self)
 
-        new_leaf = INode_gl()
+        new_leaf = INode()
         new_leaf.ikv = pt[2]
         new_leaf.add_pt(pt[:2])  # This updates the points counter.
         new_internal.add_child(new_leaf)
