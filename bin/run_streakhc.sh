@@ -18,8 +18,8 @@ for suffix in '.csv' '.tsv'; do
         sh bin/util/shuffle_dataset.sh $dataset_file $num_runs $shuffle_data_path
         dataset_name=$(basename -s $suffix $dataset_file)
         data_size=$(wc -l <$dataset_file)
-        # t_size=$(expr ${data_size} / 4)
-        t_size=${data_size}
+        t_size=$(expr ${data_size} / 4)
+        $t_size=${data_size}
         for i in $(seq 0 1 $num_runs); do
             (
                 shuffled_data="${shuffle_data_path}/${dataset_name}_${i}$suffix"

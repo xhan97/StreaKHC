@@ -59,11 +59,11 @@ def streKHC(data_path, m, psi, t):
                     l, pid, ikv = train_pt[0], train_pt[1], ik.transform([train_pt[2]])[
                         0]
                     root = root.grow((l, pid, ikv), L=L,
-                                       t=t, delete_node=True)
+                                    delete_node=True)
         else:
             l, pid = pt[:2]
             root = root.grow((l, pid, ik.transform(
-                [pt[2]])[0]), L=L, t=t, delete_node=True)
+                [pt[2]])[0]), L=L, delete_node=True)
     return root, ik
 
 
@@ -124,12 +124,12 @@ def grid_search_inode(data_path, psi, t, m, file_name, exp_dir_base):
                }
         save_grid_data(res, exp_dir_base)
 
-        isokhc = IsoKAHC(method='average', iso_kernel=ik)
+        isokhc = IsoKAHC(method='single', iso_kernel=ik)
         Z = isokhc.fit_transform(X)
         isokhc_dp = metrics.dendrogram_purity(Z, y)
 
         res = {'dataset': file_name,
-               'algorithm': "isokhc_average",
+               'algorithm': "isokhc_single",
                'purity': isokhc_dp,
                "psi": p,
                }

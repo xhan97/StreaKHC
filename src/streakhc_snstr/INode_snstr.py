@@ -15,27 +15,14 @@
 import math
 import random
 import string
-from collections import defaultdict, deque
+from collections import defaultdict
 from queue import Queue
-from heapq import heappush, heappop
 
 import numpy as np
 from numba import jit
 import os
-
 MIN_FLOAT = np.finfo(float).eps
-# @jit(nopython=True)
-# def _fast_dot(x, y):
-#     """Compute the dot product of x and y using numba.
 
-#       Args:
-#       x - a numpy vector (or list).
-#       y - a numpy vector (or list).
-
-#       Returns:
-#       x_T.y
-#       """
-#     return np.logical_and(x, y).sum()
 
 @jit(nopython=True)
 def _fast_dot(x, y):
@@ -50,7 +37,24 @@ def _fast_dot(x, y):
       """
     return np.dot(x, y)
 
-class INode_gr:
+
+def _fast_normalize_dot(x, y):
+    """Compute the dot product of x and y using numba.
+
+      Args:
+      x - a numpy vector (or list).
+      y - a numpy vector (or list).
+      t - an integel
+
+      Returns:
+      Normalized x_T.y
+      """
+
+    return (_fast_dot(x, y)+MIN_FLOAT) / ((math.sqrt(
+        _fast_dot(x, x)) * (math.sqrt(_fast_dot(y, y))))+MIN_FLOAT)
+
+
+class INode_snstr:
     """Isolation hc node."""
 
     def __init__(self):
@@ -59,19 +63,20 @@ class INode_gr:
         self.children = []
         self.parent = None
         self.pts = []  # each pt is a tuple of (label, id).
+        self.ikv = None
         self.point_counter = 0
 
     def __lt__(self, other):
         """An arbitrary way to determine an order when comparing 2 nodes."""
         return self.id < other.id
 
-    def grow(self, pt, delete_node=False, L=float("Inf"), t=200):
+    def grow(self, pt, delete_node=False, L=float("Inf")):
         """Insert a new pt into the tree.
 
         Apply recurse masking and balance rotations where appropriate.
 
         Args:
-        pt - a tuple of class label, point id, numpy array.
+        pt - a tuple of numpy array, class label, point id.
         collapsibles - (optional) heap of collapsed nodes.
         L - (optional) maximum number of leaves in the tree.
         t - parameter of isolation kernel
@@ -83,14 +88,26 @@ class INode_gr:
         if delete_node and self.point_counter >= L:
             self = self.prune()
         if self.pts is not None and len(self.pts) == 0:
-            self.add_pt(pt)
+            self.add_pt(pt[:2])
+            self.ikv = pt[2]
             return self
         else:
-            curr_node = self.a_star_exact(pt)
+            curr_node = self.root()
+            x_ik = pt[2]
+            while curr_node.is_internal():
+                chl_ik = curr_node.children[0].ikv
+                chr_ik = curr_node.children[1].ikv
+                x_dot_chl = _fast_normalize_dot(x_ik, chl_ik)
+                x_dot_chr = _fast_normalize_dot(x_ik, chr_ik)
+                if x_dot_chl >= x_dot_chr:
+                    curr_node = curr_node.children[0]
+                else:
+                    curr_node = curr_node.children[1]
             new_leaf = curr_node._split_down(pt)
             ancs = new_leaf._ancestors()
             for a in ancs:
-                a.add_pt(pt)
+                a.add_pt(pt[:2])
+            _ = new_leaf._update_ik_value_recursively()
             return new_leaf.root()
 
     def prune(self):
@@ -116,90 +133,6 @@ class INode_gr:
         else:
             return sibling
         return self
-
-    def max_similarity(self, x):
-        """Compute the max similarity between a point x and this node.
-        Args:
-        x - a numpy array of floats.
-        Returns:
-        A float representing the lower bound.
-        """
-        if self.pts and self.point_counter == 1:
-            return _fast_dot(x, self.pts[0][2])
-        elif self.pts:
-            ma = MIN_FLOAT
-            for pt in self.pts:
-                d = _fast_dot(x, pt[2])
-                if d > ma:
-                    ma = d
-            return ma
-        else:
-            assert False
-            # return _fast_min_to_box(self.mins, self.maxes, x)
-    
-    def dfs_exact(self, pt, heuristic=lambda n, x: n.node_similarity(x)):
-        """Depth First Search for the nearest neighbor of pt in tree rooted at self.
-        Args:
-        pt - a tuple with the third element a numpy vector of floats.
-        heuristic - a function of a node and a point that returns a float.
-        Returns:
-        A pointer to a node (that contains the nearest neighbor of x).
-        """
-        dp = pt[2]
-        if not self.children:
-            return self
-        else:
-            # create an empty stack
-            stack = deque()
-            #start from the root node (set current node to the root node)
-            curr = self
-            target = self
-            ma = MIN_FLOAT
-            # if the current node is None and the stack is also empty, we are done
-            while stack or curr:
-                if  curr:
-                    stack.append(curr)
-                    if len(curr.children) == 0:
-                        curr = None
-                    else:
-                        curr = curr.children[0]
-                else:
-                    curr = stack.pop()
-                    if curr.is_leaf():
-                        d = heuristic(curr, dp)
-                        if  d > ma:
-                            ma = d
-                            target = curr
-                    if len(curr.children) == 0:
-                        curr = None
-                    else:
-                        curr = curr.children[1]
-            return target
-
-    def a_star_exact(self, pt, heuristic=lambda n, x: n.max_similarity(x)):
-        """A* search for the nearest neighbor of pt in tree rooted at self.
-        Args:
-        pt - a tuple with the third element a numpy vector of floats.
-        heuristic - a function of a node and a point that returns a float.
-        Returns:
-        A pointer to a node (that contains the nearest neighbor of x).
-        """
-        dp = pt[2]
-        if not self.children:
-            return self
-        else:
-            frontier = []
-            priority = heuristic(self, dp)
-            heappush(frontier, (priority, self))
-            while frontier:
-                priority, target = heappop(frontier)
-                if target.children:
-                    for child in target.children:
-                        max_s = heuristic(child, dp)
-                        heappush(frontier, (max_s, child))
-                else:
-                    return target
-        assert(False)   # This line should never be executed.
 
     def _update_ik_value(self):
         """
@@ -281,7 +214,7 @@ class INode_gr:
         Returns:
         A pointer to the new node containing pt.
         """
-        new_internal = INode_gr()
+        new_internal = INode_snstr()
         if self.pts is not None:
             new_internal.pts = self.pts[:]  # Copy points to the new node.
         else:
@@ -295,8 +228,9 @@ class INode_gr:
         else:
             new_internal.add_child(self)
 
-        new_leaf = INode_gr()
-        new_leaf.add_pt(pt)  # This updates the points counter.
+        new_leaf = INode_snstr()
+        new_leaf.ikv = pt[2]
+        new_leaf.add_pt(pt[:2])  # This updates the points counter.
         new_internal.add_child(new_leaf)
         return new_leaf
 

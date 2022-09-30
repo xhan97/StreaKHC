@@ -69,7 +69,7 @@ def latex_table(alg_score):
                   if ds in alg2dataset2score[alg] else "-" for alg in alg_names]
         table_string += "%s & %s \\\\\n" % (ds, " & ".join(scores))
     table_string += "\midrule\n"
-    table_string += "bf Mean & " + \
+    table_string += "\\bf{Mean} & " + \
         " & ".join("{:.2f}".format(x) for x in socre_mean)
     table_string += " \\\\ \\bottomrule\n\\end{tabular}\n\\end{table}"
     return table_string

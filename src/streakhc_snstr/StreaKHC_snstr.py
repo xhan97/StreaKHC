@@ -19,16 +19,16 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 
 import argparse
 import numpy as np
-
-from src.streakhc_global.INode_gl import INode_gl
-from src.utils.IsoKernel import IsolationKernel
+import  warnings
+from src.streakhc_snstr.INode_snstr import INode_snstr
+from sklearn.kernel_approximation import Nystroem
 from src.utils.file_utils import load_data_stream
 from utils.Graphviz import Graphviz
 from utils.dendrogram_purity import expected_dendrogram_purity
-from utils.serialize_trees import serliaze_tree_to_file
 
+warnings.filterwarnings("ignore", category=FutureWarning)
 
-def streKHC_gl(data_path, m, psi, t):
+def streKHC_snstr(data_path, m, sig, n_components):
     """Create trees over the same points.
     Create n trees, online, over the same dataset. Return pointers to the
     roots of all trees for evaluation.  The trees will be created via the insert
@@ -44,22 +44,22 @@ def streKHC_gl(data_path, m, psi, t):
         A list of pointers to the trees constructed via the insert methods
         passed in.
     """
-    root = INode_gl()
+    root = INode_snstr()
     train_dataset = []
     L = 5000
     for i, pt in enumerate(load_data_stream(data_path), start=1):
         if i <= m:
             train_dataset.append(pt)
             if i == m:
-                ik = IsolationKernel(n_estimators=t, max_samples=psi)
-                ik = ik.fit(np.array(
+                gk = Nystroem(kernel="rbf", n_components=n_components, gamma=sig**-2)
+                gk = gk.fit(np.array(
                     [pt[2] for pt in train_dataset]))
-                for j, train_pt in enumerate(train_dataset, start=1):
-                    l, pid, ikv = train_pt[0], train_pt[1], ik.transform([train_pt[2]])[0]
+                for _, train_pt in enumerate(train_dataset, start=1):
+                    l, pid, ikv = train_pt[0], train_pt[1], gk.transform([train_pt[2]])[0]
                     root = root.grow((l, pid, ikv), L=L, delete_node=True)
         else:
             l, pid = pt[:2]
-            root = root.grow((l, pid, ik.transform(
+            root = root.grow((l, pid, gk.transform(
                 [pt[2]])[0]), L=L, delete_node=True)
     return root
 
@@ -72,14 +72,14 @@ def save_data(args, exp_dir_base):
                 'dataset',
                 'algorithm',
                 'purity',
-                "max_psi",
+                "max_sig",
             ))
     with open(file_path, 'a') as fout:
         fout.write('%s\t%s\t%.2f\t%s\n' % (
             args['dataset'],
             args['algorithm'],
             args['purity'],
-            args["max_psi"],
+            args["max_sig"],
         ))
 
 
@@ -91,45 +91,45 @@ def save_grid_data(args, exp_dir_base):
                 'dataset',
                 'algorithm',
                 'purity',
-                "psi",
+                "sig",
             ))
     with open(file_path, 'a') as fout:
         fout.write('%s\t%s\t%.2f\t%s\n' % (
             args['dataset'],
             args['algorithm'],
             args['purity'],
-            args["psi"],
+            args["sig"],
         ))
 
 
-def grid_search_inode(data_path, psi, t, m, file_name, exp_dir_base):
-    alg = 'StreaKHC_gl'
+def grid_search_inode(data_path, sig_list, n_components, m, file_name, exp_dir_base):
+    alg = 'StreaKHC_nystr'
     max_purity = 0
-    for ps in psi:
-        root = streKHC_gl(
-            data_path, m, ps, t)
+    for sig in sig_list:
+        root = streKHC_snstr(
+            data_path, m, sig, n_components)
         purity = expected_dendrogram_purity(root)
         if purity > max_purity:
-            max_ps = ps
-            max_root = root
+            max_sig = sig
+            # max_root = root
             max_purity = purity
         res = {'dataset': file_name,
                'algorithm': alg,
                'purity': purity,
-               "psi": ps,
+               "sig": sig,
                }
         save_grid_data(res, exp_dir_base)
 
     args = {'dataset': file_name,
             'algorithm': alg,
             'purity': max_purity,
-            "max_psi": max_ps,
+            "max_sig": max_sig,
             }
     save_data(args, exp_dir_base)
-    serliaze_tree_to_file(max_root, os.path.join(
-        exp_dir_base, 'tree.tsv'))
-    Graphviz.write_tree(os.path.join(
-        exp_dir_base, 'tree.dot'), max_root)
+    # serliaze_tree_to_file(max_root, os.path.join(
+    #     exp_dir_base, 'tree.tsv'))
+    # Graphviz.write_tree(os.path.join(
+    #     exp_dir_base, 'tree.dot'), max_root)
 
 
 def main():
@@ -141,24 +141,28 @@ def main():
                         help='<Required> The output directory', required=True)
     parser.add_argument('--dataset', '-n', type=str,
                         help='<Required> The name of the dataset', required=True)
-    parser.add_argument('--sample_size', '-t', type=int, default=300,
-                        help='<Required> Sample size for isolation kernel mapper')
-    parser.add_argument('--psi', '-p', nargs='+', type=int, required=True,
-                        help='<Required> Particial size for isolation kernel mapper')
+    parser.add_argument('--n_components', '-t', type=int, default=400,
+                        help='<Required> n_components for Gaussian kernel mapper')
+    parser.add_argument('--sig', '-s', nargs='+', type=int, required=True,
+                        help='<Required> sig for Gaussian kernel mapper')
     parser.add_argument('--train_size', '-m', type=int, required=True,
-                        help='<Required> Initial used data size to build Isolation Kernel Mapper')
+                        help='<Required> Initial used data size to build Gaussian kernel  Mapper')
+    parser.add_argument('--data_feature', '-nf', type=int, required=True,
+                        help='<Required> n_feature for data set')
     args = parser.parse_args()
-    grid_search_inode(data_path=args.input, m=args.train_size, t=args.sample_size, psi=args.psi,
+    sig_list = [2**s for s in args.sig] + [args.data_feature*(2**s) for s in args.sig]
+
+    grid_search_inode(data_path=args.input, m=args.train_size, n_components=args.n_components, sig_list=sig_list,
                       file_name=args.dataset, exp_dir_base=args.outdir)
 
 
 if __name__ == "__main__":
     main()
-    # data_path = "./data/shuffle_data/2022-08-15-17-25-15-890/Synthetic_0.csv"
-    # m = 1800
+    # data_path = "./data/shuffle_data/2022-08-26-11-17-32-579/wine_2.csv"
+    # m = 44
     # t = 200
     # psi = [3, 5, 10, 17, 21, 25]
-    # file_name = "Synthetic"
+    # file_name = "wine"
     # exp_dir_base = "./exp_out/test"
     # grid_search_inode(data_path=data_path, m=m, t=t, psi=psi,
     #                   file_name=file_name, exp_dir_base=exp_dir_base)
