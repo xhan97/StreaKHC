@@ -22,7 +22,7 @@ for suffix in '.csv' '.tsv'; do
 		n_feature=$(expr ${n_feature} - 1)
         t_size=$(expr ${data_size} / 4)
         #t_size=${data_size}
-        for i in $(seq 0 1 $num_runs); do
+        for i in $(seq 1 1 $num_runs); do
             (
                 #shuffled_data="${shuffle_data_path}/${dataset_name}_${i}$suffix"
                 shuffled_data="${dataset_file}"
@@ -34,7 +34,7 @@ for suffix in '.csv' '.tsv'; do
                     --sig $(seq -5 1 5) \
                     --train_size ${t_size} \
 					--data_feature ${n_feature}
-                #dot -Kdot -Tpng $exp_output_dir/tree.dot -o $exp_output_dir/tree.png
+                dot -Kdot -Tpng $exp_output_dir/tree.dot -o $exp_output_dir/tree.png
             ) &
         done
         wait

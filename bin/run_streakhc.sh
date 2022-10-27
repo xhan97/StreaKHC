@@ -19,8 +19,8 @@ for suffix in '.csv' '.tsv'; do
         dataset_name=$(basename -s $suffix $dataset_file)
         data_size=$(wc -l <$dataset_file)
         t_size=$(expr ${data_size} / 4)
-        # $t_size=${data_size}
-        for i in $(seq 0 1 $num_runs); do
+        #t_size=${data_size}
+        for i in $(seq 1 1 $num_runs); do
             (
                 #shuffled_data="${shuffle_data_path}/${dataset_name}_${i}$suffix"
                 shuffled_data="${dataset_file}"
@@ -29,9 +29,9 @@ for suffix in '.csv' '.tsv'; do
                 python3 src/streakhc/StreaKHC.py --input ${shuffled_data} \
                     --outdir ${exp_output_dir} \
                     --dataset ${dataset_name} \
-                    --psi 3 5 7 13 15 17 21 25 \
+                    --psi 55 70 128 256 512\
                     --train_size ${t_size}
-                #dot -Kdot -Tpng $exp_output_dir/tree.dot -o $exp_output_dir/tree.png
+                dot -Kdot -Tpng $exp_output_dir/tree.dot -o $exp_output_dir/tree.png
             ) &
         done
         wait

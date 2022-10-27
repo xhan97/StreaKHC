@@ -16,11 +16,13 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 
 import time
-from utils.serialize_trees import serliaze_tree_to_file
-from utils.dendrogram_purity import expected_dendrogram_purity
-from utils.Graphviz import Graphviz
 from src.utils.file_utils import load_data_stream
 from src.utils.IsoKernel import IsolationKernel
+from src.utils.IsoKernel import IsolationKernel
+from src.utils.file_utils import load_data_stream
+from src.utils.Graphviz import Graphviz
+from src.utils.dendrogram_purity import expected_dendrogram_purity
+from src.utils.serialize_trees import serliaze_tree_to_file
 from INode_gr import INode_gr
 import numpy as np
 import argparse

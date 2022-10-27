@@ -23,9 +23,9 @@ import numpy as np
 from INode import INode
 from src.utils.IsoKernel import IsolationKernel
 from src.utils.file_utils import load_data_stream
-from utils.Graphviz import Graphviz
-from utils.dendrogram_purity import expected_dendrogram_purity
-from utils.serialize_trees import serliaze_tree_to_file
+from src.utils.Graphviz import Graphviz
+from src.utils.dendrogram_purity import expected_dendrogram_purity
+from src.utils.serialize_trees import serliaze_tree_to_file
 
 
 def streKHC(data_path, m, psi, t):
