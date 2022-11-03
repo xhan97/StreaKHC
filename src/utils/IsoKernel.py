@@ -144,6 +144,20 @@ class IsolationKernel(TransformerMixin, BaseEstimator):
         self.center_data = X[self.unique_index]
         return self
 
+    def similarity(self, X):
+        """ Compute the isolation kernel simalarity matrix of X.
+        Parameters
+        ----------
+        X: array-like of shape (n_instances, n_features)
+            The input instances.
+        Returns
+        -------
+        The simalarity matrix are organised as a n_instances * n_instances matrix.
+        """
+
+        embed_X = self.transform(X)
+        return np.inner(embed_X, embed_X) / self.n_estimators
+
     def transform(self, X):
         """ Compute the isolation kernel feature of X.
         Parameters

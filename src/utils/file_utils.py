@@ -40,10 +40,10 @@ def load_static_data(filename):
         split_sep = ","
     elif filename.endswith(".tsv"):
         split_sep = "\t"
-    data = pd.read_csv(filename, sep=split_sep, index_col=0, header=None)
+    data = pd.read_csv(filename, sep=split_sep, header=None)
     data = data.to_numpy()
-    X, y = data[:, 1:], data[:, 0]
-    return X, y
+    pid, l, vec = data[:, 0], data[:, 1], data[:, 2:]
+    return pid, l, vec
 
 
 def load_data_stream(filename):
@@ -57,3 +57,10 @@ def load_data_stream(filename):
             pid, l, vec = splits[0], splits[1], np.array([float(x)
                                                           for x in splits[2:]])
             yield ((l, pid, vec))
+
+
+# def load_nn_stream(filename, nbrs, X_query):
+#     pid, l, vec = load_static_data(filename=filename)
+#     for i in range(len(pid)):
+#         nn_index = get_nn_index(nbrs=nbrs, X_query=X_query)
+#         yield ((l[nn_index], pid[nn_index], vec[nn_index]))
