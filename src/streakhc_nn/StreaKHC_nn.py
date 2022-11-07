@@ -25,14 +25,15 @@ from src.utils.file_utils import load_static_data
 from src.utils.Graphviz import Graphviz
 from src.utils.dendrogram_purity import expected_dendrogram_purity
 from src.utils.serialize_trees import serliaze_tree_to_file
+#from memory_profiler import profile
 
-
-
-def get_nn_index(q, mat):
-    nn_ind = np.argmax(np.inner(q, mat))
+def get_nn_index(q, mat, mask_index):
+    x_sim = np.inner(q, mat)
+    x_sim[mask_index] = -np.inf
+    nn_ind = np.argmax(x_sim)
     return nn_ind
 
-
+#@profile
 def streKHC_nn(data_path, psi, t):
     """Create trees over the same points.
     Create n trees, online, over the same dataset. Return pointers to the
@@ -60,18 +61,18 @@ def streKHC_nn(data_path, psi, t):
     np.fill_diagonal(sim, -np.inf)
     x_ind, y_ind = np.unravel_index(np.argmax(sim, axis=None), sim.shape)
     num_samples = len(pid)
+    mask_index = []
     for i in range(num_samples):
         if i == 0:
             insert_index = x_ind
         elif i == 1:
             insert_index = y_ind
         else:
-            insert_index = get_nn_index(root.ikv, ikv)
-
+            insert_index = get_nn_index(root.ikv, ikv, mask_index)
         root = root.grow((l[insert_index], pid[insert_index],
                          ikv[insert_index]), L=L, delete_node=True)
-        l, pid, ikv = np.delete(l, (insert_index), axis=0), np.delete(
-            pid, (insert_index), axis=0), np.delete(ikv, (insert_index), axis=0)
+        mask_index.append(insert_index)
+        
     return root
 
 
@@ -112,7 +113,7 @@ def save_grid_data(args, exp_dir_base):
             args["psi"],
         ))
 
-
+#@profile
 def grid_search_inode(data_path, psi, t, file_name, exp_dir_base):
     alg = 'StreaKHC_nn'
     max_purity = 0
@@ -122,7 +123,7 @@ def grid_search_inode(data_path, psi, t, file_name, exp_dir_base):
         purity = expected_dendrogram_purity(root)
         if purity > max_purity:
             max_ps = ps
-            max_root = root
+            # max_root = root
             max_purity = purity
         res = {'dataset': file_name,
                'algorithm': alg,
@@ -137,10 +138,10 @@ def grid_search_inode(data_path, psi, t, file_name, exp_dir_base):
             "max_psi": max_ps,
             }
     save_data(args, exp_dir_base)
-    serliaze_tree_to_file(max_root, os.path.join(
-        exp_dir_base, 'tree.tsv'))
-    Graphviz.write_tree(os.path.join(
-        exp_dir_base, 'tree.dot'), max_root)
+    # serliaze_tree_to_file(max_root, os.path.join(
+    #     exp_dir_base, 'tree.tsv'))
+    # Graphviz.write_tree(os.path.join(
+    #     exp_dir_base, 'tree.dot'), max_root)
 
 
 def main():
@@ -165,7 +166,7 @@ def main():
 
 if __name__ == "__main__":
     main()
-    data_path = "./data/shuffle_data/2022-11-03-14-06-26-987/AC_2.csv"
+    # data_path = "./data/shuffle_data/2022-11-03-15-25-20-017/ALLAML_0.csv"
     # m = 44
     # t = 200
     # psi = [3, 5, 10, 17, 21, 25]
