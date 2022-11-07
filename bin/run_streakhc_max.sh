@@ -35,7 +35,7 @@ for suffix in '.csv' '.tsv'; do
             )&
          done
          wait
-         mv $dataset_file $STREASKH_DATA_RUNNED
+         #mv $dataset_file $STREASKH_DATA_RUNNED
     done
 done
 sh bin/util/collect_and_format_results.sh $output_dir

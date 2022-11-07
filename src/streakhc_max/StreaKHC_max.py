@@ -115,7 +115,7 @@ def save_grid_data(args, exp_dir_base):
 
 #@profile
 def grid_search_inode(data_path, psi, t, file_name, exp_dir_base):
-    alg = 'StreaKHC_nn'
+    alg = 'StreaKHC_max'
     max_purity = 0
     for ps in psi:
         root = streKHC_max(
