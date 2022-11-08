@@ -16,8 +16,6 @@ import os
 import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-# temporary solution for relative imports in case pyod is not installed
-# if pyod is installed, no need to use the following line
 
 import pytest
 from IsoKAHC import IsoKAHC
