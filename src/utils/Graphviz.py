@@ -2,7 +2,7 @@ class Graphviz(object):
     def __init__(self):
         self.internal_color = "lavenderblush4"
         self.colors = [
-            "aquamarine", "bisque",  "blueviolet", "blue", "brown", "cadetblue",
+            "aquamarine", "bisque", "blue", "blueviolet", "brown", "cadetblue",
             "chartreuse", "coral", "cornflowerblue", "crimson", "darkgoldenrod",
             "darkgreen", "darkkhaki", "darkmagenta", "darkorange", "darkred",
             "darksalmon", "darkseagreen", "darkslateblue", "darkslategrey",
@@ -43,18 +43,18 @@ class Graphviz(object):
     def get_node_label(self, node):
         lbl = []
         lbl.append(self.format_id(node.id))
-        # lbl.append('<BR/>')
-        # lbl.append('num pts: %d' % len(node.leaves()))
-        # lbl.append('<BR/>')
-        # try:
-        #     lbl.append('purity: %f' % node.purity())
-        # except Exception:
-        #     pass
-        # try:
-        #     lbl.append('<BR/>')
-        #     lbl.append('across: %s' % node.best_across_debug)
-        # except Exception:
-        #     pass
+        lbl.append('<BR/>')
+        lbl.append('num pts: %d' % len(node.leaves()))
+        lbl.append('<BR/>')
+        try:
+            lbl.append('purity: %f' % node.purity())
+        except Exception:
+            pass
+        try:
+            lbl.append('<BR/>')
+            lbl.append('across: %s' % node.best_across_debug)
+        except Exception:
+            pass
         return ''.join(lbl)
 
     def get_color(self, lbl):
@@ -83,13 +83,13 @@ class Graphviz(object):
                             color = self.get_color('None')
         except Exception:
             pass
-        shape = 'circle'
+        shape = 'point'
 
         if node.parent is None:
             s.append(
-                '\n%s[shape=%s;style=filled;width=1;color=%s;label=<%s>]'
+                '\n%s[shape=%s;style=filled;width=1;color=%s;label=<%s<BR/>%s<BR/>>]'
                 % (self.format_id(node.id), shape, color,
-                   self.get_node_label(node)))
+                   self.get_node_label(node), color))
             s.append(
                 '\nROOTNODE[shape=star;style=filled;color=gold;label=<ROOT>]')
             s.append('\nROOTNODE->%s' % self.format_id(node.id))
@@ -102,9 +102,10 @@ class Graphviz(object):
                 else:
                     leaf_m = '%s|%s' % (node.pts[0][1], node.pts[0][0]) \
                         if node.is_leaf() else ''
-            s.append('\n%s[shape=%s;style=filled;width=1;color=%s;label=<%s>]'
+            s.append('\n%s[shape=%s;style=filled;width=1;color=%s;label=<%s<BR/>'
+                     '%s<BR/>%s<BR/>>]'
                      % (self.format_id(node.id), shape, color,
-                        leaf_m))
+                        self.get_node_label(node), color, leaf_m))
             s.append('\n%s->%s' % (self.format_id(node.parent.id),
                                    self.format_id(node.id)))
         return ''.join(s)

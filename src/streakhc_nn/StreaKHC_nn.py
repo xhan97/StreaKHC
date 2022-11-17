@@ -73,6 +73,10 @@ def streKHC_nn(data_path, psi, t):
                          ikv[insert_index]), L=L, delete_node=True)
         mask_index.append(insert_index)
         
+        if i % 10 == 0 and i != 0:
+            #serliaze_tree_to_file(root, os.path.join('./exp_out/test/nn', 'tree_{}_{}.tsv'.format(psi, i)))
+            Graphviz.write_tree(os.path.join('./exp_out/test/nn', 'tree_{}_{}.dot'.format(psi, i)), root)
+
     return root
 
 
@@ -165,12 +169,12 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-    # data_path = "./data/shuffle_data/2022-11-03-15-25-20-017/ALLAML_0.csv"
-    # m = 44
-    # t = 200
-    # psi = [3, 5, 10, 17, 21, 25]
-    # file_name = "wine"
-    # exp_dir_base = "./exp_out/test"
-    # grid_search_inode(data_path=data_path, t=t, psi=psi,
-    #                   file_name=file_name, exp_dir_base=exp_dir_base)
+    # main()
+    data_path = "./data/shuffle_data/2022-11-07-18-15-46-503/wine_1.csv"
+    m = 44
+    t = 200
+    psi = [3, 5, 10, 17, 21, 25]
+    file_name = "wine"
+    exp_dir_base = "./exp_out/test"
+    grid_search_inode(data_path=data_path, t=t, psi=psi,
+                      file_name=file_name, exp_dir_base=exp_dir_base)
