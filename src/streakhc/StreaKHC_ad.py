@@ -19,22 +19,14 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 
 import argparse
 import numpy as np
+
 from INode import INode
 from src.utils.IsoKernel import IsolationKernel
-from src.utils.file_utils import load_static_data
-from src.utils.Graphviz import Graphviz
-from src.utils.dendrogram_purity import expected_dendrogram_purity
-from src.utils.serialize_trees import serliaze_tree_to_file
-#from memory_profiler import profile
+from src.utils.file_utils import load_npy_stream
+from src.utils.metrics import ad_metric
 
-def get_max_index(q, mat, mask_index):
-    x_sim = np.inner(q, mat)
-    x_sim[mask_index] = np.inf
-    nn_ind = np.argmin(x_sim)
-    return nn_ind
 
-#@profile
-def streKHC_max(data_path, psi, t):
+def streKHC(data_path, m, psi, t):
     """Create trees over the same points.
     Create n trees, online, over the same dataset. Return pointers to the
     roots of all trees for evaluation.  The trees will be created via the insert
@@ -51,32 +43,22 @@ def streKHC_max(data_path, psi, t):
         passed in.
     """
     root = INode()
+    train_dataset = []
     L = 5000
-    pid, l, vec = load_static_data(data_path)
-    ik = IsolationKernel(n_estimators=t, max_samples=psi)
-    ik = ik.fit(vec)
-    ikv = ik.transform(vec)
-    sim = np.inner(ikv, ikv)
-    del ik
-    np.fill_diagonal(sim, np.inf)
-    x_ind, y_ind = np.unravel_index(np.argmin(sim, axis=None), sim.shape)
-    num_samples = len(pid)
-    mask_index = []
-    for i in range(num_samples):
-        if i == 0:
-            insert_index = x_ind
-        elif i == 1:
-            insert_index = y_ind
+    for i, pt in enumerate(load_npy_stream(data_path, is_scale=True, is_shuffle=True), start=1):
+        if i <= m:
+            train_dataset.append(pt)
+            if i == m:
+                ik = IsolationKernel(n_estimators=t, max_samples=psi)
+                ik = ik.fit(np.array(
+                    [pt[2] for pt in train_dataset]))
+                for j, train_pt in enumerate(train_dataset, start=1):
+                    l, pid, ikv = train_pt[0], train_pt[1], ik.transform([train_pt[2]])[0]
+                    root = root.grow((l, pid, ikv), L=L, delete_node=True)
         else:
-            insert_index = get_max_index(root.ikv, ikv, mask_index)
-        root = root.grow((l[insert_index], pid[insert_index],
-                         ikv[insert_index]), L=L, delete_node=True)
-        mask_index.append(insert_index)
-        
-        if i % 10 == 0 and i != 0:
-            #serliaze_tree_to_file(root, os.path.join('./exp_out/test/nn', 'tree_{}_{}.tsv'.format(psi, i)))
-            Graphviz.write_tree(os.path.join('./exp_out/test/Synthetic/max', 'tree_{}_{}.dot'.format(psi, i)), root)
-                
+            l, pid = pt[:2]
+            root = root.grow((l, pid, ik.transform(
+                [pt[2]])[0]), L=L, delete_node=True)
     return root
 
 
@@ -87,14 +69,14 @@ def save_data(args, exp_dir_base):
             fout.write('%s\t%s\t%s\t%s\n' % (
                 'dataset',
                 'algorithm',
-                'purity',
+                'aucroc',
                 "max_psi",
             ))
     with open(file_path, 'a') as fout:
         fout.write('%s\t%s\t%.2f\t%s\n' % (
             args['dataset'],
             args['algorithm'],
-            args['purity'],
+            args['aucroc'],
             args["max_psi"],
         ))
 
@@ -106,46 +88,43 @@ def save_grid_data(args, exp_dir_base):
             fout.write('%s\t%s\t%s\t%s\n' % (
                 'dataset',
                 'algorithm',
-                'purity',
+                'aucroc',
                 "psi",
             ))
     with open(file_path, 'a') as fout:
         fout.write('%s\t%s\t%.2f\t%s\n' % (
             args['dataset'],
             args['algorithm'],
-            args['purity'],
+            args['aucroc'],
             args["psi"],
         ))
 
-#@profile
-def grid_search_inode(data_path, psi, t, file_name, exp_dir_base):
-    alg = 'StreaKHC_max'
-    max_purity = 0
+
+def grid_search_inode(data_path, psi, t, m, file_name, exp_dir_base):
+    alg = 'StreaKHC'
+    max_score = 0
     for ps in psi:
-        root = streKHC_max(
-            data_path, ps, t)
-        purity = expected_dendrogram_purity(root)
-        if purity > max_purity:
+        root = streKHC(
+            data_path, m, ps, t)
+        
+        ad_score = ad_metric(root)["aucroc"]
+        if ad_score > max_score:
             max_ps = ps
-            # max_root = root
-            max_purity = purity
+            max_root = root
+            max_score = ad_score
         res = {'dataset': file_name,
                'algorithm': alg,
-               'purity': purity,
+               'aucroc': ad_score,
                "psi": ps,
                }
         save_grid_data(res, exp_dir_base)
 
     args = {'dataset': file_name,
             'algorithm': alg,
-            'purity': max_purity,
+            'aucroc': max_score,
             "max_psi": max_ps,
             }
     save_data(args, exp_dir_base)
-    # serliaze_tree_to_file(max_root, os.path.join(
-    #     exp_dir_base, 'tree.tsv'))
-    # Graphviz.write_tree(os.path.join(
-    #     exp_dir_base, 'tree.dot'), max_root)
 
 
 def main():
@@ -157,24 +136,26 @@ def main():
                         help='<Required> The output directory', required=True)
     parser.add_argument('--dataset', '-n', type=str,
                         help='<Required> The name of the dataset', required=True)
-    parser.add_argument('--sample_size', '-t', type=int, default=300,
+    parser.add_argument('--sample_size', '-t', type=int, default=200,
                         help='<Required> Sample size for isolation kernel mapper')
     parser.add_argument('--psi', '-p', nargs='+', type=int, required=True,
                         help='<Required> Particial size for isolation kernel mapper')
-    parser.add_argument('--train_size', '-m', type=int, required=True,
-                        help='<Required> Initial used data size to build Isolation Kernel Mapper')
     args = parser.parse_args()
-    grid_search_inode(data_path=args.input, t=args.sample_size, psi=args.psi,
+    
+    data = np.load(args.input, allow_pickle=True)
+    train_size = min(int(len(data["y"])/4), 5000)
+    
+    grid_search_inode(data_path=args.input, m=train_size, t=args.sample_size, psi=args.psi,
                       file_name=args.dataset, exp_dir_base=args.outdir)
 
 
 if __name__ == "__main__":
-    # main()
-    data_path = "data/shuffle_data/2022-11-03-17-17-20-762/Synthetic_1.csv"
-    m = 44
-    t = 200
-    psi = [3, 5, 10, 17, 21, 25]
-    file_name = "Synthetic"
-    exp_dir_base = "./exp_out/test"
-    grid_search_inode(data_path=data_path, t=t, psi=psi,
-                      file_name=file_name, exp_dir_base=exp_dir_base)
+    main()
+    # data_path = "/home/hanxin/project/StreamHC/data/anomaly/Classical/33_skin.npz"
+    # m = 1000
+    # t = 200
+    # psi = [2, 4, 6]
+    # file_name = "wine"
+    # exp_dir_base = "./exp_out/test"
+    # grid_search_inode(data_path=data_path, m=m, t=t, psi=psi,
+    #                   file_name=file_name, exp_dir_base=exp_dir_base)

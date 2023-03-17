@@ -56,8 +56,8 @@ def streKHC_snstr(data_path, m, sig, n_components):
                 gk = gk.fit(np.array(
                     [pt[2] for pt in train_dataset]))
                 for _, train_pt in enumerate(train_dataset, start=1):
-                    l, pid, ikv = train_pt[0], train_pt[1], gk.transform([train_pt[2]])[0]
-                    root = root.grow((l, pid, ikv), L=L, delete_node=True)
+                    l, pid, gkv = train_pt[0], train_pt[1], gk.transform([train_pt[2]])[0]
+                    root = root.grow((l, pid, gkv), L=L, delete_node=True)
         else:
             l, pid = pt[:2]
             root = root.grow((l, pid, gk.transform(

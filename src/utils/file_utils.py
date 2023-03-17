@@ -19,6 +19,7 @@ import os
 
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
 
 
 def mkdir_p_safe(dir):
@@ -59,8 +60,18 @@ def load_data_stream(filename):
             yield ((l, pid, vec))
 
 
-# def load_nn_stream(filename, nbrs, X_query):
-#     pid, l, vec = load_static_data(filename=filename)
-#     for i in range(len(pid)):
-#         nn_index = get_nn_index(nbrs=nbrs, X_query=X_query)
-#         yield ((l[nn_index], pid[nn_index], vec[nn_index]))
+def load_npy_stream(filename, is_scale=False, is_shuffle=False):
+    data = np.load(filename, allow_pickle=True)
+    X, y = data["X"], data["y"]
+    if is_scale:
+        scaler = MinMaxScaler()
+        X = scaler.fit_transform(X)
+    pid_list = np.array(range(len(y)))
+    y = y[..., np.newaxis]
+    pid_list = pid_list[..., np.newaxis]
+    concat_data = np.concatenate((pid_list, y, X), axis=1)
+    if is_shuffle:
+        rng = np.random.default_rng()
+        rng.shuffle(concat_data)
+    for pt in concat_data:
+        yield ((int(pt[1]), int(pt[0]), pt[2:]))

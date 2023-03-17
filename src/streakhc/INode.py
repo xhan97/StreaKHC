@@ -233,6 +233,14 @@ class INode:
         new_internal.add_child(new_leaf)
         return new_leaf
 
+    def anomaly_score(self):
+        """Compute the anomaly score of leaves
+        """
+        lvs = self.leaves()
+        score = [(ls.pts[-1][1], ls.pts[-1][0],
+                  1 - _fast_normalize_dot(ls.ikv, ls.siblings()[0].ikv)) for ls in lvs]
+        return score
+
     def purity(self, cluster=None):
         """Compute the purity of this node.
 
