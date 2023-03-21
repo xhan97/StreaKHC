@@ -77,3 +77,4 @@ def latex_table(alg_score):
 
 if __name__ == "__main__":
     print(latex_table(load_result_file(sys.argv[1])))
+    #print(latex_table(load_result_file("/home/hanxin/project/StreamHC/exp_out/2023-03-17-12-09-14-738/all_scores.txt")))

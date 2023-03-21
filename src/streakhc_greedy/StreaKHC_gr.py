@@ -21,7 +21,7 @@ from src.utils.IsoKernel import IsolationKernel
 from src.utils.IsoKernel import IsolationKernel
 from src.utils.file_utils import load_data_stream
 from src.utils.Graphviz import Graphviz
-from src.utils.dendrogram_purity import expected_dendrogram_purity
+from src.utils.dendrogram_purity import expected_dendrogram_purity,dendrogram_purity
 from src.utils.serialize_trees import serliaze_tree_to_file
 from INode_gr import INode_gr
 import numpy as np
@@ -114,7 +114,7 @@ def grid_search_inode(data_path, psi, t, m, file_name, exp_dir_base):
     for ps in psi:
         root = streKHC_gr(
             data_path, m, ps, t)
-        purity = expected_dendrogram_purity(root)
+        purity = dendrogram_purity(root)
         if purity > max_purity:
             max_ps = ps
             max_root = root

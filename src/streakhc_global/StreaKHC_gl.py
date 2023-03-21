@@ -24,7 +24,7 @@ from src.streakhc_global.INode_gl import INode_gl
 from src.utils.IsoKernel import IsolationKernel
 from src.utils.file_utils import load_data_stream
 from src.utils.Graphviz import Graphviz
-from src.utils.dendrogram_purity import expected_dendrogram_purity
+from src.utils.dendrogram_purity import expected_dendrogram_purity, dendrogram_purity
 from src.utils.serialize_trees import serliaze_tree_to_file
 
 
@@ -108,7 +108,7 @@ def grid_search_inode(data_path, psi, t, m, file_name, exp_dir_base):
     for ps in psi:
         root = streKHC_gl(
             data_path, m, ps, t)
-        purity = expected_dendrogram_purity(root)
+        purity = dendrogram_purity(root)
         if purity > max_purity:
             max_ps = ps
             max_root = root
@@ -126,10 +126,10 @@ def grid_search_inode(data_path, psi, t, m, file_name, exp_dir_base):
             "max_psi": max_ps,
             }
     save_data(args, exp_dir_base)
-    serliaze_tree_to_file(max_root, os.path.join(
-        exp_dir_base, 'tree.tsv'))
-    Graphviz.write_tree(os.path.join(
-        exp_dir_base, 'tree.dot'), max_root)
+    # serliaze_tree_to_file(max_root, os.path.join(
+    #     exp_dir_base, 'tree.tsv'))
+    # Graphviz.write_tree(os.path.join(
+    #     exp_dir_base, 'tree.dot'), max_root)
 
 
 def main():
