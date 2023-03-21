@@ -7,7 +7,7 @@ TIME=$( (date +%Y-%m-%d-%H-%M-%S-%3N))
 output_dir="${output_dir}/$TIME"
 shuffle_data_path="$STREASKH_DATA_SHUFFLE/$TIME"
 
-num_runs=10
+num_runs=5
 for suffix in '.csv' '.tsv'; do
     if [ -z "$(ls $STREASKH_DATA*$suffix)" ]; then
         echo "No dataset endwith ${suffix} in ${STREASKH_DATA}"

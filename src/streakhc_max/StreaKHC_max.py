@@ -23,7 +23,7 @@ from INode import INode
 from src.utils.IsoKernel import IsolationKernel
 from src.utils.file_utils import load_static_data
 from src.utils.Graphviz import Graphviz
-from src.utils.dendrogram_purity import expected_dendrogram_purity
+from src.utils.dendrogram_purity import expected_dendrogram_purity, dendrogram_purity
 from src.utils.serialize_trees import serliaze_tree_to_file
 #from memory_profiler import profile
 
@@ -124,7 +124,7 @@ def grid_search_inode(data_path, psi, t, file_name, exp_dir_base):
     for ps in psi:
         root = streKHC_max(
             data_path, ps, t)
-        purity = expected_dendrogram_purity(root)
+        purity = dendrogram_purity(root)
         if purity > max_purity:
             max_ps = ps
             # max_root = root
@@ -169,12 +169,12 @@ def main():
 
 
 if __name__ == "__main__":
-    # main()
-    data_path = "data/shuffle_data/2022-11-03-17-17-20-762/Synthetic_1.csv"
-    m = 44
-    t = 200
-    psi = [3, 5, 10, 17, 21, 25]
-    file_name = "Synthetic"
-    exp_dir_base = "./exp_out/test"
-    grid_search_inode(data_path=data_path, t=t, psi=psi,
-                      file_name=file_name, exp_dir_base=exp_dir_base)
+    main()
+    # data_path = "data/shuffle_data/2022-11-03-17-17-20-762/Synthetic_1.csv"
+    # m = 44
+    # t = 200
+    # psi = [3, 5, 10, 17, 21, 25]
+    # file_name = "Synthetic"
+    # exp_dir_base = "./exp_out/test"
+    # grid_search_inode(data_path=data_path, t=t, psi=psi,
+    #                  file_name=file_name, exp_dir_base=exp_dir_base)
