@@ -23,7 +23,7 @@ from INode import INode
 from src.utils.IsoKernel import IsolationKernel
 from src.utils.file_utils import load_static_data
 from src.utils.Graphviz import Graphviz
-from src.utils.dendrogram_purity import expected_dendrogram_purity
+from src.utils.dendrogram_purity import expected_dendrogram_purity, dendrogram_purity
 from src.utils.serialize_trees import serliaze_tree_to_file
 #from memory_profiler import profile
 
@@ -73,9 +73,9 @@ def streKHC_max(data_path, psi, t):
                          ikv[insert_index]), L=L, delete_node=True)
         mask_index.append(insert_index)
         
-        if i % 10 == 0 and i != 0:
+#        if i % 10 == 0 and i != 0:
             #serliaze_tree_to_file(root, os.path.join('./exp_out/test/nn', 'tree_{}_{}.tsv'.format(psi, i)))
-            Graphviz.write_tree(os.path.join('./exp_out/test/Synthetic/max', 'tree_{}_{}.dot'.format(psi, i)), root)
+#            Graphviz.write_tree(os.path.join('./exp_out/test/Synthetic/max', 'tree_{}_{}.dot'.format(psi, i)), root)
                 
     return root
 
@@ -124,7 +124,7 @@ def grid_search_inode(data_path, psi, t, file_name, exp_dir_base):
     for ps in psi:
         root = streKHC_max(
             data_path, ps, t)
-        purity = expected_dendrogram_purity(root)
+        purity = dendrogram_purity(root)
         if purity > max_purity:
             max_ps = ps
             # max_root = root
@@ -169,12 +169,12 @@ def main():
 
 
 if __name__ == "__main__":
-    # main()
-    data_path = "data/shuffle_data/2022-11-03-17-17-20-762/Synthetic_1.csv"
-    m = 44
-    t = 200
-    psi = [3, 5, 10, 17, 21, 25]
-    file_name = "Synthetic"
-    exp_dir_base = "./exp_out/test"
-    grid_search_inode(data_path=data_path, t=t, psi=psi,
-                      file_name=file_name, exp_dir_base=exp_dir_base)
+    main()
+    # data_path = "data/shuffle_data/2022-11-03-17-17-20-762/Synthetic_1.csv"
+    # m = 44
+    # t = 200
+    # psi = [3, 5, 10, 17, 21, 25]
+    # file_name = "Synthetic"
+    # exp_dir_base = "./exp_out/test"
+    # grid_search_inode(data_path=data_path, t=t, psi=psi,
+    #                  file_name=file_name, exp_dir_base=exp_dir_base)

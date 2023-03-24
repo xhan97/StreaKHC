@@ -11,19 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 
-
-import argparse
-import numpy as np
-
-from INode import INode
-from src.utils.IsoKernel import IsolationKernel
-from src.utils.file_utils import load_npy_stream
 from src.utils.metrics import ad_metric
+from src.utils.file_utils import load_npy_stream
+from src.utils.IsoKernel import IsolationKernel
+from INode import INode
+import numpy as np
+import argparse
+
 
 
 def streKHC(data_path, m, psi, t):
@@ -53,7 +51,8 @@ def streKHC(data_path, m, psi, t):
                 ik = ik.fit(np.array(
                     [pt[2] for pt in train_dataset]))
                 for j, train_pt in enumerate(train_dataset, start=1):
-                    l, pid, ikv = train_pt[0], train_pt[1], ik.transform([train_pt[2]])[0]
+                    l, pid, ikv = train_pt[0], train_pt[1], ik.transform([train_pt[2]])[
+                        0]
                     root = root.grow((l, pid, ikv), L=L, delete_node=True)
         else:
             l, pid = pt[:2]
@@ -106,7 +105,6 @@ def grid_search_inode(data_path, psi, t, m, file_name, exp_dir_base):
     for ps in psi:
         root = streKHC(
             data_path, m, ps, t)
-        
         ad_score = ad_metric(root)["aucroc"]
         if ad_score > max_score:
             max_ps = ps
@@ -141,21 +139,21 @@ def main():
     parser.add_argument('--psi', '-p', nargs='+', type=int, required=True,
                         help='<Required> Particial size for isolation kernel mapper')
     args = parser.parse_args()
-    
+
     data = np.load(args.input, allow_pickle=True)
     train_size = min(int(len(data["y"])/4), 5000)
-    
+
     grid_search_inode(data_path=args.input, m=train_size, t=args.sample_size, psi=args.psi,
                       file_name=args.dataset, exp_dir_base=args.outdir)
 
 
 if __name__ == "__main__":
-    main()
-    # data_path = "/home/hanxin/project/StreamHC/data/anomaly/Classical/33_skin.npz"
-    # m = 1000
-    # t = 200
-    # psi = [2, 4, 6]
-    # file_name = "wine"
-    # exp_dir_base = "./exp_out/test"
-    # grid_search_inode(data_path=data_path, m=m, t=t, psi=psi,
-    #                   file_name=file_name, exp_dir_base=exp_dir_base)
+    # main()
+    data_path = "./data/anomaly/raw/24_mnist.npz"
+    m = 1000
+    t = 200
+    psi = [2, 4, 6]
+    file_name = "minist"
+    exp_dir_base = "./exp_out/test"
+    grid_search_inode(data_path=data_path, m=m, t=t, psi=psi,
+                      file_name=file_name, exp_dir_base=exp_dir_base)
