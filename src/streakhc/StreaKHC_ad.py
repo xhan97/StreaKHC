@@ -16,7 +16,7 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 
 from src.utils.metrics import ad_metric
-from src.utils.file_utils import load_npy_stream
+from src.utils.file_utils import load_data_stream
 from src.utils.IsoKernel import IsolationKernel
 from INode import INode
 import numpy as np
@@ -41,7 +41,7 @@ def streKHC(data_path, train_size, psi, t, window_size=5000):
     """
     root = INode()
     train_dataset = []
-    for i, pt in enumerate(load_npy_stream(data_path, is_scale=True, is_shuffle=True), start=1):
+    for i, pt in enumerate(load_data_stream(data_path), start=1):
         print(i)
         if i <= train_size:
             train_dataset.append(pt)
@@ -147,23 +147,27 @@ def main():
                         help='<Required> Particial size for isolation kernel mapper')
     parser.add_argument('--window_size', '-w', type=int, default=5000,
                         help='<Required> Window size for stream custering')
+    parser.add_argument('--train_size', '-m', type=int, required=True,
+                        help='<Required> Initial used data size to build Isolation Kernel Mapper')
     args = parser.parse_args()
 
-    data = np.load(args.input, allow_pickle=True)
-    train_size = min(int(len(data["y"])/4), 5000)
+    grid_search_inode(data_path=args.input, 
+                      train_size=min(args.window_size, args.train_size), 
+                      t=args.sample_size, 
+                      psi=args.psi,
+                      file_name=args.dataset,
+                      exp_dir_base=args.outdir,
+                      window_size=args.window_size)
 
-    grid_search_inode(data_path=args.input, train_size=train_size, t=args.sample_size, psi=args.psi,
-                      file_name=args.dataset, exp_dir_base=args.outdir, window_size=args.window_size)
 
-
-if __name__ == "__main__"
-    # main()
-    data_path = "./data/anomaly/raw/24_mnist.npz"
-    m = 1000
-    t = 200
-    window_size = 5000
-    psi = [2, 4, 6, 8, 10]
-    file_name = "minist"
-    exp_dir_base = "./exp_out/test"
-    grid_search_inode(data_path=data_path, train_size=m, t=t, psi=psi,
-                      file_name=file_name, exp_dir_base=exp_dir_base, window_size=window_size)
+if __name__ == "__main__":
+    main()
+    # data_path = "./data/anomaly/raw/45_wine.csv"
+    # m = 44
+    # t = 200
+    # window_size = 5000
+    # psi = [2, 4, 6, 8, 10]
+    # file_name = "minist"
+    # exp_dir_base = "./exp_out/test"
+    # grid_search_inode(data_path=data_path, train_size=m, t=t, psi=psi,
+    #                   file_name=file_name, exp_dir_base=exp_dir_base, window_size=window_size)

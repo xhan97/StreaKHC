@@ -55,7 +55,7 @@ def load_data_stream(filename):
     with open(filename, 'r') as f:
         for line in f:
             splits = line.strip().split(sep=split_sep)
-            pid, l, vec = splits[0], splits[1], np.array([float(x)
+            pid, l, vec = int(float(splits[0])), int(float(splits[1])), np.array([float(x)
                                                           for x in splits[2:]])
             yield ((l, pid, vec))
 
