@@ -42,7 +42,7 @@ def streKHC(data_path, train_size, psi, t, window_size=5000):
     root = INode()
     train_dataset = []
     for i, pt in enumerate(load_data_stream(data_path), start=1):
-        print(i)
+        #print(i)
         if i <= train_size:
             train_dataset.append(pt)
             if i == train_size:
