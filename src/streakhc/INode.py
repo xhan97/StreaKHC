@@ -64,6 +64,7 @@ class INode:
         self.pts = []  # each pt is a tuple of (label, id).
         self.ikv = None
         self.point_counter = 0
+        self.anomaly_score = None
 
     def __lt__(self, other):
         """An arbitrary way to determine an order when comparing 2 nodes."""
@@ -83,9 +84,10 @@ class INode:
         Returns:
         A pointer to the root.
         """
-
+        is_prune = False
         if delete_node and self.point_counter >= L:
             self = self.prune()
+            is_prune = True
         if self.pts is not None and len(self.pts) == 0:
             self.add_pt(pt[:2])
             self.ikv = pt[2]
@@ -107,7 +109,12 @@ class INode:
             for a in ancs:
                 a.add_pt(pt[:2])
             _ = new_leaf._update_ik_value_recursively()
-            return new_leaf.root()
+            root = new_leaf.root()
+            if not is_prune:
+                root.anomaly_score = root.batch_anomaly_score()
+            else:
+                root.anomaly_score.append(new_leaf.get_ad_score())
+            return root
 
     def prune(self):
         curr_node = self.root()
@@ -230,15 +237,25 @@ class INode:
         new_leaf = INode()
         new_leaf.ikv = pt[2]
         new_leaf.add_pt(pt[:2])  # This updates the points counter.
+        # new_leaf.online_anomaly_score = 1 - \
+        #     _fast_normalize_dot(new_leaf.ikv, new_leaf.siblings()[0].ikv)
         new_internal.add_child(new_leaf)
         return new_leaf
 
-    def anomaly_score(self):
+    def get_ad_score(self):
+        if self.is_leaf:
+            ad_score = 1 - \
+                _fast_normalize_dot(self.ikv, self.siblings()[0].ikv)
+        else:
+            raise NotImplementedError
+        return ad_score
+
+    def batch_anomaly_score(self):
         """Compute the anomaly score of leaves
         """
         lvs = self.leaves()
-        score = [(ls.pts[-1][1], ls.pts[-1][0],
-                  1 - _fast_normalize_dot(ls.ikv, ls.siblings()[0].ikv)) for ls in lvs]
+        score = [(ls.pts[-1][1], ls.pts[-1][0], ls.get_ad_score())
+                 for ls in lvs]
         return score
 
     def purity(self, cluster=None):
