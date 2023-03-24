@@ -19,7 +19,7 @@ for suffix in '.csv' '.tsv'; do
         dataset_name=$(basename -s $suffix $dataset_file)
         data_size=$(wc -l <$dataset_file)
         t_size=$(expr ${data_size} / 4)
-        for i in $(seq 0 1 $num_runs); do
+        for i in $(seq 1 1 $num_runs); do
             (
                 shuffled_data="${shuffle_data_path}/${dataset_name}_${i}$suffix"
                 exp_output_dir="${output_dir}/${dataset_name}/run_$i"
