@@ -73,9 +73,9 @@ def streKHC_max(data_path, psi, t):
                          ikv[insert_index]), L=L, delete_node=True)
         mask_index.append(insert_index)
         
-        if i % 10 == 0 and i != 0:
+#        if i % 10 == 0 and i != 0:
             #serliaze_tree_to_file(root, os.path.join('./exp_out/test/nn', 'tree_{}_{}.tsv'.format(psi, i)))
-            Graphviz.write_tree(os.path.join('./exp_out/test/Synthetic/max', 'tree_{}_{}.dot'.format(psi, i)), root)
+#            Graphviz.write_tree(os.path.join('./exp_out/test/Synthetic/max', 'tree_{}_{}.dot'.format(psi, i)), root)
                 
     return root
 
