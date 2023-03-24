@@ -23,8 +23,7 @@ import numpy as np
 import argparse
 
 
-
-def streKHC(data_path, m, psi, t):
+def streKHC(data_path, train_size, psi, t, window_size=5000):
     """Create trees over the same points.
     Create n trees, online, over the same dataset. Return pointers to the
     roots of all trees for evaluation.  The trees will be created via the insert
@@ -32,7 +31,7 @@ def streKHC(data_path, m, psi, t):
 
     Args:
         data_path - path to dataset.
-        m - number of point to initial ik matrix
+        train_size - number of point to initial ik matrix
         psi - partial size  to build isolation kernel mapper
         t - sample size to build isolation kernel mapper
 
@@ -42,23 +41,31 @@ def streKHC(data_path, m, psi, t):
     """
     root = INode()
     train_dataset = []
-    L = 5000
     for i, pt in enumerate(load_npy_stream(data_path, is_scale=True, is_shuffle=True), start=1):
-        if i <= m:
+        print(i)
+        if i <= train_size:
             train_dataset.append(pt)
-            if i == m:
+            if i == train_size:
                 ik = IsolationKernel(n_estimators=t, max_samples=psi)
                 ik = ik.fit(np.array(
                     [pt[2] for pt in train_dataset]))
                 for j, train_pt in enumerate(train_dataset, start=1):
                     l, pid, ikv = train_pt[0], train_pt[1], ik.transform([train_pt[2]])[
                         0]
-                    root = root.grow((l, pid, ikv), L=L, delete_node=True)
+                    root = root.grow(
+                        (l, pid, ikv), L=window_size, delete_node=True)
         else:
             l, pid = pt[:2]
             root = root.grow((l, pid, ik.transform(
-                [pt[2]])[0]), L=L, delete_node=True)
-    return root
+                [pt[2]])[0]), L=window_size, delete_node=True)
+            if i >= window_size:
+                if i == window_size:
+                    tree_ad_score = root.batch_anomaly_score()
+                else:
+                    tree_ad_score.append((pt[1], pt[0], root.anomaly_score))
+    if i < window_size:
+        tree_ad_score = root.batch_anomaly_score()
+    return root, tree_ad_score
 
 
 def save_data(args, exp_dir_base):
@@ -99,13 +106,13 @@ def save_grid_data(args, exp_dir_base):
         ))
 
 
-def grid_search_inode(data_path, psi, t, m, file_name, exp_dir_base):
+def grid_search_inode(data_path, psi, t, train_size, file_name, exp_dir_base, window_size):
     alg = 'StreaKHC'
     max_score = 0
     for ps in psi:
-        root = streKHC(
-            data_path, m, ps, t)
-        ad_score = ad_metric(root)["aucroc"]
+        root, tree_ad_score = streKHC(
+            data_path, train_size, ps, t, window_size)
+        ad_score = ad_metric(tree_ad_score)["aucroc"]
         if ad_score > max_score:
             max_ps = ps
             max_root = root
@@ -138,22 +145,25 @@ def main():
                         help='<Required> Sample size for isolation kernel mapper')
     parser.add_argument('--psi', '-p', nargs='+', type=int, required=True,
                         help='<Required> Particial size for isolation kernel mapper')
+    parser.add_argument('--window_size', '-w', type=int, default=5000,
+                        help='<Required> Window size for stream custering')
     args = parser.parse_args()
 
     data = np.load(args.input, allow_pickle=True)
     train_size = min(int(len(data["y"])/4), 5000)
 
-    grid_search_inode(data_path=args.input, m=train_size, t=args.sample_size, psi=args.psi,
-                      file_name=args.dataset, exp_dir_base=args.outdir)
+    grid_search_inode(data_path=args.input, train_size=train_size, t=args.sample_size, psi=args.psi,
+                      file_name=args.dataset, exp_dir_base=args.outdir, window_size=args.window_size)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__"
     # main()
     data_path = "./data/anomaly/raw/24_mnist.npz"
     m = 1000
     t = 200
-    psi = [2, 4, 6]
+    window_size = 5000
+    psi = [2, 4, 6, 8, 10]
     file_name = "minist"
     exp_dir_base = "./exp_out/test"
-    grid_search_inode(data_path=data_path, m=m, t=t, psi=psi,
-                      file_name=file_name, exp_dir_base=exp_dir_base)
+    grid_search_inode(data_path=data_path, train_size=m, t=t, psi=psi,
+                      file_name=file_name, exp_dir_base=exp_dir_base, window_size=window_size)

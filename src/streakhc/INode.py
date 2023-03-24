@@ -65,6 +65,7 @@ class INode:
         self.ikv = None
         self.point_counter = 0
         self.anomaly_score = None
+        self.is_prune = False
 
     def __lt__(self, other):
         """An arbitrary way to determine an order when comparing 2 nodes."""
@@ -84,10 +85,9 @@ class INode:
         Returns:
         A pointer to the root.
         """
-        is_prune = False
+        
         if delete_node and self.point_counter >= L:
             self = self.prune()
-            is_prune = True
         if self.pts is not None and len(self.pts) == 0:
             self.add_pt(pt[:2])
             self.ikv = pt[2]
@@ -110,12 +110,9 @@ class INode:
                 a.add_pt(pt[:2])
             _ = new_leaf._update_ik_value_recursively()
             root = new_leaf.root()
-            if not is_prune:
-                root.anomaly_score = root.batch_anomaly_score()
-            else:
-                root.anomaly_score.append(new_leaf.get_ad_score())
+            root.anomaly_score =  new_leaf._leaf_ad_score()
+            
             return root
-
     def prune(self):
         curr_node = self.root()
         p_id = curr_node.pts[0]
@@ -129,9 +126,9 @@ class INode:
             elif p_id in curr_node.children[1].pts:
                 curr_node = curr_node.children[1]
         sibling = curr_node.siblings()[0]
-        ancs = curr_node._ancestors()
-        for a in ancs:
-            a.ikv = a.ikv - curr_node.ikv
+        # ancs = curr_node._ancestors()
+        # for a in ancs:
+        #     a.ikv = a.ikv - curr_node.ikv
         parent_node = curr_node.parent
         if parent_node.parent:
             parent_node.parent.children.remove(parent_node)
@@ -242,7 +239,7 @@ class INode:
         new_internal.add_child(new_leaf)
         return new_leaf
 
-    def get_ad_score(self):
+    def _leaf_ad_score(self):
         if self.is_leaf:
             ad_score = 1 - \
                 _fast_normalize_dot(self.ikv, self.siblings()[0].ikv)
@@ -254,7 +251,7 @@ class INode:
         """Compute the anomaly score of leaves
         """
         lvs = self.leaves()
-        score = [(ls.pts[-1][1], ls.pts[-1][0], ls.get_ad_score())
+        score = [(ls.pts[-1][1], ls.pts[-1][0], ls._leaf_ad_score())
                  for ls in lvs]
         return score
 
