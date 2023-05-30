@@ -110,7 +110,7 @@ class INode:
                 a.add_pt(pt[:2])
             _ = new_leaf._update_ik_value_recursively()
             root = new_leaf.root()
-            root.anomaly_score =  new_leaf._leaf_ad_score()
+            root.anomaly_score =  new_leaf._leaf_ad_score_rt()
             
             return root
     def prune(self):
@@ -239,7 +239,7 @@ class INode:
         new_internal.add_child(new_leaf)
         return new_leaf
 
-    def _leaf_ad_score(self):
+    def _leaf_ad_score_sb(self):
         if self.is_leaf:
             ad_score = 1 - \
                 _fast_normalize_dot(self.ikv, self.siblings()[0].ikv)
@@ -247,11 +247,19 @@ class INode:
             raise NotImplementedError
         return ad_score
 
+    def _leaf_ad_score_rt(self):
+        if self.is_leaf:
+            ad_score = 1 - \
+                _fast_normalize_dot(self.ikv, (self.root().ikv - self.ikv))
+        else:
+            raise NotImplementedError
+        return ad_score
+    
     def batch_anomaly_score(self):
         """Compute the anomaly score of leaves
         """
         lvs = self.leaves()
-        score = [(ls.pts[-1][1], ls.pts[-1][0], ls._leaf_ad_score())
+        score = [(ls.pts[-1][1], ls.pts[-1][0], ls._leaf_ad_score_rt())
                  for ls in lvs]
         return score
 
