@@ -41,6 +41,7 @@ def streKHC(data_path, train_size, psi, t, window_size=5000):
     """
     root = INode()
     train_dataset = []
+    tree_ad_score = []
     for i, pt in enumerate(load_data_stream(data_path), start=1):
         #print(i)
         if i <= train_size:
@@ -113,6 +114,7 @@ def grid_search_inode(data_path, psi, t, train_size, file_name, exp_dir_base, wi
         root, tree_ad_score = streKHC(
             data_path, train_size, ps, t, window_size)
         ad_score = ad_metric(tree_ad_score)["aucroc"]
+        ad_score = max(ad_score, 100-ad_score)
         if ad_score > max_score:
             max_ps = ps
             max_root = root
