@@ -14,7 +14,8 @@
 
 import os
 import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
+
+sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 
 import numpy as np
 from scipy.cluster.hierarchy import linkage
@@ -71,12 +72,14 @@ class IsoKAHC(BaseEstimator):
         >>> ik.transform(X)
         """
 
-    def __init__(self,
-                 n_estimators=200,
-                 max_samples="auto",
-                 method='single',
-                 iso_kernel=None,
-                 random_state=None):
+    def __init__(
+        self,
+        n_estimators=200,
+        max_samples="auto",
+        method="single",
+        iso_kernel=None,
+        random_state=None,
+    ):
         self.n_estimators = n_estimators
         self.max_samples = max_samples
         self.iso_kernel = iso_kernel
@@ -84,11 +87,13 @@ class IsoKAHC(BaseEstimator):
         self.random_state = random_state
 
     def _get_ik_feature(self, X):
-        self.iso_kernel = IsolationKernel(self.n_estimators, self.max_samples, self.random_state)
+        self.iso_kernel = IsolationKernel(
+            self.n_estimators, self.max_samples, self.random_state
+        )
         X = self.iso_kernel.fit_transform(X)
         return X
 
-    def fit(self, X) -> 'IsoKAHC':
+    def fit(self, X) -> "IsoKAHC":
         # Check data
         X = self._validate_data(X, accept_sparse=False)
         if isinstance(self.iso_kernel, IsolationKernel):

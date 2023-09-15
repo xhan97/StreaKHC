@@ -37,6 +37,7 @@ def _fast_dot(x, y):
     return np.dot(x, y)
 
 
+@jit(nopython=True)
 def _fast_normalize_dot(x, y):
     """Compute the dot product of x and y using numba.
 
@@ -49,16 +50,16 @@ def _fast_normalize_dot(x, y):
       Normalized x_T.y
       """
 
-    return _fast_dot(x, y) / (math.sqrt(
-        _fast_dot(x, x)) * (math.sqrt(_fast_dot(y, y))))
+    return _fast_dot(x, y) / (math.sqrt(_fast_dot(x, x)) * (math.sqrt(_fast_dot(y, y))))
 
 
 class INode:
     """Isolation hc node."""
 
     def __init__(self):
-        self.id = "id" + ''.join(random.choice(
-            string.ascii_uppercase + string.digits) for _ in range(15))
+        self.id = "id" + "".join(
+            random.choice(string.ascii_uppercase + string.digits) for _ in range(15)
+        )
         self.children = []
         self.parent = None
         self.pts = []  # each pt is a tuple of (label, id).
@@ -66,6 +67,7 @@ class INode:
         self.point_counter = 0
         self.anomaly_score = None
         self.is_prune = False
+        self.siblings_is_internal = False
 
     def __lt__(self, other):
         """An arbitrary way to determine an order when comparing 2 nodes."""
@@ -85,7 +87,7 @@ class INode:
         Returns:
         A pointer to the root.
         """
-        
+
         if delete_node and self.point_counter >= L:
             self = self.prune()
         if self.pts is not None and len(self.pts) == 0:
@@ -105,14 +107,21 @@ class INode:
                 else:
                     curr_node = curr_node.children[1]
             new_leaf = curr_node._split_down(pt)
-            ancs = new_leaf._ancestors()
-            for a in ancs:
-                a.add_pt(pt[:2])
-            _ = new_leaf._update_ik_value_recursively()
+
+            self.siblings_is_internal = (
+                new_leaf.siblings()[0].is_internal() or self.siblings_is_internal
+            )
+
+            _ = new_leaf._update_parameters_recursively(pt)
             root = new_leaf.root()
-            root.anomaly_score =  new_leaf._leaf_ad_score()
-            
+            root.anomaly_score = new_leaf._leaf_ad_score()
+
             return root
+
+    @property
+    def get_sibings_is_internal(self):
+        return self.siblings_is_internal
+
     def prune(self):
         curr_node = self.root()
         p_id = curr_node.pts[0]
@@ -155,19 +164,18 @@ class INode:
                 self.ikv = self.children[0].ikv + self.children[1].ikv
             return self
 
-    def _update_ik_value_recursively(self):
-        """Update a node's parameters recursively.
+    def _update_pt(self, pt):
+        self.add_pt(pt[:2])
+        return self
 
-        Args:
-        None - start computation from a node and propagate upwards.
+    def _update_parameters_recursively(self, pt):
 
-        Returns:
-        A pointer to the root.
-        """
         curr_node = self
         while curr_node.parent:
             _ = curr_node.parent._update_ik_value()
+            _ = curr_node.parent._update_pt(pt)
             curr_node = curr_node.parent
+
         return curr_node
 
     def add_child(self, new_child):
@@ -234,15 +242,12 @@ class INode:
         new_leaf = INode()
         new_leaf.ikv = pt[2]
         new_leaf.add_pt(pt[:2])  # This updates the points counter.
-        # new_leaf.online_anomaly_score = 1 - \
-        #     _fast_normalize_dot(new_leaf.ikv, new_leaf.siblings()[0].ikv)
         new_internal.add_child(new_leaf)
         return new_leaf
 
     def _leaf_ad_score(self):
         if self.is_leaf:
-            ad_score = 1 - \
-                _fast_normalize_dot(self.ikv, self.siblings()[0].ikv)
+            ad_score = 1 - _fast_normalize_dot(self.ikv, self.siblings()[0].ikv)
         else:
             raise NotImplementedError
         return ad_score
@@ -251,8 +256,7 @@ class INode:
         """Compute the anomaly score of leaves
         """
         lvs = self.leaves()
-        score = [(ls.pts[-1][1], ls.pts[-1][0], ls._leaf_ad_score())
-                 for ls in lvs]
+        score = [(ls.pts[-1][1], ls.pts[-1][0], ls._leaf_ad_score()) for ls in lvs]
         return score
 
     def purity(self, cluster=None):
@@ -270,8 +274,7 @@ class INode:
         """
         if cluster:
             pts = [p for l in self.leaves() for p in l.pts]
-            return float(len([pt for pt in pts
-                              if pt[0] == cluster])) / len(pts)
+            return float(len([pt for pt in pts if pt[0] == cluster])) / len(pts)
         else:
             label_to_count = self.class_counts()
         return max(label_to_count.values()) / sum(label_to_count.values())
@@ -306,8 +309,9 @@ class INode:
     def aunts(self):
         """Return a list of all of my aunts."""
         if self.parent and self.parent.parent:
-            return [child for child in self.parent.parent.children
-                    if child != self.parent]
+            return [
+                child for child in self.parent.parent.children if child != self.parent
+            ]
         else:
             return []
 

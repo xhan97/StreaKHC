@@ -15,7 +15,7 @@ def load_result_file(fn):
     """
     alg2dataset2score = {}
     alg2mean = {}
-    with open(fn, 'r') as fin:
+    with open(fn, "r") as fin:
         for line in fin:
             try:
                 splt = line.strip().split("\t")
@@ -29,8 +29,9 @@ def load_result_file(fn):
             except:
                 pass
     for alg in alg2dataset2score:
-        mean_score = np.mean([alg2dataset2score[alg][data]
-                             for data in alg2dataset2score[alg]])
+        mean_score = np.mean(
+            [alg2dataset2score[alg][data] for data in alg2dataset2score[alg]]
+        )
         alg2mean[alg]["_mean_score"] = mean_score
 
     for alg in alg2dataset2score:
@@ -47,7 +48,9 @@ def escape_latex(s):
 
 
 def latex_table(alg_score):
-    table_string = """\\begin{table}\n\\centering\n\\caption{some caption}\n\\begin{tabular}"""
+    table_string = (
+        """\\begin{table}\n\\centering\n\\caption{some caption}\n\\begin{tabular}"""
+    )
     # num_ds = max([len(alg2dataset2score[x]) for x in alg2dataset2score])
     alg2dataset2score = alg_score[0]
     alg2mean = alg_score[1]
@@ -58,23 +61,29 @@ def latex_table(alg_score):
     alg_names = alg2dataset2score.keys()
 
     ds_names = list(
-        set([name for x in alg2dataset2score for name in alg2dataset2score[x]]))
-    table_string += "\\bf Dataset & \\bf " + \
-        " & \\bf ".join(escape_latex(x) for x in alg_names)
+        set([name for x in alg2dataset2score for name in alg2dataset2score[x]])
+    )
+    table_string += "\\bf Dataset & \\bf " + " & \\bf ".join(
+        escape_latex(x) for x in alg_names
+    )
     table_string += " \\\\ \midrule\n"
     ds_names = sorted(ds_names)
     socre_mean = [alg2mean[alg]["_mean_score"] for alg in alg_names]
     for ds in ds_names:
-        scores = ["%.2f $\\pm$ %.2f" % (alg2dataset2score[alg][ds][0], alg2dataset2score[alg][ds][1])
-                  if ds in alg2dataset2score[alg] else "-" for alg in alg_names]
+        scores = [
+            "%.2f $\\pm$ %.2f"
+            % (alg2dataset2score[alg][ds][0], alg2dataset2score[alg][ds][1])
+            if ds in alg2dataset2score[alg]
+            else "-"
+            for alg in alg_names
+        ]
         table_string += "%s & %s \\\\\n" % (ds, " & ".join(scores))
     table_string += "\midrule\n"
-    table_string += "\\bf{Mean} & " + \
-        " & ".join("{:.2f}".format(x) for x in socre_mean)
+    table_string += "\\bf{Mean} & " + " & ".join("{:.2f}".format(x) for x in socre_mean)
     table_string += " \\\\ \\bottomrule\n\\end{tabular}\n\\end{table}"
     return table_string
 
 
 if __name__ == "__main__":
     print(latex_table(load_result_file(sys.argv[1])))
-    #print(latex_table(load_result_file("/home/hanxin/project/StreamHC/exp_out/2023-03-17-12-09-14-738/all_scores.txt")))
+    # print(latex_table(load_result_file("/home/hanxin/project/StreamHC/exp_out/2023-03-17-12-09-14-738/all_scores.txt")))

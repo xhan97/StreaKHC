@@ -37,6 +37,7 @@ MIN_FLOAT = np.finfo(float).eps
 #       """
 #     return np.logical_and(x, y).sum()
 
+
 @jit(nopython=True)
 def _fast_dot(x, y):
     """Compute the dot product of x and y using numba.
@@ -50,12 +51,14 @@ def _fast_dot(x, y):
       """
     return np.dot(x, y)
 
+
 class INode_gr:
     """Isolation hc node."""
 
     def __init__(self):
-        self.id = "id" + ''.join(random.choice(
-            string.ascii_uppercase + string.digits) for _ in range(15))
+        self.id = "id" + "".join(
+            random.choice(string.ascii_uppercase + string.digits) for _ in range(15)
+        )
         self.children = []
         self.parent = None
         self.pts = []  # each pt is a tuple of (label, id).
@@ -136,7 +139,7 @@ class INode_gr:
         else:
             assert False
             # return _fast_min_to_box(self.mins, self.maxes, x)
-    
+
     def dfs_exact(self, pt, heuristic=lambda n, x: n.node_similarity(x)):
         """Depth First Search for the nearest neighbor of pt in tree rooted at self.
         Args:
@@ -151,13 +154,13 @@ class INode_gr:
         else:
             # create an empty stack
             stack = deque()
-            #start from the root node (set current node to the root node)
+            # start from the root node (set current node to the root node)
             curr = self
             target = self
             ma = MIN_FLOAT
             # if the current node is None and the stack is also empty, we are done
             while stack or curr:
-                if  curr:
+                if curr:
                     stack.append(curr)
                     if len(curr.children) == 0:
                         curr = None
@@ -167,7 +170,7 @@ class INode_gr:
                     curr = stack.pop()
                     if curr.is_leaf():
                         d = heuristic(curr, dp)
-                        if  d > ma:
+                        if d > ma:
                             ma = d
                             target = curr
                     if len(curr.children) == 0:
@@ -199,7 +202,7 @@ class INode_gr:
                         heappush(frontier, (max_s, child))
                 else:
                     return target
-        assert(False)   # This line should never be executed.
+        assert False  # This line should never be executed.
 
     def _update_ik_value(self):
         """
@@ -315,8 +318,7 @@ class INode_gr:
         """
         if cluster:
             pts = [p for l in self.leaves() for p in l.pts]
-            return float(len([pt for pt in pts
-                              if pt[0] == cluster])) / len(pts)
+            return float(len([pt for pt in pts if pt[0] == cluster])) / len(pts)
         else:
             label_to_count = self.class_counts()
         return max(label_to_count.values()) / sum(label_to_count.values())
@@ -351,8 +353,9 @@ class INode_gr:
     def aunts(self):
         """Return a list of all of my aunts."""
         if self.parent and self.parent.parent:
-            return [child for child in self.parent.parent.children
-                    if child != self.parent]
+            return [
+                child for child in self.parent.parent.children if child != self.parent
+            ]
         else:
             return []
 

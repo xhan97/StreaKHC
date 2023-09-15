@@ -14,7 +14,8 @@
 
 import os
 import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
+
+sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 
 
 import argparse
@@ -25,7 +26,9 @@ from src.utils.file_utils import load_static_data
 from src.utils.Graphviz import Graphviz
 from src.utils.dendrogram_purity import expected_dendrogram_purity, dendrogram_purity
 from src.utils.serialize_trees import serliaze_tree_to_file
-#from memory_profiler import profile
+
+# from memory_profiler import profile
+
 
 def get_max_index(q, mat, mask_index):
     x_sim = np.inner(q, mat)
@@ -33,7 +36,8 @@ def get_max_index(q, mat, mask_index):
     nn_ind = np.argmin(x_sim)
     return nn_ind
 
-#@profile
+
+# @profile
 def streKHC_max(data_path, psi, t):
     """Create trees over the same points.
     Create n trees, online, over the same dataset. Return pointers to the
@@ -69,78 +73,71 @@ def streKHC_max(data_path, psi, t):
             insert_index = y_ind
         else:
             insert_index = get_max_index(root.ikv, ikv, mask_index)
-        root = root.grow((l[insert_index], pid[insert_index],
-                         ikv[insert_index]), L=L, delete_node=True)
+        root = root.grow(
+            (l[insert_index], pid[insert_index], ikv[insert_index]),
+            L=L,
+            delete_node=True,
+        )
         mask_index.append(insert_index)
-        
-#        if i % 10 == 0 and i != 0:
-            #serliaze_tree_to_file(root, os.path.join('./exp_out/test/nn', 'tree_{}_{}.tsv'.format(psi, i)))
-#            Graphviz.write_tree(os.path.join('./exp_out/test/Synthetic/max', 'tree_{}_{}.dot'.format(psi, i)), root)
-                
+
+    #        if i % 10 == 0 and i != 0:
+    # serliaze_tree_to_file(root, os.path.join('./exp_out/test/nn', 'tree_{}_{}.tsv'.format(psi, i)))
+    #            Graphviz.write_tree(os.path.join('./exp_out/test/Synthetic/max', 'tree_{}_{}.dot'.format(psi, i)), root)
+
     return root
 
 
 def save_data(args, exp_dir_base):
-    file_path = os.path.join(exp_dir_base, 'score.tsv')
+    file_path = os.path.join(exp_dir_base, "score.tsv")
     if not os.path.exists(file_path):
-        with open(file_path, 'w') as fout:
-            fout.write('%s\t%s\t%s\t%s\n' % (
-                'dataset',
-                'algorithm',
-                'purity',
-                "max_psi",
-            ))
-    with open(file_path, 'a') as fout:
-        fout.write('%s\t%s\t%.2f\t%s\n' % (
-            args['dataset'],
-            args['algorithm'],
-            args['purity'],
-            args["max_psi"],
-        ))
+        with open(file_path, "w") as fout:
+            fout.write(
+                "%s\t%s\t%s\t%s\n" % ("dataset", "algorithm", "purity", "max_psi",)
+            )
+    with open(file_path, "a") as fout:
+        fout.write(
+            "%s\t%s\t%.2f\t%s\n"
+            % (args["dataset"], args["algorithm"], args["purity"], args["max_psi"],)
+        )
 
 
 def save_grid_data(args, exp_dir_base):
-    file_path = os.path.join(exp_dir_base, 'grid_score.tsv')
+    file_path = os.path.join(exp_dir_base, "grid_score.tsv")
     if not os.path.exists(file_path):
-        with open(file_path, 'w') as fout:
-            fout.write('%s\t%s\t%s\t%s\n' % (
-                'dataset',
-                'algorithm',
-                'purity',
-                "psi",
-            ))
-    with open(file_path, 'a') as fout:
-        fout.write('%s\t%s\t%.2f\t%s\n' % (
-            args['dataset'],
-            args['algorithm'],
-            args['purity'],
-            args["psi"],
-        ))
+        with open(file_path, "w") as fout:
+            fout.write("%s\t%s\t%s\t%s\n" % ("dataset", "algorithm", "purity", "psi",))
+    with open(file_path, "a") as fout:
+        fout.write(
+            "%s\t%s\t%.2f\t%s\n"
+            % (args["dataset"], args["algorithm"], args["purity"], args["psi"],)
+        )
 
-#@profile
+
+# @profile
 def grid_search_inode(data_path, psi, t, file_name, exp_dir_base):
-    alg = 'StreaKHC_max'
+    alg = "StreaKHC_max"
     max_purity = 0
     for ps in psi:
-        root = streKHC_max(
-            data_path, ps, t)
+        root = streKHC_max(data_path, ps, t)
         purity = dendrogram_purity(root)
         if purity > max_purity:
             max_ps = ps
             # max_root = root
             max_purity = purity
-        res = {'dataset': file_name,
-               'algorithm': alg,
-               'purity': purity,
-               "psi": ps,
-               }
+        res = {
+            "dataset": file_name,
+            "algorithm": alg,
+            "purity": purity,
+            "psi": ps,
+        }
         save_grid_data(res, exp_dir_base)
 
-    args = {'dataset': file_name,
-            'algorithm': alg,
-            'purity': max_purity,
-            "max_psi": max_ps,
-            }
+    args = {
+        "dataset": file_name,
+        "algorithm": alg,
+        "purity": max_purity,
+        "max_psi": max_ps,
+    }
     save_data(args, exp_dir_base)
     # serliaze_tree_to_file(max_root, os.path.join(
     #     exp_dir_base, 'tree.tsv'))
@@ -149,23 +146,54 @@ def grid_search_inode(data_path, psi, t, file_name, exp_dir_base):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description='Evaluate StreaKHC clustering.')
-    parser.add_argument('--input', '-i', type=str,
-                        help='<Required> Path to the dataset.', required=True)
-    parser.add_argument('--outdir', '-o', type=str,
-                        help='<Required> The output directory', required=True)
-    parser.add_argument('--dataset', '-n', type=str,
-                        help='<Required> The name of the dataset', required=True)
-    parser.add_argument('--sample_size', '-t', type=int, default=300,
-                        help='<Required> Sample size for isolation kernel mapper')
-    parser.add_argument('--psi', '-p', nargs='+', type=int, required=True,
-                        help='<Required> Particial size for isolation kernel mapper')
-    parser.add_argument('--train_size', '-m', type=int, required=True,
-                        help='<Required> Initial used data size to build Isolation Kernel Mapper')
+    parser = argparse.ArgumentParser(description="Evaluate StreaKHC clustering.")
+    parser.add_argument(
+        "--input", "-i", type=str, help="<Required> Path to the dataset.", required=True
+    )
+    parser.add_argument(
+        "--outdir",
+        "-o",
+        type=str,
+        help="<Required> The output directory",
+        required=True,
+    )
+    parser.add_argument(
+        "--dataset",
+        "-n",
+        type=str,
+        help="<Required> The name of the dataset",
+        required=True,
+    )
+    parser.add_argument(
+        "--sample_size",
+        "-t",
+        type=int,
+        default=300,
+        help="<Required> Sample size for isolation kernel mapper",
+    )
+    parser.add_argument(
+        "--psi",
+        "-p",
+        nargs="+",
+        type=int,
+        required=True,
+        help="<Required> Particial size for isolation kernel mapper",
+    )
+    parser.add_argument(
+        "--train_size",
+        "-m",
+        type=int,
+        required=True,
+        help="<Required> Initial used data size to build Isolation Kernel Mapper",
+    )
     args = parser.parse_args()
-    grid_search_inode(data_path=args.input, t=args.sample_size, psi=args.psi,
-                      file_name=args.dataset, exp_dir_base=args.outdir)
+    grid_search_inode(
+        data_path=args.input,
+        t=args.sample_size,
+        psi=args.psi,
+        file_name=args.dataset,
+        exp_dir_base=args.outdir,
+    )
 
 
 if __name__ == "__main__":

@@ -21,8 +21,7 @@ from sklearn import tree
 
 from src.IKMapper import IKMapper
 from src.INode import INode
-from src.utils.dendrogram_purity import (
-    dendrogram_purity, expected_dendrogram_purity)
+from src.utils.dendrogram_purity import dendrogram_purity, expected_dendrogram_purity
 from src.utils.file_utils import load_data
 from src.utils.Graphviz import Graphviz
 from src.utils.serialize_trees import serliaze_tree_to_file
@@ -52,78 +51,109 @@ def record_build_tree(data_path, m, psi, t):
             train_dataset.append(pt)
             if i == m:
                 ik_mapper = IKMapper(t=t, psi=psi)
-                ik_mapper = ik_mapper.fit(np.array(
-                    [pt[2] for pt in train_dataset]))
+                ik_mapper = ik_mapper.fit(np.array([pt[2] for pt in train_dataset]))
                 for j, train_pt in enumerate(train_dataset, start=1):
-                    l, pid, ikv = train_pt[0], train_pt[1], ik_mapper.embeding_mat[j-1]
-                    root = root.insert((l, pid, ikv), L=L,
-                                       t=t, delete_node=True)
+                    l, pid, ikv = (
+                        train_pt[0],
+                        train_pt[1],
+                        ik_mapper.embeding_mat[j - 1],
+                    )
+                    root = root.insert((l, pid, ikv), L=L, t=t, delete_node=True)
                     if j % 5 == 0:
                         tree_list.append((j, dendrogram_purity(root)))
         else:
             l, pid = pt[:2]
-            root = root.insert((l, pid, ik_mapper.transform(
-                pt[2])), L=L, t=t, delete_node=True)
+            root = root.insert(
+                (l, pid, ik_mapper.transform(pt[2])), L=L, t=t, delete_node=True
+            )
             if i % 5 == 0:
                 tree_list.append((i, dendrogram_purity(root)))
-    #tree_list.append((i, dendrogram_purity(root)))
+    # tree_list.append((i, dendrogram_purity(root)))
     return tree_list
 
 
 def save_dp(args, exp_dir_base):
-    file_path = os.path.join(exp_dir_base, 'dp_result.csv')
+    file_path = os.path.join(exp_dir_base, "dp_result.csv")
     if not os.path.exists(file_path):
-        with open(file_path, 'w') as fout:
-            fout.write('%s\t%s\n' % (
-                'Points',
-                "Dendrogram purity",
-            ))
-    with open(file_path, 'a') as fout:
-        fout.write('%s\t%.2f\n' % (
-            args['points'],
-            args['dp'],
-        ))
+        with open(file_path, "w") as fout:
+            fout.write("%s\t%s\n" % ("Points", "Dendrogram purity",))
+    with open(file_path, "a") as fout:
+        fout.write("%s\t%.2f\n" % (args["points"], args["dp"],))
 
 
 def get_dp(data_path, psi, t, m, file_name, exp_dir_base):
     tree_list = record_build_tree(data_path=data_path, m=m, psi=psi, t=t)
-    #dp_res = cal_dp(tree_list, dendrogram_purity)
-    file_path = os.path.join(exp_dir_base, 'dp_result.csv')
-    with open(file_path, 'a') as fout:
+    # dp_res = cal_dp(tree_list, dendrogram_purity)
+    file_path = os.path.join(exp_dir_base, "dp_result.csv")
+    with open(file_path, "a") as fout:
         for item in tree_list:
-            fout.write('%s\t%s\t%.2f\n' % (
-                file_name,
-                item[0],
-                item[1]))
+            fout.write("%s\t%s\t%.2f\n" % (file_name, item[0], item[1]))
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description='Evaluate StreaKHC clustering.')
-    parser.add_argument('--input', '-i', type=str,
-                        help='<Required> Path to the dataset.', required=True)
-    parser.add_argument('--outdir', '-o', type=str,
-                        help='<Required> The output directory', required=True)
-    parser.add_argument('--dataset', '-n', type=str,
-                        help='<Required> The name of the dataset', required=True)
-    parser.add_argument('--sample_size', '-t', type=int, default=300,
-                        help='<Required> Sample size for isolation kernel mapper')
-    parser.add_argument('--psi', '-p', type=int, required=True,
-                        help='<Required> Particial size for isolation kernel mapper')
-    parser.add_argument('--train_size', '-m', type=int, required=True,
-                        help='<Required> Initial used data size to build Isolation Kernel Mapper')
+    parser = argparse.ArgumentParser(description="Evaluate StreaKHC clustering.")
+    parser.add_argument(
+        "--input", "-i", type=str, help="<Required> Path to the dataset.", required=True
+    )
+    parser.add_argument(
+        "--outdir",
+        "-o",
+        type=str,
+        help="<Required> The output directory",
+        required=True,
+    )
+    parser.add_argument(
+        "--dataset",
+        "-n",
+        type=str,
+        help="<Required> The name of the dataset",
+        required=True,
+    )
+    parser.add_argument(
+        "--sample_size",
+        "-t",
+        type=int,
+        default=300,
+        help="<Required> Sample size for isolation kernel mapper",
+    )
+    parser.add_argument(
+        "--psi",
+        "-p",
+        type=int,
+        required=True,
+        help="<Required> Particial size for isolation kernel mapper",
+    )
+    parser.add_argument(
+        "--train_size",
+        "-m",
+        type=int,
+        required=True,
+        help="<Required> Initial used data size to build Isolation Kernel Mapper",
+    )
     args = parser.parse_args()
-    get_dp(data_path=args.input, m=args.train_size, t=args.sample_size, psi=args.psi,
-           file_name=args.dataset, exp_dir_base=args.outdir)
+    get_dp(
+        data_path=args.input,
+        m=args.train_size,
+        t=args.sample_size,
+        psi=args.psi,
+        file_name=args.dataset,
+        exp_dir_base=args.outdir,
+    )
 
 
 if __name__ == "__main__":
-    #main()
+    # main()
     data_path = "data/shuffle_data/2022-01-22-02-13-54-336/wine_8.csv"
     m = 44
     t = 300
     psi = 7
     file_name = "wine_3"
     exp_dir_base = "exp_out/test"
-    get_dp(data_path=data_path, m=m, t=t, psi=psi,
-                      file_name=file_name, exp_dir_base=exp_dir_base)
+    get_dp(
+        data_path=data_path,
+        m=m,
+        t=t,
+        psi=psi,
+        file_name=file_name,
+        exp_dir_base=exp_dir_base,
+    )
