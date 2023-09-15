@@ -114,8 +114,8 @@ class INode:
 
             _ = new_leaf._update_parameters_recursively(pt)
             root = new_leaf.root()
-            root.anomaly_score =  new_leaf._leaf_ad_score_rt()
-            
+            root.anomaly_score = new_leaf._leaf_ad_score_rt()
+
             return root
 
     @property
@@ -127,18 +127,13 @@ class INode:
         p_id = curr_node.pts[0]
         while curr_node.is_internal():
             curr_node.pts.remove(p_id)
-            # assert (p_id in curr_node.children[0].pts[0]) != (p_id in curr_node.children[1].pts[0]), "Except: Exsiting only in  one subtree, \
-            #                                                      Get: %s %s" % (p_id in curr_node.children[0].pts[0],
-            #                                                                     p_id in curr_node.children[1].pts[0])
             if p_id in curr_node.children[0].pts:
                 curr_node = curr_node.children[0]
             elif p_id in curr_node.children[1].pts:
                 curr_node = curr_node.children[1]
         sibling = curr_node.siblings()[0]
-        # ancs = curr_node._ancestors()
-        # for a in ancs:
-        #     a.ikv = a.ikv - curr_node.ikv
         parent_node = curr_node.parent
+
         if parent_node.parent:
             parent_node.parent.children.remove(parent_node)
             parent_node.parent.add_child(sibling)
@@ -247,8 +242,7 @@ class INode:
 
     def _leaf_ad_score(self):
         if self.is_leaf:
-            ad_score = 1 - \
-                _fast_normalize_dot(self.ikv, self.siblings()[0].ikv)
+            ad_score = 1 - _fast_normalize_dot(self.ikv, self.siblings()[0].ikv)
         else:
             raise NotImplementedError
         return ad_score
