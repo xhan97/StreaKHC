@@ -114,8 +114,8 @@ class INode:
 
             _ = new_leaf._update_parameters_recursively(pt)
             root = new_leaf.root()
-            root.anomaly_score = new_leaf._leaf_ad_score()
-
+            root.anomaly_score =  new_leaf._leaf_ad_score_rt()
+            
             return root
 
     @property
@@ -247,7 +247,8 @@ class INode:
 
     def _leaf_ad_score(self):
         if self.is_leaf:
-            ad_score = 1 - _fast_normalize_dot(self.ikv, self.siblings()[0].ikv)
+            ad_score = 1 - \
+                _fast_normalize_dot(self.ikv, self.siblings()[0].ikv)
         else:
             raise NotImplementedError
         return ad_score

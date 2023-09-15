@@ -16,12 +16,12 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 
-from src.utils.metrics import ad_metric
-from src.utils.file_utils import load_data_stream
-from src.utils.IsoKernel import IsolationKernel
-from INode import INode
-import numpy as np
 import argparse
+import numpy as np
+from INode import INode
+from src.utils.IsoKernel import IsolationKernel
+from src.utils.file_utils import load_data_stream
+from src.utils.metrics import ad_metric
 
 
 def streKHC(data_path, train_size, psi, t, window_size=5000):
