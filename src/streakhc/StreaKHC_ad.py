@@ -108,7 +108,7 @@ def save_grid_data(args, exp_dir_base):
 
 
 def grid_search_inode(data_path, psi, t, train_size, file_name, exp_dir_base, window_size):
-    alg = 'StreaKHC'
+    alg = 'StreaKHC_ad_root'
     max_score = 0
     for ps in psi:
         root, tree_ad_score = streKHC(
