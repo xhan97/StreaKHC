@@ -20,6 +20,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 
 import argparse
 import numpy as np
+import time
 
 from INode import INode
 from src.utils.IsoKernel import IsolationKernel
@@ -29,7 +30,7 @@ from src.utils.dendrogram_purity import expected_dendrogram_purity
 from src.utils.serialize_trees import serliaze_tree_to_file
 
 
-def streKHC(data_path, m, psi, t):
+def streKHC(data_path, m, psi, t, window_size=5000):
     """Create trees over the same points.
     Create n trees, online, over the same dataset. Return pointers to the
     roots of all trees for evaluation.  The trees will be created via the insert
@@ -48,6 +49,7 @@ def streKHC(data_path, m, psi, t):
     root = INode()
     train_dataset = []
     L = 5000
+    st = time.time()
     for i, pt in enumerate(load_data_stream(data_path), start=1):
         if i <= m:
             train_dataset.append(pt)
@@ -64,6 +66,9 @@ def streKHC(data_path, m, psi, t):
         else:
             l, pid = pt[:2]
             root = root.grow((l, pid, ik.transform([pt[2]])[0]), L=L, delete_node=True)
+
+        if i % window_size == 0:
+            print("Finish %d points in %.2f seconds." % (i, time.time() - st))
     return root
 
 
@@ -177,8 +182,9 @@ def main():
 
 if __name__ == "__main__":
     # main()
-    data_path = "./data/shuffle_data/2023-03-24-15-44-58-392/45_wine_2.csv"
-    m = 44
+    # data_path = "./data/shuffle_data/2023-03-24-15-44-58-392/45_wine_2.csv"
+    data_path = "./data/raw/aloi_1.tsv"
+    m = 5000
     t = 200
     psi = [7]  # 5, 10, 17, 21, 25]
     file_name = "wine"

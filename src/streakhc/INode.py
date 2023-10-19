@@ -114,8 +114,7 @@ class INode:
 
             _ = new_leaf._update_parameters_recursively(pt)
             root = new_leaf.root()
-            root.anomaly_score = new_leaf._leaf_ad_score_rt()
-
+            #root.anomaly_score = new_leaf._leaf_ad_score_rt()
             return root
 
     @property

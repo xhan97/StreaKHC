@@ -20,6 +20,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 
 import argparse
 import warnings
+import time
 
 import numpy as np
 from sklearn.kernel_approximation import Nystroem
@@ -33,7 +34,7 @@ from src.utils.serialize_trees import serliaze_tree_to_file
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 
-def streKHC_snstr(data_path, m, sig, n_components):
+def streKHC_snstr(data_path, m, sig, n_components, window_size=5000):
     """Create trees over the same points.
     Create n trees, online, over the same dataset. Return pointers to the
     roots of all trees for evaluation.  The trees will be created via the insert
@@ -52,6 +53,7 @@ def streKHC_snstr(data_path, m, sig, n_components):
     root = INode_snstr()
     train_dataset = []
     L = 5000
+    st = time.time()
     for i, pt in enumerate(load_data_stream(data_path), start=1):
         if i <= m:
             train_dataset.append(pt)
@@ -62,12 +64,16 @@ def streKHC_snstr(data_path, m, sig, n_components):
                     l, pid, gkv = (
                         train_pt[0],
                         train_pt[1],
-                        gk.transform([train_pt[2]])[0],
+                        gk.transform([train_pt[2]])[0]
                     )
                     root = root.grow((l, pid, gkv), L=L, delete_node=True)
+
         else:
             l, pid = pt[:2]
-            root = root.grow((l, pid, gk.transform([pt[2]])[0]), L=L, delete_node=True)
+            root = root.grow((l, pid, gk.transform([train_pt[2]])[0]), L=L, delete_node=True)
+
+        if i % window_size == 0:
+            print("Finish %d points in %.2f seconds." % (i, time.time() - st))
     return root
 
 
@@ -97,12 +103,13 @@ def save_grid_data(args, exp_dir_base):
         )
 
 
-def grid_search_inode(data_path, sig_list, n_components, m, file_name, exp_dir_base):
+def grid_search_gnode(data_path, sig_list, n_components, m, file_name, exp_dir_base):
     alg = "StreaKHC_nystr"
     max_purity = 0
     for sig in sig_list:
         root = streKHC_snstr(data_path, m, sig, n_components)
-        purity = expected_dendrogram_purity(root)
+        purity = 1
+        # purity = expected_dendrogram_purity(root)
         if purity > max_purity:
             max_sig = sig
             max_root = root
@@ -122,8 +129,8 @@ def grid_search_inode(data_path, sig_list, n_components, m, file_name, exp_dir_b
         "max_sig": max_sig,
     }
     save_data(args, exp_dir_base)
-    serliaze_tree_to_file(max_root, os.path.join(exp_dir_base, "tree.tsv"))
-    Graphviz.write_tree(os.path.join(exp_dir_base, "tree.dot"), max_root)
+    # serliaze_tree_to_file(max_root, os.path.join(exp_dir_base, "tree.tsv"))
+    # Graphviz.write_tree(os.path.join(exp_dir_base, "tree.dot"), max_root)
 
 
 def main():
@@ -179,7 +186,7 @@ def main():
         args.data_feature * (2 ** s) for s in args.sig
     ]
 
-    grid_search_inode(
+    grid_search_gnode(
         data_path=args.input,
         m=args.train_size,
         n_components=args.n_components,
@@ -190,12 +197,22 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-    # data_path = "./data/shuffle_data/2022-08-26-11-17-32-579/wine_2.csv"
-    # m = 44
-    # t = 200
-    # psi = [3, 5, 10, 17, 21, 25]
-    # file_name = "wine"
-    # exp_dir_base = "./exp_out/test"
-    # grid_search_inode(data_path=data_path, m=m, t=t, psi=psi,
-    #                   file_name=file_name, exp_dir_base=exp_dir_base)
+    # main()
+    data_path = "./data/raw/aloi_1.tsv"
+    m = 44
+    t = 200
+
+    #sig = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]
+    sig = [1]
+    sig_list = [2 ** s for s in sig] + [128 * (2 ** s) for s in sig]
+    file_name = "aloi"
+    exp_dir_base = "./exp_out/test"
+    grid_search_gnode(
+        data_path=data_path,
+        m=m,
+        sig_list=sig_list,
+        n_components=400,
+        file_name=file_name,
+        exp_dir_base=exp_dir_base,
+    )
+

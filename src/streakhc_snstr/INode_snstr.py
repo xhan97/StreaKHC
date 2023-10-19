@@ -38,7 +38,7 @@ def _fast_dot(x, y):
       """
     return np.dot(x, y)
 
-
+@jit(nopython=True)
 def _fast_normalize_dot(x, y):
     """Compute the dot product of x and y using numba.
 

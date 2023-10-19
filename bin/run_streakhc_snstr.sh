@@ -18,8 +18,8 @@ for suffix in '.csv' '.tsv'; do
         sh bin/util/shuffle_dataset.sh $dataset_file $num_runs $shuffle_data_path
         dataset_name=$(basename -s $suffix $dataset_file)
         data_size=$(wc -l <$dataset_file)
-		n_feature=$(head -1  $dataset_file | tr ',' '\n' | wc -l)
-		n_feature=$(expr ${n_feature} - 1)
+        n_feature=$(head -1 $dataset_file | tr ',' '\n' | wc -l)
+        n_feature=$(expr ${n_feature} - 1)
         t_size=$(expr ${data_size} / 4)
         #t_size=${data_size}
         for i in $(seq 1 1 $num_runs); do
@@ -33,7 +33,7 @@ for suffix in '.csv' '.tsv'; do
                     --dataset ${dataset_name} \
                     --sig $(seq -5 1 5) \
                     --train_size ${t_size} \
-					--data_feature ${n_feature}
+                    --data_feature ${n_feature}
                 dot -Kdot -Tpng $exp_output_dir/tree.dot -o $exp_output_dir/tree.png
             ) &
         done

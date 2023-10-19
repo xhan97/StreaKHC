@@ -84,7 +84,7 @@ def streKHC_max(data_path, psi, t):
     # serliaze_tree_to_file(root, os.path.join('./exp_out/test/nn', 'tree_{}_{}.tsv'.format(psi, i)))
     #            Graphviz.write_tree(os.path.join('./exp_out/test/Synthetic/max', 'tree_{}_{}.dot'.format(psi, i)), root)
 
-    return root
+    return root, mask_index
 
 
 def save_data(args, exp_dir_base):
@@ -113,17 +113,33 @@ def save_grid_data(args, exp_dir_base):
         )
 
 
+def save_mask_index(mask_index, file_path):
+    with open(file_path, "w") as fout:
+        for ind in mask_index:
+            fout.write("{}\n".format(ind))
+
+
+def load_mask_index(file_path):
+    mask_index = []
+    with open(file_path, "r") as fin:
+        for line in fin:
+            mask_index.append(int(line.strip()))
+    return mask_index
+
+
 # @profile
 def grid_search_inode(data_path, psi, t, file_name, exp_dir_base):
     alg = "StreaKHC_max"
     max_purity = 0
+    max_mask_index = []
     for ps in psi:
-        root = streKHC_max(data_path, ps, t)
+        root, mask_index = streKHC_max(data_path, ps, t)
         purity = dendrogram_purity(root)
         if purity > max_purity:
             max_ps = ps
             # max_root = root
             max_purity = purity
+            max_mask_index = mask_index
         res = {
             "dataset": file_name,
             "algorithm": alg,
@@ -139,6 +155,10 @@ def grid_search_inode(data_path, psi, t, file_name, exp_dir_base):
         "max_psi": max_ps,
     }
     save_data(args, exp_dir_base)
+    save_mask_index(
+        max_mask_index,
+        os.path.join(exp_dir_base, "mask_index_{}.tsv".format(file_name)),
+    )
     # serliaze_tree_to_file(max_root, os.path.join(
     #     exp_dir_base, 'tree.tsv'))
     # Graphviz.write_tree(os.path.join(
