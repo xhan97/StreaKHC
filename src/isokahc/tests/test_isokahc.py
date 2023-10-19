@@ -15,7 +15,7 @@
 import os
 import sys
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import pytest
 from IsoKAHC import IsoKAHC
@@ -39,7 +39,7 @@ def test_isokhc_performance(data):
     assert metrics.dendrogram_purity(ik_den, y) > 0.8
 
 
-@pytest.mark.parametrize("method", ['single', 'complete', 'average', 'weighted'])
+@pytest.mark.parametrize("method", ["single", "complete", "average", "weighted"])
 def test_isokhc_work(data, method):
     X, y = data
     # Test IsoKHC

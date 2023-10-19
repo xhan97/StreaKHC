@@ -49,16 +49,16 @@ def _fast_normalize_dot(x, y):
       Normalized x_T.y
       """
 
-    return _fast_dot(x, y) / (math.sqrt(
-        _fast_dot(x, x)) * (math.sqrt(_fast_dot(y, y))))
+    return _fast_dot(x, y) / (math.sqrt(_fast_dot(x, x)) * (math.sqrt(_fast_dot(y, y))))
 
 
 class INode:
     """Isolation hc node."""
 
     def __init__(self):
-        self.id = "id" + ''.join(random.choice(
-            string.ascii_uppercase + string.digits) for _ in range(15))
+        self.id = "id" + "".join(
+            random.choice(string.ascii_uppercase + string.digits) for _ in range(15)
+        )
         self.children = []
         self.parent = None
         self.pts = []  # each pt is a tuple of (label, id).
@@ -248,8 +248,7 @@ class INode:
         """
         if cluster:
             pts = [p for l in self.leaves() for p in l.pts]
-            return float(len([pt for pt in pts
-                              if pt[0] == cluster])) / len(pts)
+            return float(len([pt for pt in pts if pt[0] == cluster])) / len(pts)
         else:
             label_to_count = self.class_counts()
         return max(label_to_count.values()) / sum(label_to_count.values())
@@ -284,8 +283,9 @@ class INode:
     def aunts(self):
         """Return a list of all of my aunts."""
         if self.parent and self.parent.parent:
-            return [child for child in self.parent.parent.children
-                    if child != self.parent]
+            return [
+                child for child in self.parent.parent.children if child != self.parent
+            ]
         else:
             return []
 

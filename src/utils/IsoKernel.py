@@ -100,8 +100,7 @@ class IsolationKernel(TransformerMixin, BaseEstimator):
                 raise ValueError(
                     "max_samples (%s) is not supported."
                     'Valid choices are: "auto", int or'
-                    "float"
-                    % self.max_samples
+                    "float" % self.max_samples
                 )
         elif isinstance(self.max_samples, numbers.Integral):
             if self.max_samples > n_samples:
@@ -133,13 +132,13 @@ class IsolationKernel(TransformerMixin, BaseEstimator):
 
         for i in range(self.n_estimators):
             rnd = check_random_state(self._seeds[i])
-            center_index = rnd.choice(
-                n_samples, self.max_samples_, replace=False)
+            center_index = rnd.choice(n_samples, self.max_samples_, replace=False)
             if i == 0:
                 self.center_index_set = np.array([center_index])
             else:
                 self.center_index_set = np.append(
-                    self.center_index_set, np.array([center_index]), axis=0)
+                    self.center_index_set, np.array([center_index]), axis=0
+                )
         self.unique_index = np.unique(self.center_index_set)
         self.center_data = X[self.unique_index]
         return self
@@ -176,14 +175,14 @@ class IsolationKernel(TransformerMixin, BaseEstimator):
         X_dists = euclidean_distances(X, self.center_data)
 
         for i in range(n):
-            mapping_array = np.zeros(self.unique_index.max() + 1,
-                                     dtype=X_dists.dtype)
+            mapping_array = np.zeros(self.unique_index.max() + 1, dtype=X_dists.dtype)
             mapping_array[self.unique_index] = X_dists[i]
             x_center_dist_mat = mapping_array[self.center_index_set]
 
             nearest_center_index = np.argmin(x_center_dist_mat, axis=1)
             ik_value = np.eye(self.max_samples_, dtype=int)[
-                nearest_center_index].flatten()[np.newaxis]
+                nearest_center_index
+            ].flatten()[np.newaxis]
             if i == 0:
                 embedding = ik_value
             else:

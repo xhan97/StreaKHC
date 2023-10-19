@@ -85,16 +85,17 @@ class IsoKernelOnline(TransformerMixin, BaseEstimator):
     def add_observation(self, x):
 
         if not self.center_data:
-            self.center_data = [[]for i in range(self.n_estimators)]
+            self.center_data = [[] for i in range(self.n_estimators)]
         for i in range(self.n_estimators):
             self.center_data[i] = self.update_center(
-                self.center_data[i], self.max_samples, x)
+                self.center_data[i], self.max_samples, x
+            )
         self.n_instance += 1
 
         return self
 
     def update_center(self, center_data, m, x):
-        if self.n_instance <= m-1:
+        if self.n_instance <= m - 1:
             center_data.append(x)
         else:
             i = random.randint(1, self.n_instance)
@@ -134,12 +135,9 @@ class IsoKernelOnline(TransformerMixin, BaseEstimator):
         for i in range(self.n_estimators):
             x_center_dist = euclidean_distances(X, self.center_data[i])
             nearest_center_index = np.argmin(x_center_dist, axis=1)
-            ik_value = np.eye(self.max_samples, dtype=int)[
-                nearest_center_index]
+            ik_value = np.eye(self.max_samples, dtype=int)[nearest_center_index]
             if i == 0:
                 embedding = ik_value
             else:
                 embedding = np.append(embedding, ik_value, axis=1)
         return embedding.astype(float)
-    
-    

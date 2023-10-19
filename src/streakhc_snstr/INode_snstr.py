@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import math
+import os
 import random
 import string
 from collections import defaultdict
@@ -20,7 +21,7 @@ from queue import Queue
 
 import numpy as np
 from numba import jit
-import os
+
 MIN_FLOAT = np.finfo(float).eps
 
 
@@ -37,7 +38,7 @@ def _fast_dot(x, y):
       """
     return np.dot(x, y)
 
-
+@jit(nopython=True)
 def _fast_normalize_dot(x, y):
     """Compute the dot product of x and y using numba.
 
@@ -50,16 +51,18 @@ def _fast_normalize_dot(x, y):
       Normalized x_T.y
       """
 
-    return (_fast_dot(x, y)+MIN_FLOAT) / ((math.sqrt(
-        _fast_dot(x, x)) * (math.sqrt(_fast_dot(y, y))))+MIN_FLOAT)
+    return (_fast_dot(x, y) + MIN_FLOAT) / (
+        (math.sqrt(_fast_dot(x, x)) * (math.sqrt(_fast_dot(y, y)))) + MIN_FLOAT
+    )
 
 
 class INode_snstr:
     """Isolation hc node."""
 
     def __init__(self):
-        self.id = "id" + ''.join(random.choice(
-            string.ascii_uppercase + string.digits) for _ in range(15))
+        self.id = "id" + "".join(
+            random.choice(string.ascii_uppercase + string.digits) for _ in range(15)
+        )
         self.children = []
         self.parent = None
         self.pts = []  # each pt is a tuple of (label, id).
@@ -249,8 +252,7 @@ class INode_snstr:
         """
         if cluster:
             pts = [p for l in self.leaves() for p in l.pts]
-            return float(len([pt for pt in pts
-                              if pt[0] == cluster])) / len(pts)
+            return float(len([pt for pt in pts if pt[0] == cluster])) / len(pts)
         else:
             label_to_count = self.class_counts()
         return max(label_to_count.values()) / sum(label_to_count.values())
@@ -285,8 +287,9 @@ class INode_snstr:
     def aunts(self):
         """Return a list of all of my aunts."""
         if self.parent and self.parent.parent:
-            return [child for child in self.parent.parent.children
-                    if child != self.parent]
+            return [
+                child for child in self.parent.parent.children if child != self.parent
+            ]
         else:
             return []
 

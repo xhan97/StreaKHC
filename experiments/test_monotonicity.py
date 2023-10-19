@@ -16,7 +16,7 @@ import argparse
 import os
 import sys
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import numpy as np
 from src.utils.IsoKernel import IsolationKernel
@@ -50,103 +50,124 @@ def streKHC(data_path, m, psi, t):
             train_dataset.append(pt)
             if i == m:
                 ik = IsolationKernel(n_estimators=t, max_samples=psi)
-                ik = ik.fit(np.array(
-                    [pt[2] for pt in train_dataset]))
+                ik = ik.fit(np.array([pt[2] for pt in train_dataset]))
                 for j, train_pt in enumerate(train_dataset, start=1):
-                    l, pid, ikv = train_pt[0], train_pt[1], ik.transform([train_pt[2]])[
-                        0]
-                    root = root.grow((l, pid, ikv), L=L,
-                                       delete_node=True)
+                    l, pid, ikv = (
+                        train_pt[0],
+                        train_pt[1],
+                        ik.transform([train_pt[2]])[0],
+                    )
+                    root = root.grow((l, pid, ikv), L=L, delete_node=True)
         else:
             l, pid = pt[:2]
-            root = root.grow((l, pid, ik.transform(
-                [pt[2]])[0]), L=L, delete_node=True)
+            root = root.grow((l, pid, ik.transform([pt[2]])[0]), L=L, delete_node=True)
     return root
 
 
 def save_data(args, exp_dir_base):
-    file_path = os.path.join(exp_dir_base, 'score.tsv')
+    file_path = os.path.join(exp_dir_base, "score.tsv")
     if not os.path.exists(file_path):
-        with open(file_path, 'w') as fout:
-            fout.write('%s\t%s\t%s\t%s\n' % (
-                'dataset',
-                'algorithm',
-                'purity',
-                "max_psi",
-            ))
-    with open(file_path, 'a') as fout:
-        fout.write('%s\t%s\t%.2f\t%s\n' % (
-            args['dataset'],
-            args['algorithm'],
-            args['purity'],
-            args["max_psi"],
-        ))
+        with open(file_path, "w") as fout:
+            fout.write(
+                "%s\t%s\t%s\t%s\n" % ("dataset", "algorithm", "purity", "max_psi",)
+            )
+    with open(file_path, "a") as fout:
+        fout.write(
+            "%s\t%s\t%.2f\t%s\n"
+            % (args["dataset"], args["algorithm"], args["purity"], args["max_psi"],)
+        )
 
 
 def save_grid_data(args, exp_dir_base):
-    file_path = os.path.join(exp_dir_base, 'grid_score.tsv')
+    file_path = os.path.join(exp_dir_base, "grid_score.tsv")
     if not os.path.exists(file_path):
-        with open(file_path, 'w') as fout:
-            fout.write('%s\t%s\t%s\t%s\n' % (
-                'dataset',
-                'algorithm',
-                'purity',
-                "psi",
-            ))
-    with open(file_path, 'a') as fout:
-        fout.write('%s\t%s\t%.2f\t%s\n' % (
-            args['dataset'],
-            args['algorithm'],
-            args['purity'],
-            args["psi"],
-        ))
+        with open(file_path, "w") as fout:
+            fout.write("%s\t%s\t%s\t%s\n" % ("dataset", "algorithm", "purity", "psi",))
+    with open(file_path, "a") as fout:
+        fout.write(
+            "%s\t%s\t%.2f\t%s\n"
+            % (args["dataset"], args["algorithm"], args["purity"], args["psi"],)
+        )
 
 
 def grid_search_inode(data_path, psi, t, m, file_name, exp_dir_base):
 
     max_purity = 0
     for p in psi:
-        root = streKHC(
-            data_path, m, p, t)
+        root = streKHC(data_path, m, p, t)
         purity = expected_dendrogram_purity(root)
         if purity > max_purity:
             max_ps = p
             max_purity = purity
             max_root = root
-        res = {'dataset': file_name,
-               'algorithm': 'StreaKHC',
-               'purity': purity,
-               "psi": p,
-               }
+        res = {
+            "dataset": file_name,
+            "algorithm": "StreaKHC",
+            "purity": purity,
+            "psi": p,
+        }
         save_grid_data(res, exp_dir_base)
 
-    args = {'dataset': file_name,
-            'algorithm': 'StreaKHC',
-            'purity': max_purity,
-            "max_psi": max_ps,
-            }
+    args = {
+        "dataset": file_name,
+        "algorithm": "StreaKHC",
+        "purity": max_purity,
+        "max_psi": max_ps,
+    }
     save_data(args, exp_dir_base)
-    serliaze_tree_to_file_with_node_ds(max_root, os.path.join(
-        exp_dir_base, 'tree.tsv'))
+    serliaze_tree_to_file_with_node_ds(max_root, os.path.join(exp_dir_base, "tree.tsv"))
+
 
 def main():
-    parser = argparse.ArgumentParser(
-        description='Evaluate StreaKHC clustering.')
-    parser.add_argument('--input', '-i', type=str,
-                        help='<Required> Path to the dataset.', required=True)
-    parser.add_argument('--outdir', '-o', type=str,
-                        help='<Required> The output directory', required=True)
-    parser.add_argument('--dataset', '-n', type=str,
-                        help='<Required> The name of the dataset', required=True)
-    parser.add_argument('--sample_size', '-t', type=int, default=300,
-                        help='<Required> Sample size for isolation kernel mapper')
-    parser.add_argument('--psi', '-p', nargs='+', type=int, required=True,
-                        help='<Required> Particial size for isolation kernel mapper')
-    parser.add_argument('--train_size', '-m', type=int, required=True,
-                        help='<Required> Initial used data size to build Isolation Kernel Mapper')
+    parser = argparse.ArgumentParser(description="Evaluate StreaKHC clustering.")
+    parser.add_argument(
+        "--input", "-i", type=str, help="<Required> Path to the dataset.", required=True
+    )
+    parser.add_argument(
+        "--outdir",
+        "-o",
+        type=str,
+        help="<Required> The output directory",
+        required=True,
+    )
+    parser.add_argument(
+        "--dataset",
+        "-n",
+        type=str,
+        help="<Required> The name of the dataset",
+        required=True,
+    )
+    parser.add_argument(
+        "--sample_size",
+        "-t",
+        type=int,
+        default=300,
+        help="<Required> Sample size for isolation kernel mapper",
+    )
+    parser.add_argument(
+        "--psi",
+        "-p",
+        nargs="+",
+        type=int,
+        required=True,
+        help="<Required> Particial size for isolation kernel mapper",
+    )
+    parser.add_argument(
+        "--train_size",
+        "-m",
+        type=int,
+        required=True,
+        help="<Required> Initial used data size to build Isolation Kernel Mapper",
+    )
     args = parser.parse_args()
-    grid_search_inode(data_path=args.input, m=args.train_size, t=args.sample_size, psi=args.psi,
-                      file_name=args.dataset, exp_dir_base=args.outdir)
+    grid_search_inode(
+        data_path=args.input,
+        m=args.train_size,
+        t=args.sample_size,
+        psi=args.psi,
+        file_name=args.dataset,
+        exp_dir_base=args.outdir,
+    )
 
 
 if __name__ == "__main__":
@@ -157,5 +178,11 @@ if __name__ == "__main__":
     psi = [3, 5, 10, 17, 21, 25]
     file_name = "wine"
     exp_dir_base = "./exp_out/test"
-    grid_search_inode(data_path=data_path, m=m, t=t, psi=psi,
-                      file_name=file_name, exp_dir_base=exp_dir_base)
+    grid_search_inode(
+        data_path=data_path,
+        m=m,
+        t=t,
+        psi=psi,
+        file_name=file_name,
+        exp_dir_base=exp_dir_base,
+    )
