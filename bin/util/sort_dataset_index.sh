@@ -13,6 +13,10 @@ data_name=${data_name%%.*}
 for i in $(seq 1 $num_shuffles); do
 	sorted_data_path="${sorted_data_dir}/${data_name}_${i}.csv"
 	index_path="${index_dir}/${data_name}/run_${i}/index.tsv"
+	if [ ! -f $index_path ]; then
+		echo "Index file $index_path not found"
+		continue
+	fi
 	echo "Sorting $data_name > $sorted_data_path"
 	python3 bin/util/sort_dataset_index.py $data_path $index_path $sorted_data_path
 done

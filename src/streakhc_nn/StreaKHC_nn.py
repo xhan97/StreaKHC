@@ -157,7 +157,7 @@ def grid_search_inode(data_path, psi, t, file_name, exp_dir_base):
     save_data(args, exp_dir_base)
     save_mask_index(
         max_mask_index,
-        os.path.join(exp_dir_base, "mask_index_{}.tsv".format(file_name)),
+        os.path.join(exp_dir_base, "index.tsv"),
     )
     # serliaze_tree_to_file(max_root, os.path.join(
     #     exp_dir_base, 'tree.tsv'))
