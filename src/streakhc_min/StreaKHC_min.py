@@ -38,7 +38,7 @@ def get_nn_index(q, mat, mask_index):
 
 
 # @profile
-def streKHC_nn(data_path, psi, t):
+def streKHC_min(data_path, psi, t):
     """Create trees over the same points.
     Create n trees, online, over the same dataset. Return pointers to the
     roots of all trees for evaluation.  The trees will be created via the insert
@@ -66,7 +66,7 @@ def streKHC_nn(data_path, psi, t):
     x_ind, y_ind = np.unravel_index(np.argmax(sim, axis=None), sim.shape)
     num_samples = len(pid)
     mask_index = []
-    for i in range(num_samples):
+    for i in range(200):
         if i == 0:
             insert_index = x_ind
         elif i == 1:
@@ -80,9 +80,9 @@ def streKHC_nn(data_path, psi, t):
         )
         mask_index.append(insert_index)
 
-        # if i % 200 == 0 and i != 0:
-        #     #serliaze_tree_to_file(root, os.path.join('./exp_out/test/nn', 'tree_{}_{}.tsv'.format(psi, i)))
-        #     Graphviz.write_tree(os.path.join('./exp_out/test/Synthetic/nn', 'tree_{}_{}.dot'.format(psi, i)), root)
+        if (i % 50 == 0 and i != 0) or i==10:
+            #serliaze_tree_to_file(root, os.path.join('./exp_out/test/nn', 'tree_{}_{}.tsv'.format(psi, i)))
+            Graphviz.write_tree(os.path.join('./exp_out/test/min', 'tree_{}_{}.dot'.format(psi, i)), root)
 
     return root, mask_index
 
@@ -133,7 +133,7 @@ def grid_search_inode(data_path, psi, t, file_name, exp_dir_base):
     max_purity = 0
     max_mask_index = []
     for ps in psi:
-        root, mask_index = streKHC_nn(data_path, ps, t)
+        root, mask_index = streKHC_min(data_path, ps, t)
         purity = dendrogram_purity(root)
         if purity > max_purity:
             max_ps = ps

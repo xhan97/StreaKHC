@@ -66,7 +66,7 @@ def streKHC_max(data_path, psi, t):
     x_ind, y_ind = np.unravel_index(np.argmin(sim, axis=None), sim.shape)
     num_samples = len(pid)
     mask_index = []
-    for i in range(num_samples):
+    for i in range(200):
         if i == 0:
             insert_index = x_ind
         elif i == 1:
@@ -80,9 +80,9 @@ def streKHC_max(data_path, psi, t):
         )
         mask_index.append(insert_index)
 
-    #        if i % 10 == 0 and i != 0:
-    # serliaze_tree_to_file(root, os.path.join('./exp_out/test/nn', 'tree_{}_{}.tsv'.format(psi, i)))
-    #            Graphviz.write_tree(os.path.join('./exp_out/test/Synthetic/max', 'tree_{}_{}.dot'.format(psi, i)), root)
+        if i==10  or (i % 50 == 0 and i != 0):
+           serliaze_tree_to_file(root, os.path.join('./exp_out/test/max', 'tree_{}_{}.tsv'.format(psi, i)))
+           Graphviz.write_tree(os.path.join('./exp_out/test/max', 'tree_{}_{}.dot'.format(psi, i)), root)
 
     return root, mask_index
 

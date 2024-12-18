@@ -95,3 +95,5 @@ data/shuffle_data/
 exp_out/*
 
 data/*
+*.png
+*.pdf

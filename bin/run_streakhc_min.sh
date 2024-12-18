@@ -7,7 +7,7 @@ TIME=$( (date +%Y-%m-%d-%H-%M-%S-%3N))
 output_dir="${output_dir}/$TIME"
 shuffle_data_path="$STREASKH_DATA_SHUFFLE/$TIME"
 
-num_runs=5
+num_runs=1
 for suffix in '.csv' '.tsv'; do
     if [ -z "$(ls $STREASKH_DATA*$suffix)" ]; then
         echo "No dataset endwith ${suffix} in ${STREASKH_DATA}"
@@ -26,7 +26,7 @@ for suffix in '.csv' '.tsv'; do
                 #shuffled_data="${dataset_file}"
                 exp_output_dir="${output_dir}/${dataset_name}/run_$i"
                 mkdir -p ${exp_output_dir}
-                python3 src/streakhc_nn/StreaKHC_nn.py --input ${shuffled_data} \
+                python3 src/streakhc_min/StreaKHC_min.py --input ${shuffled_data} \
                     --outdir ${exp_output_dir} \
                     --dataset ${dataset_name} \
                     --psi 3 5 7 13 15 17 21 25 \
