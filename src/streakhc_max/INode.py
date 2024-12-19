@@ -27,27 +27,27 @@ import os
 def _fast_dot(x, y):
     """Compute the dot product of x and y using numba.
 
-      Args:
-      x - a numpy vector (or list).
-      y - a numpy vector (or list).
+    Args:
+    x - a numpy vector (or list).
+    y - a numpy vector (or list).
 
-      Returns:
-      x_T.y
-      """
+    Returns:
+    x_T.y
+    """
     return np.dot(x, y)
 
 
 def _fast_normalize_dot(x, y):
     """Compute the dot product of x and y using numba.
 
-      Args:
-      x - a numpy vector (or list).
-      y - a numpy vector (or list).
-      t - an integel
+    Args:
+    x - a numpy vector (or list).
+    y - a numpy vector (or list).
+    t - an integel
 
-      Returns:
-      Normalized x_T.y
-      """
+    Returns:
+    Normalized x_T.y
+    """
 
     return _fast_dot(x, y) / (math.sqrt(_fast_dot(x, x)) * (math.sqrt(_fast_dot(y, y))))
 
@@ -317,6 +317,25 @@ class INode:
             if n.children:
                 for c in n.children:
                     queue.put(c)
+        return d
+
+    def descendants_with_max_leaves(self, max_leaf_size):
+        """Return descendants with max leaves of the current node."""
+        d = []
+        queue = Queue()
+        queue.put(self)
+        leaf_count = 0
+        while not queue.empty():
+            n = queue.get()
+            d.append(n)
+            if n.is_leaf():
+                leaf_count += 1
+            if leaf_count >= max_leaf_size:
+                break
+            if n.children:
+                for c in n.children:
+                    queue.put(c)
+
         return d
 
     def leaves(self):

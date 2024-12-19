@@ -232,7 +232,8 @@ class Graphviz(object):
         return "".join(s)
 
     def graphviz_tree(
-        self, root,
+        self,
+        root,
     ):
         """Return a graphviz tree as a string."""
         s = []
@@ -243,10 +244,31 @@ class Graphviz(object):
         s.append("\n}")
         return "".join(s)
 
+    def graphviz_subtree(
+        self,
+        root,
+    ):
+        """Return a graphviz tree as a string."""
+        s = []
+        s.append("digraph TreeStructure {\n")
+        s.append(self.format_graphiz_node(root))
+        for d in root.descendants_with_max_leaves(max_leaf_size=100):
+            s.append(self.format_graphiz_node(d))
+        s.append("\n}")
+        return "".join(s)
+
     @staticmethod
     def write_tree(filename, root):
         """Write a graphviz tree to a file."""
         gv = Graphviz()
         tree = gv.graphviz_tree(root)
+        with open(filename, "w") as fout:
+            fout.write(tree)
+
+    @staticmethod
+    def write_subtree(filename, root):
+        """Write a graphviz tree to a file."""
+        gv = Graphviz()
+        tree = gv.graphviz_subtree(root)
         with open(filename, "w") as fout:
             fout.write(tree)

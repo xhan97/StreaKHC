@@ -32,8 +32,8 @@ from src.utils.serialize_trees import serliaze_tree_to_file
 
 def get_max_index(q, mat, mask_index):
     x_sim = np.inner(q, mat)
-    x_sim[mask_index] = np.inf
-    nn_ind = np.argmin(x_sim)
+    x_sim[mask_index] = -np.inf
+    nn_ind = np.argmax(x_sim)
     return nn_ind
 
 
@@ -62,11 +62,11 @@ def streKHC_max(data_path, psi, t):
     ikv = ik.transform(vec)
     sim = np.inner(ikv, ikv)
     del ik
-    np.fill_diagonal(sim, np.inf)
-    x_ind, y_ind = np.unravel_index(np.argmin(sim, axis=None), sim.shape)
+    np.fill_diagonal(sim, -np.inf)
+    x_ind, y_ind = np.unravel_index(np.argmax(sim, axis=None), sim.shape)
     num_samples = len(pid)
     mask_index = []
-    for i in range(200):
+    for i in range(num_samples):
         if i == 0:
             insert_index = x_ind
         elif i == 1:
@@ -80,9 +80,16 @@ def streKHC_max(data_path, psi, t):
         )
         mask_index.append(insert_index)
 
-        if i==10  or (i % 50 == 0 and i != 0):
-           serliaze_tree_to_file(root, os.path.join('./exp_out/test/max', 'tree_{}_{}.tsv'.format(psi, i)))
-           Graphviz.write_tree(os.path.join('./exp_out/test/max', 'tree_{}_{}.dot'.format(psi, i)), root)
+        if (i == 10) or (i == 100) or (i == 700) or (i == num_samples - 1):
+            # serliaze_tree_to_file(
+            #     root,
+            #     os.path.join("./exp_out/test/max", "tree_{}_{}.tsv".format(psi, i)),
+            # )
+            # Graphviz.write_tree(os.path.join('./exp_out/test/max', 'tree_{}_{}.dot'.format(psi, i)), root)
+            Graphviz.write_subtree(
+                os.path.join("./exp_out/test/max", "tree_{}_{}.dot".format(psi, i)),
+                root,
+            )
 
     return root, mask_index
 
@@ -92,12 +99,23 @@ def save_data(args, exp_dir_base):
     if not os.path.exists(file_path):
         with open(file_path, "w") as fout:
             fout.write(
-                "%s\t%s\t%s\t%s\n" % ("dataset", "algorithm", "purity", "max_psi",)
+                "%s\t%s\t%s\t%s\n"
+                % (
+                    "dataset",
+                    "algorithm",
+                    "purity",
+                    "max_psi",
+                )
             )
     with open(file_path, "a") as fout:
         fout.write(
             "%s\t%s\t%.2f\t%s\n"
-            % (args["dataset"], args["algorithm"], args["purity"], args["max_psi"],)
+            % (
+                args["dataset"],
+                args["algorithm"],
+                args["purity"],
+                args["max_psi"],
+            )
         )
 
 
@@ -105,11 +123,24 @@ def save_grid_data(args, exp_dir_base):
     file_path = os.path.join(exp_dir_base, "grid_score.tsv")
     if not os.path.exists(file_path):
         with open(file_path, "w") as fout:
-            fout.write("%s\t%s\t%s\t%s\n" % ("dataset", "algorithm", "purity", "psi",))
+            fout.write(
+                "%s\t%s\t%s\t%s\n"
+                % (
+                    "dataset",
+                    "algorithm",
+                    "purity",
+                    "psi",
+                )
+            )
     with open(file_path, "a") as fout:
         fout.write(
             "%s\t%s\t%.2f\t%s\n"
-            % (args["dataset"], args["algorithm"], args["purity"], args["psi"],)
+            % (
+                args["dataset"],
+                args["algorithm"],
+                args["purity"],
+                args["psi"],
+            )
         )
 
 
@@ -134,7 +165,7 @@ def grid_search_inode(data_path, psi, t, file_name, exp_dir_base):
     max_mask_index = []
     for ps in psi:
         root, mask_index = streKHC_max(data_path, ps, t)
-        purity = dendrogram_purity(root)
+        purity = expected_dendrogram_purity(root)
         if purity > max_purity:
             max_ps = ps
             # max_root = root
@@ -157,7 +188,7 @@ def grid_search_inode(data_path, psi, t, file_name, exp_dir_base):
     save_data(args, exp_dir_base)
     save_mask_index(
         max_mask_index,
-        os.path.join(exp_dir_base, "mask_index_{}.tsv".format(file_name)),
+        os.path.join(exp_dir_base, "index.tsv"),
     )
     # serliaze_tree_to_file(max_root, os.path.join(
     #     exp_dir_base, 'tree.tsv'))
@@ -225,4 +256,4 @@ if __name__ == "__main__":
     # file_name = "Synthetic"
     # exp_dir_base = "./exp_out/test"
     # grid_search_inode(data_path=data_path, t=t, psi=psi,
-    #                  file_name=file_name, exp_dir_base=exp_dir_base)
+    #                   file_name=file_name, exp_dir_base=exp_dir_base)
