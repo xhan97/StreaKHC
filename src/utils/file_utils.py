@@ -116,3 +116,4 @@ def save_results(
         if write_header:
             fout.write(",".join(header) + "\n")
         fout.write(",".join(values) + "\n")
+    print(f"Results saved to {file_path}")

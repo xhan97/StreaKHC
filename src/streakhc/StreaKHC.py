@@ -39,6 +39,9 @@ from src.utils.patch_evaluate import (
 from src.utils.serialize_trees import serialize_tree_to_file
 
 
+print("StreaKHC module loaded.")
+
+
 def StreaKHC(data_path, m, psi, t, window_size=5000):
     """Create trees over the same points.
     Create n trees, online, over the same dataset. Return pointers to the
@@ -88,7 +91,7 @@ def grid_search_inode(data_path, psi, t, m, file_name, exp_dir_base):
     algorithm_info = {"algorithm": alg}
     for ps in psi:
         root = StreaKHC(data_path, m, ps, t)
-        print(root.get_sibings_is_internal)
+        # print(root.get_sibings_is_internal)
         # denpurity = expected_dendrogram_purity(root)
         y_hat, y_true = cut_tree(root)
         contingency_matrix = get_contingency_matrix(y_true, y_hat)
@@ -122,7 +125,7 @@ def grid_search_inode(data_path, psi, t, m, file_name, exp_dir_base):
             data_info=data_info,
             algorithm_info=algorithm_info,
             metrics_info=metrics_info,
-            exp_dir_base=os.path.join(exp_dir_base, "grid_search"),
+            exp_dir_base=os.path.join(exp_dir_base, "grid_search.csv"),
         )
 
     args = {
@@ -138,7 +141,7 @@ def grid_search_inode(data_path, psi, t, m, file_name, exp_dir_base):
         data_info=data_info,
         algorithm_info=algorithm_info,
         metrics_info=args,
-        exp_dir_base=os.path.join(exp_dir_base, "best_results"),
+        exp_dir_base=os.path.join(exp_dir_base, "best_results.csv"),
     )
     # serialize_tree_to_file(max_root, os.path.join(exp_dir_base, "tree.tsv"))
     # Graphviz.write_tree(os.path.join(exp_dir_base, "tree.dot"), max_root)
@@ -197,19 +200,19 @@ def main():
 
 
 if __name__ == "__main__":
-    # main()
-    # data_path = "./data/shuffle_data/2023-03-24-15-44-58-392/45_wine_2.csv"
-    data_path = "./data/raw/aloi_1.tsv"
-    m = 5000
-    t = 200
-    psi = [7]  # 5, 10, 17, 21, 25]
-    file_name = "wine"
-    exp_dir_base = "./exp_out/test"
-    grid_search_inode(
-        data_path=data_path,
-        m=m,
-        t=t,
-        psi=psi,
-        file_name=file_name,
-        exp_dir_base=exp_dir_base,
-    )
+    main()
+    # # data_path = "./data/shuffle_data/2023-03-24-15-44-58-392/45_wine_2.csv"
+    # data_path = "data/shuffle_data/2025-10-30-18-27-08-990/wine_3.csv"
+    # m = 44
+    # t = 200
+    # psi = [3, 5, 7, 13, 15, 17, 21, 25]
+    # file_name = "Wine"
+    # exp_dir_base = "./exp_out/test"
+    # grid_search_inode(
+    #     data_path=data_path,
+    #     m=m,
+    #     t=t,
+    #     psi=psi,
+    #     file_name=file_name,
+    #     exp_dir_base=exp_dir_base,
+    # )
