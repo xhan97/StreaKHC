@@ -78,3 +78,41 @@ def load_npy_stream(filename, is_scale=False, is_shuffle=False):
         rng.shuffle(concat_data)
     for pt in concat_data:
         yield ((int(pt[1]), int(pt[0]), pt[2:]))
+
+
+def format_value(v):
+    return f"{v:.2f}" if isinstance(v, float) else str(v)
+
+
+def process_dict(d: dict):
+    return list(d.keys()), [format_value(v) for v in d.values()]
+
+
+def save_results(
+    data_info: dict,
+    algorithm_info: dict,
+    metrics_info: dict,
+    exp_dir_base: str,
+):
+    """Saves grid search result to a CSV file."""
+    if os.path.isdir(exp_dir_base):
+        os.makedirs(exp_dir_base, exist_ok=True)
+        file_path = os.path.join(
+            exp_dir_base, "{}.csv".format(data_info.get("dataset"))
+        )
+    else:
+        os.makedirs(os.path.dirname(exp_dir_base), exist_ok=True)
+        file_path = exp_dir_base
+    data_info_header, data_info_values = process_dict(data_info)
+    algorithm_info_header, algorithm_info_values = process_dict(algorithm_info)
+    metrics_header, metrics_values = process_dict(metrics_info)
+
+    header = data_info_header + algorithm_info_header + metrics_header
+    values = data_info_values + algorithm_info_values + metrics_values
+
+    # Write header if file does not exist
+    write_header = not os.path.exists(file_path)
+    with open(file_path, "a") as fout:
+        if write_header:
+            fout.write(",".join(header) + "\n")
+        fout.write(",".join(values) + "\n")

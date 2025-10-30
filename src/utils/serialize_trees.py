@@ -12,6 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import math
 
 import numpy as np
@@ -22,27 +23,27 @@ from numba import jit
 def _fast_dot(x, y):
     """Compute the dot product of x and y using numba.
 
-      Args:
-      x - a numpy vector (or list).
-      y - a numpy vector (or list).
+    Args:
+    x - a numpy vector (or list).
+    y - a numpy vector (or list).
 
-      Returns:
-      x_T.y
-      """
+    Returns:
+    x_T.y
+    """
     return np.dot(x, y)
 
 
 def _fast_normalize_dot(x, y):
     """Compute the dot product of x and y using numba.
 
-      Args:
-      x - a numpy vector (or list).
-      y - a numpy vector (or list).
-      t - an integel
+    Args:
+    x - a numpy vector (or list).
+    y - a numpy vector (or list).
+    t - an integel
 
-      Returns:
-      Normalized x_T.y
-      """
+    Returns:
+    Normalized x_T.y
+    """
 
     return _fast_dot(x, y) / (math.sqrt(_fast_dot(x, x)) * (math.sqrt(_fast_dot(y, y))))
 
@@ -90,11 +91,11 @@ def serliaze_tree_to_file_with_node_ds(root, fn):
 
 def node_similarity(curr_node):
     """Compute the similarity between a point x and its sibing.
-        Args:
-        x - a numpy array of floats.
-        Returns:
-        A float representing the lower bound.
-        """
+    Args:
+    x - a numpy array of floats.
+    Returns:
+    A float representing the lower bound.
+    """
     sibling_node = curr_node.siblings()[0]
     # if curr_node.is_leaf() and sibling_node.is_leaf():
     #     return _fast_dot(curr_node.ikv, sibling_node.ikv)
@@ -117,7 +118,7 @@ def node_similarity(curr_node):
 #     return distance
 
 
-def serliaze_tree_to_file(root, fn):
+def serialize_tree_to_file(root, fn):
     with open(fn, "w") as fout:
         queue = Queue()
         queue.put(root)
@@ -152,9 +153,11 @@ def serliaze_collapsed_tree_to_file_with_point_ids(root, fn):
                 % (
                     curr_node_id,
                     curr_node.parent.id if curr_node.parent else "None",
-                    curr_node.pts[0][1]
-                    if curr_node.is_leaf() and not curr_node.is_collapsed
-                    else "None",
+                    (
+                        curr_node.pts[0][1]
+                        if curr_node.is_leaf() and not curr_node.is_collapsed
+                        else "None"
+                    ),
                 )
             )
             for c in curr_node.children:

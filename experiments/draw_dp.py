@@ -24,12 +24,12 @@ from src.INode import INode
 from src.utils.dendrogram_purity import dendrogram_purity, expected_dendrogram_purity
 from src.utils.file_utils import load_data
 from src.utils.Graphviz import Graphviz
-from src.utils.serialize_trees import serliaze_tree_to_file
+from src.utils.serialize_trees import serialize_tree_to_file
 
 
 def record_build_tree(data_path, m, psi, t):
     """Create trees over the points from input data path.
-    Return pointers to the roots of all trees for evaluation.  
+    Return pointers to the roots of all trees for evaluation.
     The trees will be created via the insert methods passed in.
 
     Args:
@@ -76,9 +76,21 @@ def save_dp(args, exp_dir_base):
     file_path = os.path.join(exp_dir_base, "dp_result.csv")
     if not os.path.exists(file_path):
         with open(file_path, "w") as fout:
-            fout.write("%s\t%s\n" % ("Points", "Dendrogram purity",))
+            fout.write(
+                "%s\t%s\n"
+                % (
+                    "Points",
+                    "Dendrogram purity",
+                )
+            )
     with open(file_path, "a") as fout:
-        fout.write("%s\t%.2f\n" % (args["points"], args["dp"],))
+        fout.write(
+            "%s\t%.2f\n"
+            % (
+                args["points"],
+                args["dp"],
+            )
+        )
 
 
 def get_dp(data_path, psi, t, m, file_name, exp_dir_base):

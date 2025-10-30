@@ -29,7 +29,7 @@ from src.streakhc_snstr.INode_snstr import INode_snstr
 from src.utils.dendrogram_purity import expected_dendrogram_purity
 from src.utils.file_utils import load_data_stream
 from src.utils.Graphviz import Graphviz
-from src.utils.serialize_trees import serliaze_tree_to_file
+from src.utils.serialize_trees import serialize_tree_to_file
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -58,19 +58,21 @@ def streKHC_snstr(data_path, m, sig, n_components, window_size=5000):
         if i <= m:
             train_dataset.append(pt)
             if i == m:
-                gk = Nystroem(kernel="rbf", n_components=n_components, gamma=sig ** -2)
+                gk = Nystroem(kernel="rbf", n_components=n_components, gamma=sig**-2)
                 gk = gk.fit(np.array([pt[2] for pt in train_dataset]))
                 for _, train_pt in enumerate(train_dataset, start=1):
                     l, pid, gkv = (
                         train_pt[0],
                         train_pt[1],
-                        gk.transform([train_pt[2]])[0]
+                        gk.transform([train_pt[2]])[0],
                     )
                     root = root.grow((l, pid, gkv), L=L, delete_node=True)
 
         else:
             l, pid = pt[:2]
-            root = root.grow((l, pid, gk.transform([train_pt[2]])[0]), L=L, delete_node=True)
+            root = root.grow(
+                (l, pid, gk.transform([train_pt[2]])[0]), L=L, delete_node=True
+            )
 
         if i % window_size == 0:
             print("Finish %d points in %.2f seconds." % (i, time.time() - st))
@@ -82,12 +84,23 @@ def save_data(args, exp_dir_base):
     if not os.path.exists(file_path):
         with open(file_path, "w") as fout:
             fout.write(
-                "%s\t%s\t%s\t%s\n" % ("dataset", "algorithm", "purity", "max_sig",)
+                "%s\t%s\t%s\t%s\n"
+                % (
+                    "dataset",
+                    "algorithm",
+                    "purity",
+                    "max_sig",
+                )
             )
     with open(file_path, "a") as fout:
         fout.write(
             "%s\t%s\t%.2f\t%s\n"
-            % (args["dataset"], args["algorithm"], args["purity"], args["max_sig"],)
+            % (
+                args["dataset"],
+                args["algorithm"],
+                args["purity"],
+                args["max_sig"],
+            )
         )
 
 
@@ -95,11 +108,24 @@ def save_grid_data(args, exp_dir_base):
     file_path = os.path.join(exp_dir_base, "grid_score.tsv")
     if not os.path.exists(file_path):
         with open(file_path, "w") as fout:
-            fout.write("%s\t%s\t%s\t%s\n" % ("dataset", "algorithm", "purity", "sig",))
+            fout.write(
+                "%s\t%s\t%s\t%s\n"
+                % (
+                    "dataset",
+                    "algorithm",
+                    "purity",
+                    "sig",
+                )
+            )
     with open(file_path, "a") as fout:
         fout.write(
             "%s\t%s\t%.2f\t%s\n"
-            % (args["dataset"], args["algorithm"], args["purity"], args["sig"],)
+            % (
+                args["dataset"],
+                args["algorithm"],
+                args["purity"],
+                args["sig"],
+            )
         )
 
 
@@ -182,9 +208,7 @@ def main():
         help="<Required> n_feature for data set",
     )
     args = parser.parse_args()
-    sig_list = [2 ** s for s in args.sig] + [
-        args.data_feature * (2 ** s) for s in args.sig
-    ]
+    sig_list = [2**s for s in args.sig] + [args.data_feature * (2**s) for s in args.sig]
 
     grid_search_gnode(
         data_path=args.input,
@@ -202,9 +226,9 @@ if __name__ == "__main__":
     m = 44
     t = 200
 
-    #sig = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]
+    # sig = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]
     sig = [1]
-    sig_list = [2 ** s for s in sig] + [128 * (2 ** s) for s in sig]
+    sig_list = [2**s for s in sig] + [128 * (2**s) for s in sig]
     file_name = "aloi"
     exp_dir_base = "./exp_out/test"
     grid_search_gnode(
@@ -215,4 +239,3 @@ if __name__ == "__main__":
         file_name=file_name,
         exp_dir_base=exp_dir_base,
     )
-

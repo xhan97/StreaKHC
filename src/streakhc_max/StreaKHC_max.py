@@ -25,7 +25,7 @@ from src.utils.IsoKernel import IsolationKernel
 from src.utils.file_utils import load_static_data
 from src.utils.Graphviz import Graphviz
 from src.utils.dendrogram_purity import expected_dendrogram_purity, dendrogram_purity
-from src.utils.serialize_trees import serliaze_tree_to_file
+from src.utils.serialize_trees import serialize_tree_to_file
 
 # from memory_profiler import profile
 

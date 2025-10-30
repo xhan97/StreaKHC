@@ -23,7 +23,7 @@ from src.utils.IsoKernel import IsolationKernel
 from src.utils.file_utils import load_data_stream
 from src.utils.Graphviz import Graphviz
 from src.utils.dendrogram_purity import expected_dendrogram_purity, dendrogram_purity
-from src.utils.serialize_trees import serliaze_tree_to_file
+from src.utils.serialize_trees import serialize_tree_to_file
 from INode_gr import INode_gr
 import numpy as np
 import argparse
@@ -77,12 +77,23 @@ def save_data(args, exp_dir_base):
     if not os.path.exists(file_path):
         with open(file_path, "w") as fout:
             fout.write(
-                "%s\t%s\t%s\t%s\n" % ("dataset", "algorithm", "purity", "max_psi",)
+                "%s\t%s\t%s\t%s\n"
+                % (
+                    "dataset",
+                    "algorithm",
+                    "purity",
+                    "max_psi",
+                )
             )
     with open(file_path, "a") as fout:
         fout.write(
             "%s\t%s\t%.2f\t%s\n"
-            % (args["dataset"], args["algorithm"], args["purity"], args["max_psi"],)
+            % (
+                args["dataset"],
+                args["algorithm"],
+                args["purity"],
+                args["max_psi"],
+            )
         )
 
 
@@ -90,11 +101,24 @@ def save_grid_data(args, exp_dir_base):
     file_path = os.path.join(exp_dir_base, "grid_score.tsv")
     if not os.path.exists(file_path):
         with open(file_path, "w") as fout:
-            fout.write("%s\t%s\t%s\t%s\n" % ("dataset", "algorithm", "purity", "psi",))
+            fout.write(
+                "%s\t%s\t%s\t%s\n"
+                % (
+                    "dataset",
+                    "algorithm",
+                    "purity",
+                    "psi",
+                )
+            )
     with open(file_path, "a") as fout:
         fout.write(
             "%s\t%s\t%.2f\t%s\n"
-            % (args["dataset"], args["algorithm"], args["purity"], args["psi"],)
+            % (
+                args["dataset"],
+                args["algorithm"],
+                args["purity"],
+                args["psi"],
+            )
         )
 
 
@@ -123,7 +147,7 @@ def grid_search_inode(data_path, psi, t, m, file_name, exp_dir_base):
         "max_psi": max_ps,
     }
     save_data(args, exp_dir_base)
-    serliaze_tree_to_file(max_root, os.path.join(exp_dir_base, "tree.tsv"))
+    serialize_tree_to_file(max_root, os.path.join(exp_dir_base, "tree.tsv"))
     Graphviz.write_tree(os.path.join(exp_dir_base, "tree.dot"), max_root)
 
 

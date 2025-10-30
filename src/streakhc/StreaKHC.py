@@ -24,13 +24,22 @@ import time
 
 from INode import INode
 from src.utils.IsoKernel import IsolationKernel
-from src.utils.file_utils import load_data_stream
+from src.utils.file_utils import load_data_stream, save_results
 from src.utils.Graphviz import Graphviz
 from src.utils.dendrogram_purity import expected_dendrogram_purity
-from src.utils.serialize_trees import serliaze_tree_to_file
+from src.utils.patch_evaluate import (
+    cut_tree,
+    get_contingency_matrix,
+    purity_score,
+    nmi_score,
+    accuracy_score,
+    ari_score,
+    rand_index_score,
+)
+from src.utils.serialize_trees import serialize_tree_to_file
 
 
-def streKHC(data_path, m, psi, t, window_size=5000):
+def StreaKHC(data_path, m, psi, t, window_size=5000):
     """Create trees over the same points.
     Create n trees, online, over the same dataset. Return pointers to the
     roots of all trees for evaluation.  The trees will be created via the insert
@@ -72,60 +81,67 @@ def streKHC(data_path, m, psi, t, window_size=5000):
     return root
 
 
-def save_data(args, exp_dir_base):
-    file_path = os.path.join(exp_dir_base, "score.tsv")
-    if not os.path.exists(file_path):
-        with open(file_path, "w") as fout:
-            fout.write(
-                "%s\t%s\t%s\t%s\n" % ("dataset", "algorithm", "purity", "max_psi",)
-            )
-    with open(file_path, "a") as fout:
-        fout.write(
-            "%s\t%s\t%.2f\t%s\n"
-            % (args["dataset"], args["algorithm"], args["purity"], args["max_psi"],)
-        )
-
-
-def save_grid_data(args, exp_dir_base):
-    file_path = os.path.join(exp_dir_base, "grid_score.tsv")
-    if not os.path.exists(file_path):
-        with open(file_path, "w") as fout:
-            fout.write("%s\t%s\t%s\t%s\n" % ("dataset", "algorithm", "purity", "psi",))
-    with open(file_path, "a") as fout:
-        fout.write(
-            "%s\t%s\t%.2f\t%s\n"
-            % (args["dataset"], args["algorithm"], args["purity"], args["psi"],)
-        )
-
-
 def grid_search_inode(data_path, psi, t, m, file_name, exp_dir_base):
     alg = "StreaKHC"
-    max_purity = 0
+    best_acc, best_purity, best_nmi, best_ari, best_ri = 0, 0, 0, 0, 0
+    data_info = {"dataset": file_name}
+    algorithm_info = {"algorithm": alg}
     for ps in psi:
-        root = streKHC(data_path, m, ps, t)
+        root = StreaKHC(data_path, m, ps, t)
         print(root.get_sibings_is_internal)
-        purity = expected_dendrogram_purity(root)
-        if purity > max_purity:
+        # denpurity = expected_dendrogram_purity(root)
+        y_hat, y_true = cut_tree(root)
+        contingency_matrix = get_contingency_matrix(y_true, y_hat)
+        acc = accuracy_score(y_true, y_hat, contingency_matrix)
+        purity = purity_score(y_true, y_hat, contingency_matrix)
+        nmi = nmi_score(y_true, y_hat)
+        ari = ari_score(y_true, y_hat)
+        ri = rand_index_score(y_true, y_hat)
+        if acc > best_acc:
             max_ps = ps
             max_root = root
-            max_purity = purity
-        res = {
-            "dataset": file_name,
-            "algorithm": alg,
-            "purity": purity,
+            best_acc = acc
+        if purity > best_purity:
+            best_purity = purity
+        if nmi > best_nmi:
+            best_nmi = nmi
+        if ari > best_ari:
+            best_ari = ari
+        if ri > best_ri:
+            best_ri = ri
+        metrics_info = {
             "psi": ps,
+            "purity": purity,
+            "nmi": nmi,
+            "accuracy": acc,
+            # "denpurity": denpurity,
+            "ari": ari,
+            "ri": ri,
         }
-        save_grid_data(res, exp_dir_base)
+        save_results(
+            data_info=data_info,
+            algorithm_info=algorithm_info,
+            metrics_info=metrics_info,
+            exp_dir_base=os.path.join(exp_dir_base, "grid_search"),
+        )
 
     args = {
-        "dataset": file_name,
-        "algorithm": alg,
-        "purity": max_purity,
         "max_psi": max_ps,
+        "best_acc": best_acc,
+        "best_nmi": best_nmi,
+        "best_purity": best_purity,
+        "best_ari": best_ari,
+        "best_ri": best_ri,
+        # "best_denpurity": best_denpurity,
     }
-    save_data(args, exp_dir_base)
-    serliaze_tree_to_file(max_root, os.path.join(exp_dir_base, "tree.tsv"))
-    Graphviz.write_tree(os.path.join(exp_dir_base, "tree.dot"), max_root)
+    save_results(
+        data_info=data_info,
+        algorithm_info=algorithm_info,
+        metrics_info=args,
+        exp_dir_base=os.path.join(exp_dir_base, "best_results"),
+    )
+    # serialize_tree_to_file(max_root, os.path.join(exp_dir_base, "tree.tsv"))
+    # Graphviz.write_tree(os.path.join(exp_dir_base, "tree.dot"), max_root)
 
 
 def main():

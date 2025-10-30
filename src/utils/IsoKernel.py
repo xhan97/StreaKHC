@@ -61,8 +61,8 @@ class IsolationKernel(TransformerMixin, BaseEstimator):
 
     References
     ----------
-    .. [1] Qin, X., Ting, K.M., Zhu, Y. and Lee, V.C. 
-    "Nearest-neighbour-induced isolation similarity and its impact on density-based clustering". 
+    .. [1] Qin, X., Ting, K.M., Zhu, Y. and Lee, V.C.
+    "Nearest-neighbour-induced isolation similarity and its impact on density-based clustering".
     In Proceedings of the AAAI Conference on Artificial Intelligence, Vol. 33, 2019, July, pp. 4755-4762
 
     Examples
@@ -173,19 +173,17 @@ class IsolationKernel(TransformerMixin, BaseEstimator):
         X = check_array(X)
         n, m = X.shape
         X_dists = euclidean_distances(X, self.center_data)
+        embedding = np.zeros((n, self.n_estimators * self.max_samples_), dtype=float)
+        index_mapping = np.zeros(self.unique_index.max() + 1, dtype=int)
+        index_mapping[self.unique_index] = np.arange(len(self.unique_index))
+        mapped_center_indices = index_mapping[self.center_index_set]
 
         for i in range(n):
-            mapping_array = np.zeros(self.unique_index.max() + 1, dtype=X_dists.dtype)
-            mapping_array[self.unique_index] = X_dists[i]
-            x_center_dist_mat = mapping_array[self.center_index_set]
-
+            x_center_dist_mat = X_dists[i, mapped_center_indices]
             nearest_center_index = np.argmin(x_center_dist_mat, axis=1)
-            ik_value = np.eye(self.max_samples_, dtype=int)[
-                nearest_center_index
-            ].flatten()[np.newaxis]
-            if i == 0:
-                embedding = ik_value
-            else:
-                embedding = np.append(embedding, ik_value, axis=0)
+            offsets = np.arange(self.n_estimators) * self.max_samples_
+            flat_indices = offsets + nearest_center_index
+            embedding[i, flat_indices] = 1.0
+
         self.embedding = embedding
-        return embedding.astype(float)
+        return embedding

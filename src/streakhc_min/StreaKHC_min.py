@@ -25,7 +25,7 @@ from src.utils.IsoKernel import IsolationKernel
 from src.utils.file_utils import load_static_data
 from src.utils.Graphviz import Graphviz
 from src.utils.dendrogram_purity import expected_dendrogram_purity, dendrogram_purity
-from src.utils.serialize_trees import serliaze_tree_to_file
+from src.utils.serialize_trees import serialize_tree_to_file
 
 # from memory_profiler import profile
 
@@ -81,7 +81,7 @@ def streKHC_min(data_path, psi, t):
         mask_index.append(insert_index)
 
         if (i == 10) or (i == 100) or (i == 700) or (i == num_samples - 1):
-            serliaze_tree_to_file(
+            serialize_tree_to_file(
                 root,
                 os.path.join("./exp_out/test/min", "tree_{}_{}.tsv".format(psi, i)),
             )
