@@ -27,7 +27,7 @@ from src.utils.IsoKernel import IsolationKernel
 from src.utils.file_utils import load_data_stream, save_results
 from src.utils.Graphviz import Graphviz
 from src.utils.dendrogram_purity import expected_dendrogram_purity
-from src.utils.patch_evaluate import (
+from src.utils.flat_evaluate import (
     cut_tree,
     get_contingency_matrix,
     purity_score,

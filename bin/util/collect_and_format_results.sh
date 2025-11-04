@@ -20,6 +20,9 @@ fi
     echo "$csv_files" | xargs tail -n +2 -q
 } > "$exp_dir/all_scores.csv"
 
+# python bin/util/generate_latex_tables.py "$exp_dir/all_scores.csv"
+# echo "Combined results saved to $exp_dir/all_scores.csv"
+
 # python3 bin/util/format_result_table.py "$exp_dir/all_scores.txt" > "$exp_dir/dendrogram_purity.tex"
 
 # cat $exp_dir/dendrogram_purity.tex
