@@ -14,18 +14,15 @@
 
 import os
 import sys
+import argparse
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 
-import warnings
+from pha import pha_cluster_from_points
 
-warnings.filterwarnings("ignore")
-
-import argparse
-from sklearn.cluster import AgglomerativeClustering
 from src.utils.file_utils import load_static_data, save_results
 from sklearn.preprocessing import MinMaxScaler
-
+from scipy.cluster.hierarchy import fcluster
 from src.utils.flat_evaluate import (
     purity_score,
     nmi_score,
@@ -35,39 +32,50 @@ from src.utils.flat_evaluate import (
 )
 
 
-def get_labels(X, n_clusters, linkage):
-    agc = AgglomerativeClustering(n_clusters=n_clusters, linkage=linkage)
+def get_labels(X, S, n_clusters):
     scaler = MinMaxScaler()
     X = scaler.fit_transform(X)
-    labels = agc.fit_predict(X)
+    Z, _, _ = pha_cluster_from_points(X, S=S)
+    labels = fcluster(Z, n_clusters, criterion="maxclust")
     return labels
 
 
-def run(data_path, file_name, linkage, exp_dir_base):
+def run(data_path, file_name, S, exp_dir_base):
     _, y, X = load_static_data(data_path)
     n_clusters = len(set(y))
-    labels = get_labels(X, n_clusters, linkage)
+    best_acc, best_purity, best_nmi, best_ari, best_rand = 0, 0, 0, 0, 0
 
-    purity = purity_score(y, labels)
-    nmi = nmi_score(y, labels)
-    accuracy = accuracy_score(y, labels)
-    ari = ari_score(y, labels)
-    rand_index = rand_index_score(y, labels)
+    for s_i in S:
+        try:
+            print(f"Running PHA with S={s_i} on dataset {file_name}...")
+            labels = get_labels(X, s_i, n_clusters)
+            purity = purity_score(y, labels)
+            nmi = nmi_score(y, labels)
+            accuracy = accuracy_score(y, labels)
+            ari = ari_score(y, labels)
+            rand_index = rand_index_score(y, labels)
+
+            best_acc = max(best_acc, accuracy)
+            best_purity = max(best_purity, purity)
+            best_nmi = max(best_nmi, nmi)
+            best_ari = max(best_ari, ari)
+            best_rand = max(best_rand, rand_index)
+        except Exception as e:
+            print(f"Error with S={s_i} on dataset {file_name}: {e}")
+            continue
 
     data_info = {
         "dataset": file_name,
     }
-
     algorithm_info = {
-        "linkage": linkage,
+        "algorithm": "PHA",
     }
-
     res_info = {
-        "best_purity": purity,
-        "best_nmi": nmi,
-        "best_acc": accuracy,
-        "best_ari": ari,
-        "best_ri": rand_index,
+        "best_purity": best_purity,
+        "best_nmi": best_nmi,
+        "best_acc": best_acc,
+        "best_ari": best_ari,
+        "best_ri": best_rand,
     }
 
     save_results(
@@ -79,26 +87,20 @@ def run(data_path, file_name, linkage, exp_dir_base):
 
 
 def main():
-    parser = argparse.ArgumentParser()
+
+    parser = argparse.ArgumentParser(description="Run PHA clustering algorithm")
     parser.add_argument(
-        "--data_path", type=str, required=True, help="Path to data file"
+        "--data_path", type=str, required=True, help="Path to the dataset file"
     )
     parser.add_argument(
         "--file_name", type=str, required=True, help="Name of the dataset"
     )
-
-    parser.add_argument(
-        "--linkage",
-        type=str,
-        default="single",
-        choices=["complete", "average", "single"],
-        help="Linkage criterion",
-    )
+    parser.add_argument("--S", type=int, nargs="+", help="Number of nearest neighbors")
     parser.add_argument(
         "--exp_dir_base",
         type=str,
-        required=True,
-        help="Directory to save experiment results",
+        default="experiments/pha_results",
+        help="Base directory to save experiment results",
     )
 
     args = parser.parse_args()
@@ -106,7 +108,7 @@ def main():
     run(
         data_path=args.data_path,
         file_name=args.file_name,
-        linkage=args.linkage,
+        S=args.S,
         exp_dir_base=args.exp_dir_base,
     )
 

@@ -100,18 +100,11 @@ def grid_search_inode(data_path, psi, t, m, file_name, exp_dir_base):
         nmi = nmi_score(y_true, y_hat)
         ari = ari_score(y_true, y_hat)
         ri = rand_index_score(y_true, y_hat)
-        if acc > best_acc:
-            max_ps = ps
-            max_root = root
-            best_acc = acc
-        if purity > best_purity:
-            best_purity = purity
-        if nmi > best_nmi:
-            best_nmi = nmi
-        if ari > best_ari:
-            best_ari = ari
-        if ri > best_ri:
-            best_ri = ri
+        best_acc = max(best_acc, acc)
+        best_purity = max(best_purity, purity)
+        best_nmi = max(best_nmi, nmi)
+        best_ari = max(best_ari, ari)
+        best_ri = max(best_ri, ri)
         metrics_info = {
             "psi": ps,
             "purity": purity,
@@ -130,13 +123,14 @@ def grid_search_inode(data_path, psi, t, m, file_name, exp_dir_base):
 
     args = {
         "max_psi": max_ps,
-        "best_acc": best_acc,
-        "best_nmi": best_nmi,
         "best_purity": best_purity,
+        "best_nmi": best_nmi,
+        "best_acc": best_acc,
         "best_ari": best_ari,
         "best_ri": best_ri,
         # "best_denpurity": best_denpurity,
     }
+
     save_results(
         data_info=data_info,
         algorithm_info=algorithm_info,
