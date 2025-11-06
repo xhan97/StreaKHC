@@ -26,21 +26,16 @@ for suffix in '.csv' '.tsv'; do
                 #shuffled_data="${dataset_file}"
                 exp_output_dir="${output_dir}/${dataset_name}/run_$i"
                 mkdir -p ${exp_output_dir}
-                python3 src/grinch/Grinch.py --input ${shuffled_data} \
+                python3 src/grinch/run_grinch.py --input ${shuffled_data} \
                     --dataset ${dataset_name} \
-                    --use_ik False \
-                    --outdir ${exp_output_dir}
+                    --outdir ${exp_output_dir} \
+                    --sim_type 'dot' \
+                    --norm_type 'l2' \
+                    --rotate_cap 50 \
+                    --graft_cap 100 \
                 #mv $dataset_file $STREASKH_DATA_RUNNED
             ) &
         done
-
-        exp_output_dir="${output_dir}/${dataset_name}"
-        mkdir -p ${exp_output_dir}
-        python3 src/grinch/Grinch.py --input ${dataset_file} \
-            --dataset ${dataset_name} \
-            --use_ik False \
-            --outdir ${exp_output_dir}
-        #mv $dataset_file $STREASKH_DATA_RUNNED
     done
 done
 sh bin/util/collect_and_format_results.sh $output_dir

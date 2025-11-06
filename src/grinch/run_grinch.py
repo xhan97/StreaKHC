@@ -27,7 +27,7 @@ from utils.exact_cluster import cut_tree_grinch
 print("Grinch module loaded.")
 
 
-def create_g_tree_path(data_path):
+def create_g_tree_path(data_path, norm_type, sim_type, rotate_cap, graft_cap):
     """Create trees over the same points.
 
     Create n trees, online, over the same dataset. Return pointers to the
@@ -43,7 +43,9 @@ def create_g_tree_path(data_path):
         passed in.
     """
 
-    g1 = Grinch(norm="l2")
+    g1 = Grinch(
+        rotate_cap=rotate_cap, graft_cap=graft_cap, norm=norm_type, sim=sim_type
+    )
 
     run_time = []
     # mem_used = []
@@ -62,13 +64,25 @@ def create_g_tree_path(data_path):
     return g1.root_node
 
 
-def grid_research_grinch(data_path, file_name, exp_dir_base, use_ik=False):
-    ti = 0
-    tree_purity = 0
-    alg = "Grinch"
+def grid_research_grinch(
+    data_path,
+    file_name,
+    norm_type,
+    sim_type,
+    rotate_cap,
+    graft_cap,
+    exp_dir_base,
+):
+    alg = "Grinch_{}".format(sim_type)
     data_info = {"dataset": file_name}
     algorithm_info = {"algorithm": alg}
-    root = create_g_tree_path(data_path=data_path)
+    root = create_g_tree_path(
+        data_path=data_path,
+        norm_type=norm_type,
+        sim_type=sim_type,
+        rotate_cap=rotate_cap,
+        graft_cap=graft_cap,
+    )
     # tree_purity = expected_dendrogram_purity(root)
     y_hat, y_true = cut_tree_grinch(root)
     contingency_matrix = get_contingency_matrix(y_true, y_hat)
@@ -117,18 +131,39 @@ def main():
         required=True,
     )
     parser.add_argument(
-        "--use_ik",
-        "-k",
-        type=bool,
-        help="Whether to use Isolation Kernel",
+        "--norm_type",
+        type=str,
+        default="l2",
+        help="The norm type for Grinch. Default is l2. ('l2', 'l_inf', 'none') are supported.",
+    )
+    parser.add_argument(
+        "--sim_type",
+        type=str,
+        default="l2",
+        help="The similarity type for Grinch. Default is l2. ('dot', 'l2', 'sql2') are supported.",
+    )
+    parser.add_argument(
+        "--rotate_cap",
+        type=int,
+        default=50,
+        help="The rotate cap for Grinch. Default is 50.",
+    )
+    parser.add_argument(
+        "--graft_cap",
+        type=int,
+        default=100,
+        help="The graft cap for Grinch. Default is 100.",
     )
 
     args = parser.parse_args()
     grid_research_grinch(
         data_path=args.input,
         file_name=args.dataset,
+        norm_type=args.norm_type,
+        sim_type=args.sim_type,
+        rotate_cap=args.rotate_cap,
+        graft_cap=args.graft_cap,
         exp_dir_base=args.outdir,
-        use_ik=False,
     )
 
 

@@ -1,0 +1,40 @@
+Shuffling /home/xinhan/project/code/StreaKHC/data/raw/ALLAML.csv > /home/xinhan/project/code/StreaKHC/data/shuffle_data//2025-11-06-18-06-36-680/ALLAML_1.csv
+Shuffling /home/xinhan/project/code/StreaKHC/data/raw/ALLAML.csv > /home/xinhan/project/code/StreaKHC/data/shuffle_data//2025-11-06-18-06-36-680/ALLAML_2.csv
+Shuffling /home/xinhan/project/code/StreaKHC/data/raw/ALLAML.csv > /home/xinhan/project/code/StreaKHC/data/shuffle_data//2025-11-06-18-06-36-680/ALLAML_3.csv
+Shuffling /home/xinhan/project/code/StreaKHC/data/raw/ALLAML.csv > /home/xinhan/project/code/StreaKHC/data/shuffle_data//2025-11-06-18-06-36-680/ALLAML_4.csv
+Shuffling /home/xinhan/project/code/StreaKHC/data/raw/ALLAML.csv > /home/xinhan/project/code/StreaKHC/data/shuffle_data//2025-11-06-18-06-36-680/ALLAML_5.csv
+Shuffling /home/xinhan/project/code/StreaKHC/data/raw/ALLAML.csv > /home/xinhan/project/code/StreaKHC/data/shuffle_data//2025-11-06-18-06-36-680/ALLAML_6.csv
+Shuffling /home/xinhan/project/code/StreaKHC/data/raw/ALLAML.csv > /home/xinhan/project/code/StreaKHC/data/shuffle_data//2025-11-06-18-06-36-680/ALLAML_7.csv
+Shuffling /home/xinhan/project/code/StreaKHC/data/raw/ALLAML.csv > /home/xinhan/project/code/StreaKHC/data/shuffle_data//2025-11-06-18-06-36-680/ALLAML_8.csv
+Shuffling /home/xinhan/project/code/StreaKHC/data/raw/ALLAML.csv > /home/xinhan/project/code/StreaKHC/data/shuffle_data//2025-11-06-18-06-36-680/ALLAML_9.csv
+Shuffling /home/xinhan/project/code/StreaKHC/data/raw/ALLAML.csv > /home/xinhan/project/code/StreaKHC/data/shuffle_data//2025-11-06-18-06-36-680/ALLAML_10.csv
+Grinch module loaded.
+[(0, 0.043920278549194336)]
+Results saved to exp_out/2025-11-06-18-06-36-680/ALLAML/run_1/best_results.csv
+Grinch module loaded.
+[(0, 0.04470968246459961)]
+Results saved to exp_out/2025-11-06-18-06-36-680/ALLAML/run_10/best_results.csv
+Grinch module loaded.
+[(0, 0.05136299133300781)]
+Results saved to exp_out/2025-11-06-18-06-36-680/ALLAML/run_8/best_results.csv
+Grinch module loaded.
+[(0, 0.04446053504943848)]
+Results saved to exp_out/2025-11-06-18-06-36-680/ALLAML/run_9/best_results.csv
+Grinch module loaded.
+[(0, 0.0409395694732666)]
+Results saved to exp_out/2025-11-06-18-06-36-680/ALLAML/run_6/best_results.csv
+Grinch module loaded.
+[(0, 0.04590630531311035)]
+Results saved to exp_out/2025-11-06-18-06-36-680/ALLAML/run_4/best_results.csv
+Grinch module loaded.
+[(0, 0.044348955154418945)]
+Results saved to exp_out/2025-11-06-18-06-36-680/ALLAML/run_5/best_results.csv
+Grinch module loaded.
+[(0, 0.0404200553894043)]
+Results saved to exp_out/2025-11-06-18-06-36-680/ALLAML/run_7/best_results.csv
+Grinch module loaded.
+[(0, 0.05366778373718262)]
+Results saved to exp_out/2025-11-06-18-06-36-680/ALLAML/run_3/best_results.csv
+Grinch module loaded.
+[(0, 0.05271172523498535)]
+Results saved to exp_out/2025-11-06-18-06-36-680/ALLAML/run_2/best_results.csv

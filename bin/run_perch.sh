@@ -33,13 +33,6 @@ for suffix in '.csv' '.tsv'; do
                 #mv $dataset_file $STREASKH_DATA_RUNNED
             ) &
         done
-
-        exp_output_dir="${output_dir}/${dataset_name}"
-        mkdir -p ${exp_output_dir}
-        python3 src/perch/Perch.py --input ${dataset_file} \
-            --dataset ${dataset_name} \
-            --use_ik False \
-            --outdir ${exp_output_dir}
         #mv $dataset_file $STREASKH_DATA_RUNNED
     done
 done
