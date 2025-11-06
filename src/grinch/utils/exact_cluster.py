@@ -1,186 +1,180 @@
 """
 Grinch clustering utilities for tree cutting and evaluation.
+适用于 grinch_new.py (完全在线模式，基于 GNode)
 """
 
+from typing import Optional, Tuple, List, TYPE_CHECKING
 import heapq
-from typing import Optional, Tuple, List
 import numpy as np
-from src.grinch.grinch import Grinch
 
-
-def get_children_similarity_grinch(grinch: Grinch, node_id: int) -> float:
-    """Get the similarity between the two children of a node in Grinch.
-
-    Args:
-        grinch: The Grinch clustering object.
-        node_id: The node ID to get the similarity from.
-    Returns:
-        The similarity between the two children.
-    """
-    if grinch.is_leaf(node_id):
-        return 0.0
-
-    # Get the linkage score (similarity) for this internal node
-    similarity = grinch.get_score(node_id)
-    return similarity
+if TYPE_CHECKING:
+    from src.grinch.grinch import Grinch
 
 
 def cut_tree_grinch(
-    grinch: Grinch, data_list: list, n_cluster: Optional[int] = None
+    grinch: "Grinch", n_cluster: Optional[int] = None
 ) -> Tuple[List[int], List[int]]:
-    """Extract subtree from Grinch with n_cluster clusters.
+    """Extract flat clustering from Grinch with exactly n_cluster clusters.
+
+    Iteratively splits the internal node with lowest children similarity
+    until we reach the desired number of clusters.
 
     Args:
-        grinch: The Grinch clustering object.
-        data_list: The original data list with labels.
-        n_cluster: The number of clusters to extract.
+        grinch: The Grinch clustering object (grinch_new.py).
+        n_cluster: The number of clusters to extract (optional).
+                  If None, inferred from unique ground truth labels.
+
     Returns:
-        Tuple of (predicted_labels, true_labels).
+        Tuple of (predicted_labels, ground_truth_labels).
+        Both are lists of integers with same length as number of data points.
+
+    Example:
+        >>> grinch = Grinch(dim=10, norm='l2', sim='dot')
+        >>> for i in range(100):
+        >>>     grinch.insert(i, vectors[i], labels[i])
+        >>> y_pred, y_true = cut_tree_grinch(grinch, n_cluster=5)
     """
-    # Get true labels from data
-    y_true = [
-        pt[1] for pt in data_list
-    ]  # Extract labels from [vector, label, point_id]
+    # Get root node (GNode)
+    curr_root = grinch.root()
+    if curr_root is None:
+        # No tree built yet, return empty lists
+        return [], []
 
-    if n_cluster is None:
-        # If n_cluster is None, determine automatically from true labels
-        n_cluster = len(set(y_true))
+    all_leaves = curr_root.leaves()
+    if not all_leaves:
+        return [], []
 
-    if grinch.use_gnodes:
-        # Use GNode-based tree structure
-        root_gnode = grinch.get_gnode_root()
-        if root_gnode is None:
-            y_hat = list(range(len(y_true)))
-            return y_hat, y_true
+    point_id_to_idx = {}  # point_id -> ground_truth index
+    for idx, leaf in enumerate(all_leaves):
+        point_id_to_idx[leaf.id] = idx
 
-        # Try different thresholds to get approximately n_cluster clusters
-        best_threshold = 0.5
-        best_assignments = None
-        best_diff = float("inf")
+    # Build ground_truth from leaf labels
+    ground_truth = [leaf.pts[0][1] for leaf in all_leaves]
+    n_cluster = len(set(ground_truth))
 
-        # Try a range of thresholds
-        for threshold in np.linspace(0.1, 0.9, 20):
-            assignments = grinch.gnode_flat_clustering(threshold)
-            if assignments:
-                n_clusters_found = len(set(assignments.values()))
-                diff = abs(n_clusters_found - n_cluster)
-                if diff < best_diff:
-                    best_diff = diff
-                    best_threshold = threshold
-                    best_assignments = assignments
+    # Use a min-heap to track internal nodes by their similarity
+    # (similarity, node_id, node) - lower similarity = higher priority to split
+    heap = []
 
-        if best_assignments is None:
-            # Fallback: each point is its own cluster
-            y_hat = list(range(len(y_true)))
-        else:
-            # Convert assignments dictionary to list
-            y_hat = []
-            for i in range(len(y_true)):
-                y_hat.append(
-                    best_assignments.get(i, i)
-                )  # Default to point ID if not found
+    if not curr_root.is_leaf():
+        similarity = _get_children_similarity(curr_root)
+        heapq.heappush(heap, (similarity, id(curr_root), curr_root))
 
-        return y_hat, y_true
+    # Keep track of cluster nodes (initially just the root)
+    cluster_nodes = [curr_root]
 
-    else:
-        # Original array-based implementation
-        root_id = grinch.root()
+    # Iteratively split clusters until we reach n_cluster
+    while len(cluster_nodes) < n_cluster and heap:
+        # Pop the node with lowest children similarity (most different children)
+        _, _, node_to_split = heapq.heappop(heap)
 
-        # Collect all internal node scores
-        all_scores = []
-        for node_id in range(grinch.max_num_points, grinch.next_node_id):
-            if grinch.parent[node_id] != -2:  # Not deleted
-                if not grinch.is_leaf(node_id):
-                    score = grinch.get_score(node_id)
-                    if np.isfinite(score):
-                        all_scores.append(score)
+        # Remove the node from cluster_nodes
+        if node_to_split in cluster_nodes:
+            cluster_nodes.remove(node_to_split)
 
-        if len(all_scores) == 0:
-            # Fallback: each point is its own cluster
-            y_hat = list(range(len(y_true)))
-            return y_hat, y_true
+            # Add its children as new clusters
+            if len(node_to_split.children) >= 2:
+                left_child = node_to_split.children[0]
+                right_child = node_to_split.children[1]
+                cluster_nodes.extend([left_child, right_child])
 
-        # Sort scores and find a threshold that gives approximately n_cluster clusters
-        all_scores.sort(reverse=True)  # Higher scores first
+                # If children are internal nodes, add them to the heap
+                if not left_child.is_leaf():
+                    left_similarity = _get_children_similarity(left_child)
+                    heapq.heappush(heap, (left_similarity, id(left_child), left_child))
 
-        best_threshold = None
-        best_diff = float("inf")
+                if not right_child.is_leaf():
+                    right_similarity = _get_children_similarity(right_child)
+                    heapq.heappush(
+                        heap, (right_similarity, id(right_child), right_child)
+                    )
 
-        # Try different thresholds
-        for i in range(len(all_scores)):
-            threshold = all_scores[i]
-            assignments = grinch.flat_clustering(threshold)
-            if isinstance(assignments, np.ndarray):
-                valid_assignments = assignments[assignments >= 0]
-                n_clusters_found = len(set(valid_assignments))
+    # Extract predicted labels from the cluster nodes
+    # Similar to PNODE's approach
+    predicted_labels = [-1] * len(ground_truth)
 
-                diff = abs(n_clusters_found - n_cluster)
-                if diff < best_diff:
-                    best_diff = diff
-                    best_threshold = threshold
+    for cluster_id, cluster_node in enumerate(cluster_nodes):
+        # Get all leaf nodes under this cluster
+        leaves = cluster_node.leaves()
+        for leaf in leaves:
+            if leaf.id in point_id_to_idx:
+                idx = point_id_to_idx[leaf.id]
+                predicted_labels[idx] = cluster_id
 
-        # If no good threshold found, use median
-        if best_threshold is None:
-            best_threshold = np.median(all_scores) if all_scores else 0.5
-
-        # Get final cluster assignments
-        assignments = grinch.flat_clustering(best_threshold)
-
-        if isinstance(assignments, np.ndarray):
-            y_hat = assignments.copy()
-
-            # Handle case where some points are not assigned (assignment == -1)
-            max_cluster_id = int(max(y_hat)) if len(y_hat) > 0 else 0
-            for i in range(len(y_hat)):
-                if y_hat[i] == -1:
-                    max_cluster_id += 1
-                    y_hat[i] = max_cluster_id
-
-            # Ensure we have the right number of points
-            if len(y_hat) != len(y_true):
-                # Pad or truncate as needed
-                if len(y_hat) < len(y_true):
-                    # Add missing assignments
-                    for i in range(len(y_hat), len(y_true)):
-                        max_cluster_id += 1
-                        y_hat = np.append(y_hat, max_cluster_id)
-                else:
-                    # Truncate
-                    y_hat = y_hat[: len(y_true)]
-
-            return y_hat.tolist(), y_true
-        else:
-            # Fallback
-            y_hat = list(range(len(y_true)))
-            return y_hat, y_true
+    return predicted_labels, ground_truth
 
 
-def extract_grinch_dendrogram(grinch: Grinch) -> Tuple[np.ndarray, List[int]]:
-    """Extract dendrogram information from Grinch tree.
+def _get_children_similarity(node) -> float:
+    """Get the similarity between the two children of a GNode.
+
+    This is similar to PNODE's get_children_similarity but uses GNode's
+    score attribute directly (which is computed during tree construction).
+
+    Args:
+        node: The GNode to get similarity from.
+
+    Returns:
+        The similarity score between children (lower = more different).
+    """
+    if node.is_leaf():
+        return 0.0
+
+    # GNode already computes and stores the score during tree construction
+    # The score represents similarity between children
+    if hasattr(node, "score") and node.score is not None:
+        # Return negative score for min-heap (we want to split low similarity first)
+        # But GNode score is already similarity, so return as-is
+        return -float(node.score)  # Negate so min-heap prioritizes low similarity
+
+    # Fallback: compute similarity between children if not available
+    if len(node.children) >= 2:
+        child1 = node.children[0]
+        child2 = node.children[1]
+
+        # Use GNode's compute_similarity method
+        if hasattr(child1, "compute_similarity"):
+            similarity = child1.compute_similarity(child2)
+            return -float(similarity)  # Negate for min-heap
+
+    return 0.0
+
+
+def extract_grinch_dendrogram(grinch: "Grinch") -> Tuple[np.ndarray, List[int]]:
+    """Extract dendrogram information from Grinch tree (GNode-based).
 
     Args:
         grinch: The Grinch clustering object.
 
     Returns:
         Tuple of (linkage_matrix, leaf_labels) compatible with scipy.hierarchy format.
+
+    Note:
+        This creates a simplified linkage matrix. For complete dendrogram,
+        consider using GNode.to_newick() or other tree export methods.
     """
-    # This is a more complex function that would convert Grinch's tree structure
-    # to a scipy-compatible linkage matrix. For now, we'll use a placeholder.
-    # TODO: Implement proper dendrogram extraction
-    n_points = grinch.point_counter
-    if n_points < 2:
+    root_node = grinch.root()
+
+    if root_node is None:
         return np.array([]), []
 
-    # Create a simple linkage matrix as placeholder
+    # Get all leaves
+    leaves = root_node.leaves()
+    n_points = len(leaves)
+
+    if n_points < 2:
+        return np.array([]), [leaf.id for leaf in leaves]
+
+    # Create a simple linkage matrix (placeholder implementation)
+    # TODO: Implement proper dendrogram extraction from GNode tree
     linkage_matrix = np.zeros((n_points - 1, 4))
     for i in range(n_points - 1):
         linkage_matrix[i] = [i, i + 1, 1.0, 2]
 
-    leaf_labels = list(range(n_points))
+    leaf_labels = [leaf.id for leaf in leaves]
     return linkage_matrix, leaf_labels
 
 
-def get_grinch_tree_stats(grinch: Grinch) -> dict:
+def get_grinch_tree_stats(grinch: "Grinch") -> dict:
     """Get statistics about the Grinch tree.
 
     Args:
@@ -189,12 +183,66 @@ def get_grinch_tree_stats(grinch: Grinch) -> dict:
     Returns:
         Dictionary with tree statistics.
     """
+    root_node = grinch.root()
+
     stats = {
         "num_points": grinch.point_counter,
-        "num_internal_nodes": grinch.next_node_id - grinch.max_num_points,
-        "max_nodes": grinch.max_nodes,
-        "tree_height": 0,  # Would need to calculate
-        "total_nodes": grinch.next_node_id,
+        "root_exists": root_node is not None,
+        "num_rotates": grinch.number_of_rotates,
+        "num_grafts": grinch.number_of_grafts,
+        "time_in_search": grinch.time_in_search,
+        "time_in_rotate": grinch.time_in_rotate,
+        "time_in_graft": grinch.time_in_graft,
+        "time_in_update": grinch.time_in_update,
     }
 
+    if root_node is not None:
+        stats["num_leaves"] = len(root_node.leaves())
+        stats["num_descendants"] = root_node.num_descendants
+        stats["tree_depth"] = _calculate_tree_depth(root_node)
+    else:
+        stats["num_leaves"] = 0
+        stats["num_descendants"] = 0
+        stats["tree_depth"] = 0
+
     return stats
+
+
+def _calculate_tree_depth(node) -> int:
+    """Calculate the depth of a GNode tree.
+
+    Args:
+        node: The root GNode.
+
+    Returns:
+        Maximum depth of the tree.
+    """
+    if node.is_leaf():
+        return 0
+
+    if not node.children:
+        return 0
+
+    max_child_depth = max(_calculate_tree_depth(child) for child in node.children)
+    return 1 + max_child_depth
+
+
+def get_node_similarity(grinch: "Grinch", node) -> float:
+    """Get the similarity score of a GNode (for external use).
+
+    Similar to PNODE's get_children_similarity.
+
+    Args:
+        grinch: The Grinch clustering object.
+        node: The GNode to get similarity from.
+
+    Returns:
+        The similarity score (0.0 for leaf nodes, positive for internal nodes).
+    """
+    if node.is_leaf():
+        return 0.0
+
+    if hasattr(node, "score") and node.score is not None:
+        return float(node.score)
+
+    return 0.0

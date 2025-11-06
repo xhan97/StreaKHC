@@ -1,886 +1,938 @@
+# Copyright 2025 Xin Han
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""
+Grinch - 使用 GNode 构建层次聚类树
+基于原始 Grinch 算法，但使用 GNode 对象来表示树结构
+"""
+
+import logging
 import time
 
 import numpy as np
-from absl import logging
-from scipy.spatial.distance import cdist
-from tqdm import tqdm
+from GNode import GNode
 
-logging.set_verbosity(logging.INFO)
+# 配置logging
+logging.basicConfig(level=logging.INFO)
 
 
-class Grinch(object):
+class Grinch:
+    """基于 GNode 的 Grinch 层次聚类算法
+
+    Grinch (Greedy Incremental Clustering for Hierarchies) 是一个在线层次聚类算法。
+
+    核心操作：
+    1. Insert: 将新点插入到树中
+    2. Rotate: 向上遍历找到最佳插入位置
+    3. Graft: 通过重组树结构来优化聚类质量
+
+    算法特点：
+    - 在线学习：可以逐个处理数据点
+    - 自适应：通过graft操作不断优化树结构
+    - 高效：基于对象的树结构，内存使用最优
+
+    使用示例：
+        >>> points = np.random.random((100, 10))
+        >>> grinch = Grinch(points=points)
+        >>> grinch.build_dendrogram()
+        >>> clusters = grinch.flat_clustering(threshold=0.5)
+    """
 
     def __init__(
         self,
-        points=None,
-        num_points=None,
         dim=None,
-        init_points=False,
         rotate_cap=100,
         graft_cap=100,
         norm="l2",
         sim="dot",
-        max_num_points=1000000,
-        pids=None,
         canopies=None,
     ):
+        """初始化 Grinch 聚类器（完全在线模式）
 
+        Args:
+            dim: 数据维度（可选，将从第一个点自动推断）
+            rotate_cap: rotate 操作的容量限制
+            graft_cap: graft 操作的容量限制
+            norm: 质心归一化方式 ("l2", "l_inf", "none")
+            sim: 相似度度量方式 ("dot", "l2", "sql2")
+            canopies: Canopy聚类结果
+        """
         self.point_counter = 0
-
-        # the representation secures max_num_points positions for the points
-        # max_nodes is the overall number of nodes.
-
-        if max_num_points is not None:
-            self.max_num_points = max_num_points
-        else:
-            self.max_num_points = num_points * 3
         self.norm = norm
-
-        self.max_nodes = self.max_num_points * 3
-
-        self.pids = pids
-        self.canopies = canopies
-
-        if points is not None:
-            self.points = points
-            self.num_points = points.shape[0]
-            self.dim = points.shape[1]
-            logging.debug("[Grinch] points %s", str(self.points.shape))
-        if num_points:
-            self.num_points = num_points
-        if dim is not None or points is not None:
-            self.dim = dim if dim is not None else self.points.shape[1]
-            self.centroids = np.zeros((self.max_nodes, self.dim), dtype=np.float32)
-            self.sums = np.zeros((self.max_nodes, self.dim), dtype=np.float32)
-
-        if init_points:
-            self.points = np.zeros((self.num_points, self.dim), np.float32)
-            logging.debug("[Grinch] points %s", str(self.points.shape))
-
-        self.sibs = None
-        self.children = [[] for _ in range(self.max_nodes)]
-        self.descendants = [[] for _ in range(self.max_nodes)]
-        self.scores = -np.inf * np.ones(self.max_nodes, dtype=np.float32)
-        self.needs_update_model = np.zeros(self.max_nodes, dtype=np.bool_)
-        self.new_node = np.ones(self.max_nodes, dtype=np.bool_)
-        self.needs_update_desc = np.zeros(self.max_nodes, dtype=np.bool_)
-        self.parent = -1 * np.ones(self.max_nodes, dtype=np.int32)
-        self.next_node_id = self.max_num_points
-        self.num_descendants = -1 * np.ones(self.max_nodes, dtype=np.float32)
+        self.sim_type = sim
         self.rotate_cap = rotate_cap
         self.graft_cap = graft_cap
-        self.perform_graft = True
+        self.canopies = canopies
 
-        if norm == "l2":
-            logging.debug("Using centroid = l2")
-            self.compute_centroid = self.compute_centroid_l2_norm
-        elif norm == "l_inf":
-            logging.debug("Using centroid = l_inf")
-            self.compute_centroid = self.compute_centroid_l_inf_norm
-        elif norm == "none":
-            logging.debug("Using centroid = none")
-            self.compute_centroid = self.compute_centroid_no_norm
+        # dim 可以从第一个点自动推断，如果未指定
+        self.dim = dim
 
-        if sim == "dot":
-            logging.debug("Using csim = dot")
-            self.csim = self.csim_dot
-        elif sim == "l2":
-            logging.debug("Using csim = l2")
-            self.csim = self.csim_l2
-        elif sim == "sql2":
-            logging.debug("Using csim = sql2")
-            self.csim = self.csim_sql2
-        # elif sim == 'ward':
-        #     logging.debug('Using csim = sql2')
-        #     self.csim = self.csim_ward
+        # GNode 树的根节点
+        self.root_node = None
 
-        self.k = 1
-
-        # Timing and stats
+        # 统计信息
         self.time_in_search = 0
         self.time_in_rotate = 0
         self.time_in_update = 0
-        self.time_in_update_walk = 0
-        self.time_in_update_from_children = 0
-        self.time_in_graft_score_only = 0
         self.time_in_graft = 0
         self.time_in_lca = 0
-        self.time_in_descendants = 0
-        self.time_in_centroid = 0
-        self.time_in_graft_search = 0
-        self.time_in_graft_get_scores = 0
-        self.this_time_in_graft_get_scores = 0
 
         self.number_of_rotates = 0
         self.number_of_grafts = 0
         self.number_of_grafts_considered = 0
-        self.number_of_graft_allowable = 0
         self.number_of_rotates_considered = 0
 
         self.this_number_of_rotates = 0
         self.this_number_of_grafts = 0
         self.this_number_of_grafts_considered = 0
         self.this_number_of_rotates_considered = 0
-        self.this_time_in_search = 0
-        self.this_time_in_rotate = 0
-        self.this_time_in_update = 0
-        self.this_time_in_graft = 0
-        self.this_time_in_graft_search = 0
-        self.cached_nns = None
 
-    def all_valid_nodes(self):
-        r = self.root()
-        return [x for x in range(self.next_node_id) if x == r or self.parent[x] >= 0]
+        logging.debug("Grinch initialized with GNode structure")
 
-    def all_valid_internal_nodes(self):
-        r = self.root()
-        return [
-            x
-            for x in range(self.num_points, self.next_node_id)
-            if (x == r or self.parent[x] >= 0)
-        ]
+    def _normalize_vector(self, vec):
+        """根据self.norm参数归一化向量
+
+        Args:
+            vec: 输入向量
+
+        Returns:
+            归一化后的向量
+        """
+        if self.norm == "l2":
+            norm_val = np.linalg.norm(vec)
+            if norm_val > 0:
+                return vec / norm_val
+            return vec
+        elif self.norm == "l_inf":
+            max_val = np.max(np.abs(vec))
+            if max_val > 0:
+                return vec / max_val
+            return vec
+        else:  # norm == "none"
+            return vec
 
     def clear_stats(self):
+        """清除统计信息"""
         self.this_number_of_rotates = 0
         self.this_number_of_grafts = 0
         self.this_number_of_grafts_considered = 0
         self.this_number_of_rotates_considered = 0
-        self.this_time_in_search = 0
-        self.this_time_in_rotate = 0
-        self.this_time_in_update = 0
-        self.this_time_in_graft = 0
-        self.this_time_in_graft_search = 0
-        self.this_time_in_graft_get_scores = 0
 
     def stats_string(self):
+        """生成统计信息字符串"""
         r = (
-            "search_time=%s\trotate_time=%s\tgraft_time=%s\tupdate_time=%s\tdescendant_time=%s\tcentroid_time=%s\tlca_time=%s\tnum_rotate=%s\tnum_graft=%s\tnum_rotate_considered=%s\tnum_graft_considered=%s\t%s\n"
+            "search_time=%s\trotate_time=%s\tgraft_time=%s\tupdate_time=%s\t"
+            "num_rotate=%s\tnum_graft=%s\tnum_rotate_considered=%s\tnum_graft_considered=%s\n"
             % (
                 self.time_in_search,
                 self.time_in_rotate,
                 self.time_in_graft,
                 self.time_in_update,
-                self.time_in_descendants,
-                self.time_in_centroid,
-                self.time_in_lca,
                 self.number_of_rotates,
                 self.number_of_grafts,
                 self.number_of_rotates_considered,
                 self.number_of_grafts_considered,
-                self.this_stats_string(),
             )
         )
         self.clear_stats()
         return r
 
-    def this_stats_string(self):
-        r = (
-            "last_stats\tnum_rotate=%s\tnum_graft=%s\tnum_rotate_considered=%s\tnum_graft_considered=%s\n"
-            % (
-                self.this_number_of_rotates,
-                self.this_number_of_grafts,
-                self.this_number_of_rotates_considered,
-                self.this_number_of_grafts_considered,
-            )
-        )
-        return r
+    def insert(self, point_id, point_vec, point_label=None):
+        """插入一个新的数据点到聚类树中
 
-    def lca_and_ancestors(self, i, j):
-        s = time.time()
-        if i == j:
-            return (i, [], [])
-        if self.parent[i] == -1:
-            logging.debug("lca_and_ancestors i = root %s", i)
-            return (i, [], [])
-        curr_node = j
-        thisAnclist = self.get_ancs_with_self(i)
-        thisAnc = dict([(nid, idx) for idx, nid in enumerate(thisAnclist)])
-        other2lca = []
-        while curr_node not in thisAnc:
-            other2lca.append(curr_node)
-            curr_node = self.get_parent(curr_node)
-        this2lca = thisAnclist[: thisAnc[curr_node]]
-        self.time_in_lca += time.time() - s
-        return (
-            curr_node,
-            [x for x in this2lca if self.num_descendants[x] < self.graft_cap],
-            [x for x in other2lca if self.num_descendants[x] < self.graft_cap],
-        )
+        核心插入流程：
+        1. 创建新的叶子节点
+        2. 找到最近邻节点
+        3. 通过Rotate找到最佳插入位置
+        4. 创建新的父节点连接
+        5. 更新祖先节点
+        6. 执行Graft优化
 
-    def find_rotate(self, gnode, sib):
-        s = time.time()
-        logging.debug("[rotate] find_rotate(%s, %s)", gnode, sib)
-        curr = sib
-        score = self.e_score(gnode, sib)
-        curr_parent = self.get_parent(curr)
-        curr_parent_score = (
-            -np.inf if curr_parent == -1 else self.get_score(curr_parent)
-        )
-        while (
-            curr_parent != -1
-            and score < curr_parent_score
-            and self.num_descendants[curr_parent] < self.rotate_cap
-        ):
-            logging.debug(
-                "[rotate] curr %s curr_parent %s gnode %s score %s curr_parent_score %s",
-                curr,
-                curr_parent,
-                gnode,
-                score,
-                curr_parent_score,
-            )
-            curr = curr_parent
-            curr_parent = self.get_parent(curr)
-            curr_parent_score = (
-                -np.inf if curr_parent == -1 else self.get_score(curr_parent)
-            )
-            score = self.e_score(gnode, sib)
-            self.number_of_rotates += 1
-            self.this_number_of_rotates += 1
-            self.number_of_rotates_considered += 1
-            self.this_number_of_rotates_considered += 1
-        logging.debug("[rotate] find_rotate(%s, %s) = %s", gnode, sib, curr)
-        self.time_in_rotate += time.time() - s
-        self.this_time_in_rotate += time.time() - s
-        return curr
+        Args:
+            point_id: 点的ID
+            point_vec: 点的特征向量（必须提供，将根据self.norm自动归一化）
+            point_label: 点的标签（可选）
 
-    def get_centroid_batch(self, i):
-        return self.centroids[i]
+        Raises:
+            ValueError: 如果 point_vec 为 None
+        """
+        if point_vec is None:
+            raise ValueError("point_vec is required in online mode")
 
-    def get_centroid(self, i):
-        return np.expand_dims(self.centroids[i], 0)
+        # 归一化输入向量（根据self.norm参数）
+        point_vec = self._normalize_vector(point_vec)
 
-    def compute_centroid_l2_norm(self, i):
-        # if the node is new we don't need to zero
-        if not self.new_node[i]:
-            self.centroids[i] *= 0
-        self.centroids[i] += self.sums[i]
-        self.centroids[i] /= self.num_descendants[i]
-        if type(i) is np.array:
-            norms = np.linalg.norm(self.centroids[i], axis=1, keepdims=True)
-            norms[norms == 0.0] = 1.0
-        else:
-            norms = np.linalg.norm(self.centroids[i])
-            norms = norms if norms > 0 else 1.0
-        self.centroids[i] /= norms
+        start_time = time.time()
+        logging.debug("[insert] Inserting point %s", point_id)
 
-    def compute_centroid_no_norm(self, i):
-        # if the node is new we don't need to zero
-        if not self.new_node[i]:
-            self.centroids[i] *= 0
-        self.centroids[i] += self.sums[i]
-        self.centroids[i] /= self.num_descendants[i]
-
-    def compute_centroid_l_inf_norm(self, i):
-        # if the node is new we don't need to zero
-        if not self.new_node[i]:
-            self.centroids[i] *= 0
-        self.centroids[i] += self.sums[i]
-        self.centroids[i] /= self.num_descendants[i]
-        self.centroids[i] /= np.linalg.norm(self.centroids[i], np.inf)
-
-    def get_sum(self, i):
-        return np.expand_dims(self.sums[i], 0)
-
-    def set_sum(self, i, v):
-        self.sums[i] = v
-
-    def update_desc(self, i, use_tqdm=False):
-        s = time.time()
-        needs_update = []
-        to_check = [i]
-        while to_check:
-            curr = to_check.pop(0)
-            if self.needs_update_desc[curr]:
-                needs_update.append(curr)
-                for c in self.get_children(curr):
-                    to_check.append(c)
-        self.time_in_update_walk += time.time() - s
-        if use_tqdm:
-            for j in tqdm(range(len(needs_update) - 1, -1, -1)):
-                self.single_update_desc(needs_update[j])
-        else:
-            for j in range(len(needs_update) - 1, -1, -1):
-                self.single_update_desc(needs_update[j])
-        self.time_in_update += time.time() - s
-
-    def single_update_desc(self, i):
-        s = time.time()
-        logging.debug("updating node %s", i)
-        assert self.needs_update_desc[i]
-        kids = self.get_children(i)
-        self.descendants[i].clear()
-        self.descendants[i].extend(self.descendants[kids[0]])
-        if len(kids) > 1:
-            self.descendants[i].extend(self.descendants[kids[1]])
-        self.time_in_descendants += time.time() - s
-        self.new_node[i] = False
-        self.needs_update_desc[i] = False
-
-    def get_descendants(self, i):
-        if self.needs_update_desc[i]:
-            logging.debug("Updating because of get_descendants!")
-            self.update_desc(i)
-        return self.descendants[i]
-
-    def graft(self, gnode):
-        s = time.time()
-        logging.debug("[graft] graft(%s)", gnode)
-        curr = gnode
-
-        # Find offlimits
-        offlimits1 = self.get_descendants(curr)
-        if (
-            self.get_parent(curr) != -1
-            and len(self.get_children(self.get_sibling(curr))) == 0
-        ):
-            offlimits2 = [self.get_sibling(curr)]
-        else:
-            offlimits2 = []
-        logging.debug(
-            "[graft] len(offlimits1)=%s len(offlimits2)=%s",
-            len(offlimits1),
-            len(offlimits2),
-        )
-        logging.debug(
-            "[graft] offlimits1 %s offlimits2 %s", str(offlimits1), str(offlimits2)
-        )
-
-        # Find updates
-        self.update(curr)
-        curr_v = self.get_centroid(curr)
-
-        # Do search
-        search_st = time.time()
-        _, nns = self.cknn(curr_v, self.k, offlimits1, offlimits2)
-        self.time_in_graft_search += time.time() - search_st
-        self.this_time_in_graft_search += time.time() - search_st
-        if len(nns) == 0:
-            logging.debug("No nearest neighbors after nns....")
+        # 处理第一个点
+        if self.point_counter == 0:
+            self._create_root_node(point_id, point_vec, point_label)
+            self.point_counter += 1
             return
 
-        oneNN = nns[0]
-        logging.debug("Nearest neighbor is %s", oneNN)
-        lca, this2anc, other2anc = self.lca_and_ancestors(gnode, oneNN)
-        logging.debug(
-            "lca %s len(this2anc) %s len(other2anc) %s",
-            lca,
-            len(this2anc),
-            len(other2anc),
-        )
-        if this2anc and other2anc:
-            # find all pairwise distances
-            # this_vecs = self.get_centroid(this2anc)
-            # anc_vecs = self.get_centroid(other2anc)
-
-            # M by N
-            M = len(this2anc)
-            N = len(other2anc)
-            score_if_grafted = self.e_score_batch(this2anc, other2anc)
-            assert score_if_grafted.shape[0] == M
-            assert score_if_grafted.shape[1] == N
-            # 1 by N
-            nn_parent_score = np.expand_dims(
-                self.get_score_batch(self.get_parent(other2anc)), 0
-            )
-            assert nn_parent_score.shape[0] == 1
-            assert nn_parent_score.shape[1] == N
-            # M by 1
-            curr_parent_score = np.expand_dims(
-                self.get_score_batch(self.get_parent(this2anc)), 1
-            )
-            assert curr_parent_score.shape[0] == M
-            assert curr_parent_score.shape[1] == 1
-
-            not_i_like_you = score_if_grafted <= curr_parent_score
-            not_you_like_me = score_if_grafted <= nn_parent_score
-            assert not_i_like_you.shape[0] == M
-            assert not_i_like_you.shape[1] == N
-            assert not_you_like_me.shape[0] == M
-            assert not_you_like_me.shape[1] == N
-
-            graft_condition = not_i_like_you | not_you_like_me
-            num_meeting_condition = graft_condition.sum()
-            self.number_of_graft_allowable += num_meeting_condition
-            total_candidate_grafts = max(1.0, len(this2anc) * len(other2anc))
-
-            score_if_grafted[graft_condition] = 0
-            argmax = np.argmax(score_if_grafted)
-            argmax_row = int(argmax / score_if_grafted.shape[1])
-            argmax_col = argmax % score_if_grafted.shape[1]
-            best_1 = this2anc[argmax_row]
-            best_2 = other2anc[argmax_col]
-            if (
-                not not_i_like_you[argmax_row, argmax_col]
-                and not not_you_like_me[argmax_row, argmax_col]
-            ):
-                self.number_of_grafts += 1
-                self.this_number_of_grafts += 1
-                bestPair2gp = self.get_parent(self.get_parent(best_2))
-                parent = self.node_from_nodes(best_1, best_2)
-                self.make_sibling(best_1, best_2, parent)
-                logging.debug(
-                    "[graft] node %s grafts node %s, scores %s > max(%s, %s)"
-                    % (
-                        best_1,
-                        best_2,
-                        score_if_grafted[argmax_row, argmax_col],
-                        curr_parent_score[argmax_row, 0],
-                        nn_parent_score[0, argmax_col],
-                    )
-                )
-                for start in [bestPair2gp, self.get_parent(curr)]:
-                    curr_update = start
-                    while curr_update != -1:
-                        self.updated_from_children(curr_update)
-                        curr_update = self.get_parent(curr_update)
-            else:
-                logging.debug("[graft] There was no case where we wanted to graft.")
-        self.number_of_grafts_considered += len(this2anc) * len(other2anc)
-        self.time_in_graft += time.time() - s
-
-        self.this_number_of_grafts_considered = len(this2anc) * len(other2anc)
-        self.this_time_in_graft += time.time() - s
-
-    def updated_from_children(self, i):
-        s = time.time()
-        self.num_descendants[i] = (
-            self.num_descendants[self.children[i][0]]
-            + self.num_descendants[self.children[i][1]]
-        )
-        self.scores[i] = -float("inf")
-        self.needs_update_model[i] = True
-        self.needs_update_desc[i] = True
-        self.time_in_update += time.time() - s
-        self.time_in_update_from_children += time.time() - s
-
-    def update(self, i, use_tqdm=False):
-        s = time.time()
-        needs_update = []
-        to_check = [i]
-        while to_check:
-            curr = to_check.pop(0)
-            if self.needs_update_model[curr]:
-                needs_update.append(curr)
-                for c in self.get_children(curr):
-                    to_check.append(c)
-        self.time_in_update_walk += time.time() - s
-        if use_tqdm:
-            for j in tqdm(range(len(needs_update) - 1, -1, -1)):
-                self.single_update(needs_update[j])
-        else:
-            for j in range(len(needs_update) - 1, -1, -1):
-                self.single_update(needs_update[j])
-        self.time_in_update += time.time() - s
-        return needs_update
-
-    def single_update(self, i):
-        logging.debug("updating node %s", i)
-        assert self.needs_update_model[i]
-        kids = self.get_children(i)
-        s = time.time()
-        c1 = self.get_sum(kids[0])
-        c2 = self.get_sum(kids[1])
-        self.num_descendants[i] = (
-            self.num_descendants[kids[0]] + self.num_descendants[kids[1]]
-        )
-        self.set_sum(i, c1 + c2)
-        self.compute_centroid(i)
-        self.time_in_centroid += time.time() - s
-        self.new_node[i] = False
-        self.needs_update_model[i] = False
-
-    def node_from_nodes(self, n1, n2):
-        logging.debug("creating new node from nodes %s and %s", n1, n2)
-        new_node_id = self.next_node_id
-        logging.debug("new node is %s", new_node_id)
-        self.grow_if_necessary()
-        assert self.next_node_id < self.max_nodes
-        assert self.next_node_id >= self.max_num_points
-        self.next_node_id += 1
-        self.needs_update_model[new_node_id] = True
-        self.needs_update_desc[new_node_id] = True
-        self.num_descendants[new_node_id] = (
-            self.num_descendants[n1] + self.num_descendants[n2]
-        )
-        return new_node_id
-
-    def grow_if_necessary(self):
-        if self.next_node_id >= self.max_nodes:
-            logging.debug("resizing internal structures...")
-            new_max_nodes = 2 * self.max_nodes
-            logging.debug("new max nodes %s", new_max_nodes)
-            self.grow_nodes(new_max_nodes)
-            self.grow_centroids_and_sums(new_max_nodes)
-            self.max_nodes = new_max_nodes
-
-    def grow_points_if_necessary(self):
-        if self.point_counter >= self.max_num_points:
-            new_max_num_points = 2 * self.max_num_points
-            logging.info("new num points %s", new_max_num_points)
-            offset = new_max_num_points - self.max_num_points
-            # grow internals if necessary
-            if offset + self.next_node_id >= self.max_nodes:
-                new_max_nodes = 2 * self.max_nodes
-                logging.debug("new max nodes %s", new_max_nodes)
-                self.grow_nodes(new_max_nodes)
-                self.grow_centroids_and_sums(new_max_nodes)
-                self.max_nodes = new_max_nodes
-            # re-map the internals
-            self.remap_node(offset)
-            self.remap_centroids_and_sums(offset)
-            self.max_num_points = new_max_num_points
-            self.next_node_id = self.next_node_id + offset
-
-    def remap_node(self, parent_offset):
-        for i in range(self.max_nodes - 1, self.max_num_points + parent_offset - 1, -1):
-            self.children[i] = [
-                c if c <= self.point_counter else c + parent_offset
-                for c in self.children[i - parent_offset]
-            ]
-            self.descendants[i] = self.descendants[i - parent_offset]
-            self.scores[i] = self.scores[i - parent_offset]
-            self.needs_update_model[i] = self.needs_update_model[i - parent_offset]
-            self.new_node[i] = self.new_node[i - parent_offset]
-            self.needs_update_desc[i] = self.needs_update_desc[i - parent_offset]
-            self.parent[i] = (
-                self.parent[i - parent_offset] + parent_offset
-                if self.parent[i - parent_offset] >= 0
-                else self.parent[i - parent_offset]
-            )
-            self.num_descendants[i] = self.num_descendants[i - parent_offset]
-
-        for i in range(0, self.point_counter, 1):
-            self.parent[i] = (
-                self.parent[i] + parent_offset
-                if self.parent[i] >= 0
-                else self.parent[i]
-            )
-
-        for i in range(
-            self.max_num_points + parent_offset - 1, self.point_counter - 1, -1
-        ):
-            self.children[i].clear()
-            self.descendants[i].clear()
-            self.scores[i] = -np.inf
-            self.new_node[i] = False
-            self.needs_update_desc[i] = False
-            self.needs_update_model[i] = False
-            self.parent[i] = -1
-            self.num_descendants[i] = 1
-
-    def remap_centroids_and_sums(self, parent_offset):
-        for i in range(self.max_nodes - 1, self.max_num_points + parent_offset - 1, -1):
-            self.centroids[i] = self.centroids[i - parent_offset]
-            self.sums[i] = self.centroids[i - parent_offset]
-
-        for i in range(
-            self.max_num_points + parent_offset - 1, self.point_counter - 1, -1
-        ):
-            self.centroids[i] *= 0
-            self.sums[i] *= 0
-
-    def grow_nodes(self, new_max_nodes):
-        self.sibs = None
-        self.children.extend([[] for _ in range(new_max_nodes - self.max_nodes)])
-        self.descendants.extend([[] for _ in range(new_max_nodes - self.max_nodes)])
-        self.scores = np.hstack(
-            [
-                self.scores,
-                -np.inf * np.ones(new_max_nodes - self.max_nodes, dtype=np.float32),
-            ]
-        )
-        self.needs_update_model = np.hstack(
-            [
-                self.needs_update_model,
-                np.zeros(new_max_nodes - self.max_nodes, dtype=np.bool_),
-            ]
-        )
-        self.new_node = np.hstack(
-            [self.new_node, np.ones(new_max_nodes - self.max_nodes, dtype=np.bool_)]
-        )
-        self.needs_update_desc = np.hstack(
-            [
-                self.needs_update_desc,
-                np.zeros(new_max_nodes - self.max_nodes, dtype=np.bool_),
-            ]
-        )
-        self.parent = np.hstack(
-            [self.parent, -1 * np.ones(new_max_nodes - self.max_nodes, dtype=np.int32)]
-        )
-        self.num_descendants = np.hstack(
-            [
-                self.num_descendants,
-                -1 * np.ones(new_max_nodes - self.max_nodes, dtype=np.float32),
-            ]
-        )
-
-    def grow_centroids_and_sums(self, new_max_nodes):
-        self.centroids = np.vstack(
-            [
-                self.centroids,
-                np.zeros((new_max_nodes - self.max_nodes, self.dim), dtype=np.float32),
-            ]
-        )
-        self.sums = np.vstack(
-            [
-                self.sums,
-                np.zeros((new_max_nodes - self.max_nodes, self.dim), dtype=np.float32),
-            ]
-        )
-
-    def add_pt(self, i):
-        self.sums[i] += self.points[i]
-        self.num_descendants[i] = 1
+        # 执行插入流程
+        self._insert_into_tree(point_id, point_vec, point_label)
         self.point_counter += 1
-        self.descendants[i].append(i)
-        self.compute_centroid(i)
-        self.new_node[i] = False
 
-    def build_dendrogram(self):
-        s = time.time()
-        for i in tqdm(range(self.num_points), "grinch_build_dendrogram"):
-            if i % 100 == 0:
-                self.stats_string()
-            self.insert(i)
+        elapsed = time.time() - start_time
+        logging.debug("[insert] Finished inserting point %s (%.4fs)", point_id, elapsed)
 
-    def insert(self, i, i_vec=None):
-        if i_vec is not None:
-            self.points[i] = i_vec
-        s = time.time()
-        logging.debug("[insert] insert(%s)", i)
-        # first point
-        if self.point_counter == 0:
-            self.add_pt(i)
-        else:
-            self.grow_points_if_necessary()
-            i_vec = np.expand_dims(self.points[i], 0)
-            dists, nns = self.cknn(i_vec, self.k, None, None)
-            self.add_pt(i)
-            sib = self.find_rotate(i, nns[0])
-            parent = self.node_from_nodes(sib, i)
-            self.make_sibling(sib, i, parent)
-            curr_update = parent
-            while curr_update != -1:
-                self.updated_from_children(curr_update)
-                curr_update = self.get_parent(curr_update)
-            self.graft(parent)
-        t = time.time()
-        logging.debug("[insert] finished insert(%s) in %s seconds", i, t - s)
+    def _create_root_node(self, point_id, point_vec, point_label=None):
+        """创建根节点
 
-    def csim_dot(self, x, y):
-        sims = np.matmul(x, y.transpose(1, 0))
-        return sims
+        Args:
+            point_id: 点的ID
+            point_vec: 点的特征向量
+            point_label: 点的标签（可选）
+        """
+        if self.dim is None and point_vec is not None:
+            self.dim = len(point_vec)
+            logging.debug("[Grinch] Auto-detected dimension: %d", self.dim)
 
-    def csim_l2(self, x, y):
-        dists = cdist(x, y)
-        return 1.0 / (1 + dists)
+        self.root_node = GNode(node_id=point_id, dim=self.dim)
 
-    def csim_sql2(self, x, y):
-        dists = cdist(x, y, "sqeuclidean")
-        return 1.0 / (1 + dists)
+        self.root_node.add_pt(point_id, label=point_label, point_vector=point_vec)
 
-    # def csim_ward(self, x, y, ndx, ndy):
-    #     dists = (ndx*ndy)(ndx + ndy) * cdist(x, y,'sqeuclidean')
-    #     return 1.0 / ( 1 + dists)
+        if point_vec is not None:
+            self.root_node.centroid = point_vec.copy()
+            self.root_node.sum_vector = point_vec.copy()
 
-    def cknn(self, i_vec, k, offlimits1, offlimits2, pc=None):
-        k = min(self.point_counter, k)
-        s = time.time()
-        # TODO: Allow offlimits to 2D
-        # import pdb; pdb.set_trace()
-        if pc is None:
-            pc = self.point_counter
-        point_vecs = self.points[0:pc]
-        # sims = np.matmul(i_vec, point_vecs.transpose(1, 0))
-        sims = self.csim(i_vec, point_vecs)
-        if offlimits1 is not None:
-            sims[:, offlimits1] = -float("Inf")
-        if offlimits2 is not None:
-            sims[:, offlimits2] = -float("Inf")
-        indices = np.argmax(sims, axis=1)
-        distances = sims[0, indices]
-        indices = indices[distances != -np.inf]
-        distances = distances[distances != -np.inf]
-        self.time_in_search += time.time() - s
-        return distances, indices
+        self.root_node.num_descendants = 1
 
-    def e_score_batch(self, i, j):
-        if np.any(self.needs_update_model[i]):
-            for ii in i:
-                if self.needs_update_model[ii]:
-                    self.update(ii)
-        if np.any(self.needs_update_model[j]):
-            for jj in j:
-                if self.needs_update_model[jj]:
-                    self.update(jj)
+        logging.debug("[insert] Created root node for point %s", point_id)
 
-        i_vec = self.get_centroid_batch(i)
-        j_vec = self.get_centroid_batch(j)
+    def _insert_into_tree(self, point_id, point_vec, point_label=None):
+        """将点插入到已存在的树中
 
-        s1 = time.time()
-        # sims = np.matmul(i_vec, j_vec.transpose(1, 0))
-        sims = self.csim(i_vec, j_vec)
-        self.time_in_graft_score_only += time.time() - s1
-        return sims
+        使用GNode的split_down方法来建树
 
-    def e_score(self, i, j):
-        if self.needs_update_model[i]:
-            self.update(i)
+        Args:
+            point_id: 点的ID
+            point_vec: 点的特征向量
+            point_label: 点的标签（可选）
+        """
+        # 步骤1: 找到最近邻
+        nearest_node = self._find_and_time_nearest_neighbor(point_vec)
+        if nearest_node is None:
+            logging.warning("No nearest neighbor found for point %s", point_id)
+            return
 
-        if self.needs_update_model[j]:
-            self.update(j)
-
-        i_vec = self.get_centroid(i)
-        j_vec = self.get_centroid(j)
-        # sims = np.matmul(i_vec, j_vec.transpose(1, 0))
-        sims = self.csim(i_vec, j_vec)
-
-        return sims[0][0]
-
-    def get_score_batch(self, i):
-        # todo vectorize
-        s = time.time()
-        if not np.all(np.isfinite(self.scores[i])):
-            for ii in i:
-                if not np.isfinite(self.scores[ii]):
-                    kids = self.get_children(ii)
-                    res = self.e_score(kids[0], kids[1])
-                    self.scores[ii] = res
-        self.time_in_graft_get_scores += time.time() - s
-        self.this_time_in_graft_get_scores += time.time() - s
-        return self.scores[i]
-
-    def get_score(self, i):
-        """Get the linkage score at node with index i."""
-        if not np.all(np.isfinite(self.scores[i])):
-            kids = self.get_children(i)
-            res = self.e_score(kids[0], kids[1])
-            self.scores[i] = res
-        return self.scores[i]
-
-    def make_sibling(self, node, new_sib, parent):
         logging.debug(
-            "make_sibling(node=%s, new_sib=%s, parent=%s)", node, new_sib, parent
+            "[insert] Nearest neighbor for point %s is %s", point_id, nearest_node.id
         )
-        sib_parent = self.get_parent(new_sib)
-        logging.debug(
-            "make_sibling(node=%s, new_sib=%s, parent=%s) sib_parent=%s",
-            node,
-            new_sib,
-            parent,
-            sib_parent,
-        )
-        if sib_parent != -1:
-            sib_gp = self.get_parent(sib_parent)
-            old_sib = self.get_sibling(new_sib)
-            self.set_parent(old_sib, sib_gp)
-            if sib_gp != -1:
-                self.remove_child(sib_gp, sib_parent)
-                self.add_child(sib_gp, old_sib)
-            self.clear_children(sib_parent)
-            self.parent[sib_parent] = -2  # Code for deletion
+
+        # 步骤2: 执行Rotate找到最佳位置（直接使用point_vec）
+        sibling = self._find_and_time_rotate_with_vec(point_vec, nearest_node)
+
+        # 步骤3: 使用split_down创建新节点和重组树
+        new_point_data = (point_id, point_label, point_vec)
+        new_leaf = sibling.split_down(new_point_data)
+
+        # 获取新创建的父节点
+        parent = new_leaf.parent
+
+        # 如果sibling之前是根节点，更新root_node
+        if sibling.parent == parent and parent.parent is None:
+            self.root_node = parent
+
+        # 步骤4: 更新新父节点的属性
+        self._update_parent_attributes(parent, sibling, new_leaf)
+
+        # 步骤5: 更新祖先（使用GNode的update_recursively）
+        start = time.time()
+        parent.update_recursively(norm=self.norm, sim_type=self.sim_type)
+        self.time_in_update += time.time() - start
+
+        # 步骤6: 执行Graft优化
+        self._time_graft(parent)
+
+    def _find_and_time_nearest_neighbor(self, point_vec):
+        """查找最近邻并计时
+
+        Args:
+            point_vec: 查询向量
+
+        Returns:
+            最近邻节点
+        """
+        start = time.time()
+        nearest_node, _ = self._find_nearest_neighbor(point_vec)
+        self.time_in_search += time.time() - start
+        return nearest_node
+
+    def _find_and_time_rotate(self, new_leaf, nearest_node):
+        """执行Rotate并计时
+
+        Args:
+            new_leaf: 新叶子节点
+            nearest_node: 最近邻节点
+
+        Returns:
+            最佳兄弟节点
+        """
+        start = time.time()
+        sibling = self._find_rotate(new_leaf, nearest_node)
+        self.time_in_rotate += time.time() - start
+        return sibling
+
+    def _find_and_time_rotate_with_vec(self, point_vec, nearest_node):
+        """使用点向量执行Rotate并计时
+
+        Args:
+            point_vec: 新点的特征向量
+            nearest_node: 最近邻节点
+
+        Returns:
+            最佳兄弟节点
+        """
+        start = time.time()
+        sibling = self._find_rotate_with_vec(point_vec, nearest_node)
+        self.time_in_rotate += time.time() - start
+        return sibling
+
+    def _time_graft(self, parent):
+        """执行Graft并计时
+
+        Args:
+            parent: 父节点
+        """
+        start = time.time()
+        self._graft(parent)
+        self.time_in_graft += time.time() - start
+
+    def _find_nearest_neighbor(self, query_vec):
+        """找到与查询向量最相似的叶子节点
+
+        Args:
+            query_vec: 查询向量
+
+        Returns:
+            (nearest_node, similarity): 最近的节点和相似度
+        """
+        if self.root_node is None:
+            return None, -np.inf
+
+        # 获取所有叶子节点
+        leaves = self.root_node.leaves()
+
+        best_node = None
+        best_sim = -np.inf
+
+        for leaf in leaves:
+            if leaf.centroid is None:
+                continue
+
+            # 计算相似度
+            sim = self._compute_similarity(query_vec, leaf.centroid)
+
+            if sim > best_sim:
+                best_sim = sim
+                best_node = leaf
+
+        return best_node, best_sim
+
+    def _compute_similarity(self, vec1, vec2):
+        """计算两个向量之间的相似度
+
+        Args:
+            vec1: 第一个向量
+            vec2: 第二个向量
+
+        Returns:
+            相似度分数
+        """
+        if self.sim_type == "dot":
+            return np.dot(vec1, vec2)
+        elif self.sim_type == "l2":
+            dist = np.linalg.norm(vec1 - vec2)
+            return 1.0 / (1 + dist)
+        elif self.sim_type == "sql2":
+            dist_sq = np.sum((vec1 - vec2) ** 2)
+            return 1.0 / (1 + dist_sq)
         else:
-            assert self.is_leaf(new_sib), "self.is_leaf(new_sib=%s)=%s" % (
-                new_sib,
-                self.is_leaf(new_sib),
+            return np.dot(vec1, vec2)
+
+    def _find_rotate(self, new_node, nearest_node):
+        """找到通过rotate操作的最佳插入位置
+
+        Rotate操作：向上遍历树，找到与新节点最相似的位置。
+        这样可以确保新节点被插入到语义最接近的位置。
+
+        Args:
+            new_node: 新插入的节点
+            nearest_node: 最近邻节点
+
+        Returns:
+            GNode: 最佳的兄弟节点位置
+        """
+        # 更新统计
+        self.number_of_rotates_considered += 1
+        self.this_number_of_rotates_considered += 1
+
+        # 计算初始相似度
+        if not self._has_valid_centroid(new_node, nearest_node):
+            return nearest_node
+
+        current = nearest_node
+        current_score = new_node.compute_similarity(current, sim_type=self.sim_type)
+
+        # 向上遍历寻找更好的位置
+        while current.parent is not None:
+            parent = current.parent
+
+            # 检查容量限制
+            if parent.num_descendants >= self.rotate_cap:
+                break
+
+            # 计算与父节点的相似度
+            if parent.centroid is None:
+                break
+
+            parent_score = new_node.compute_similarity(parent, sim_type=self.sim_type)
+
+            # 如果父节点更相似，继续向上
+            if current_score < parent_score:
+                current = parent
+                current_score = parent_score
+                self.number_of_rotates += 1
+                self.this_number_of_rotates += 1
+            else:
+                # 找到最佳位置
+                break
+
+        return current
+
+    def _find_rotate_with_vec(self, point_vec, nearest_node):
+        """使用点向量找到通过rotate操作的最佳插入位置
+
+        Rotate操作：向上遍历树，找到与新点向量最相似的位置。
+
+        Args:
+            point_vec: 新点的特征向量
+            nearest_node: 最近邻节点
+
+        Returns:
+            GNode: 最佳的兄弟节点位置
+        """
+        # 更新统计
+        self.number_of_rotates_considered += 1
+        self.this_number_of_rotates_considered += 1
+
+        # 检查最近邻节点是否有效
+        if nearest_node.centroid is None:
+            return nearest_node
+
+        current = nearest_node
+        current_score = self._compute_similarity(point_vec, current.centroid)
+
+        # 向上遍历寻找更好的位置
+        while current.parent is not None:
+            parent = current.parent
+
+            # 检查容量限制
+            if parent.num_descendants >= self.rotate_cap:
+                break
+
+            # 计算与父节点的相似度
+            if parent.centroid is None:
+                break
+
+            parent_score = self._compute_similarity(point_vec, parent.centroid)
+
+            # 如果父节点更相似，继续向上
+            if current_score < parent_score:
+                current = parent
+                current_score = parent_score
+                self.number_of_rotates += 1
+                self.this_number_of_rotates += 1
+            else:
+                # 找到最佳位置
+                break
+
+        return current
+
+    def _has_valid_centroid(self, *nodes):
+        """检查所有节点是否都有有效的centroid
+
+        Args:
+            *nodes: 要检查的节点
+
+        Returns:
+            bool: 是否所有节点都有centroid
+        """
+        return all(node.has_valid_centroid() for node in nodes)
+
+    def _update_parent_attributes(self, parent, child1, child2):
+        """更新父节点的属性
+
+        Args:
+            parent: 父节点
+            child1: 第一个子节点
+            child2: 第二个子节点
+        """
+        parent.update_as_parent_of(child1, child2, self.norm, self.sim_type)
+
+    def _graft(self, node):
+        """执行graft操作优化树结构
+
+        Graft操作通过重新组织树结构来优化聚类质量。
+        基本思想：将节点移动到更相似的位置。
+
+        Args:
+            node: 要graft的节点
+        """
+        start_time = time.time()
+        logging.debug("[graft] graft(%s)", node.id)
+
+        # 验证节点有效性
+        if not self._validate_node_for_graft(node):
+            return
+
+        # 获取禁止区域（不能graft的节点）
+        offlimits = self._get_offlimits_nodes(node)
+
+        # 找到最佳的graft目标
+        nearest_neighbor = self._find_graft_target(node, offlimits)
+        if nearest_neighbor is None:
+            logging.debug("[graft] No valid graft target found")
+            return
+
+        # 收集可能的graft路径
+        graft_paths = self._collect_graft_paths(node, nearest_neighbor)
+        if not graft_paths:
+            logging.debug("[graft] No valid graft paths")
+            return
+
+        # 评估并执行最佳graft
+        self._evaluate_and_execute_graft(node, graft_paths)
+
+        self.time_in_graft += time.time() - start_time
+
+    def _validate_node_for_graft(self, node):
+        """验证节点是否可以进行graft操作
+
+        Args:
+            node: 待验证的节点
+
+        Returns:
+            bool: 是否可以graft
+        """
+        if node.centroid is None:
+            logging.debug("[graft] Node has no centroid, skipping")
+            return False
+
+        if self.root_node is None:
+            logging.debug("[graft] No root node")
+            return False
+
+        return True
+
+    def _get_offlimits_nodes(self, node):
+        """获取禁止graft的节点集合
+
+        Offlimits包括：
+        1. 当前节点的所有后代（避免创建环）
+        2. 当前节点的兄弟节点（避免无意义的操作）
+
+        Args:
+            node: 当前节点
+
+        Returns:
+            set: 禁止graft的节点集合
+        """
+        offlimits = set()
+
+        # 添加所有后代节点
+        descendants = node.descendants()
+        offlimits.update(descendants)
+
+        # 添加兄弟节点
+        if node.parent is not None:
+            siblings = node.siblings()
+            if siblings:
+                sibling = siblings[0]
+                if sibling.is_leaf():
+                    offlimits.add(sibling)
+
+        logging.debug("[graft] Offlimits size: %s", len(offlimits))
+        return offlimits
+
+    def _find_graft_target(self, node, offlimits):
+        """找到最佳的graft目标节点
+
+        在所有叶子节点中（排除offlimits），找到与当前节点最相似的节点。
+
+        Args:
+            node: 当前节点
+            offlimits: 禁止的节点集合
+
+        Returns:
+            GNode: 最佳目标节点，如果没有则返回None
+        """
+        if self.root_node is None:
+            return None
+
+        search_start = time.time()
+        best_target = None
+        best_similarity = -np.inf
+
+        all_leaves = self.root_node.leaves()
+        for leaf in all_leaves:
+            # 跳过禁止的节点
+            if leaf in offlimits:
+                continue
+
+            if leaf.centroid is None:
+                continue
+
+            similarity = node.compute_similarity(leaf, sim_type=self.sim_type)
+            if similarity > best_similarity:
+                best_similarity = similarity
+                best_target = leaf
+
+        self.time_in_graft_search = time.time() - search_start
+
+        if best_target:
+            logging.debug(
+                "[graft] Best target: %s (sim=%.4f)", best_target.id, best_similarity
             )
 
-        self.set_parent(parent, self.get_parent(node))
-        parentparent = self.get_parent(parent)
-        if parentparent != -1:
-            self.remove_child(parentparent, node)
-            self.add_child(parentparent, parent)
-        self.add_child(parent, node)
-        self.add_child(parent, new_sib)
-        self.set_parent(node, parent)
-        self.set_parent(new_sib, parent)
+        return best_target
 
-    def is_leaf(self, i):
-        return len(self.get_children(i)) == 0
+    def _collect_graft_paths(self, node, target):
+        """收集从两个节点到它们LCA的所有可能路径
 
-    def get_parent(self, i):
-        return self.parent[i]
+        Args:
+            node: 当前节点
+            target: 目标节点
 
-    def set_parent(self, i, p):
-        self.parent[i] = p
+        Returns:
+            dict: 包含路径信息的字典，如果无效则返回None
+        """
+        # 找到最低公共祖先
+        lca = node.lca(target)
+        if lca is None:
+            logging.debug("[graft] No LCA found")
+            return None
 
-    def get_sibling(self, i):
-        p = self.get_parent(i)
-        return [x for x in self.get_children(p) if x != i][0]
+        # 收集从node到lca的路径
+        node_ancestors = self._collect_ancestors_to_lca(node, lca)
 
-    def get_ancs_with_self(self, i):
-        needs_anc = [i]
-        # walk up until we find someone who has known ancestors
-        curr = self.get_parent(i)
-        while curr != -1:
-            needs_anc.append(curr)
-            curr = self.get_parent(curr)
-        return needs_anc
+        # 收集从target到lca的路径
+        target_ancestors = self._collect_ancestors_to_lca(target, lca)
 
-    def get_ancs(self, i):
-        # TODO speed up w/ cache.
-        needs_anc = []
-        # walk up until we find someone who has known ancestors
-        curr = self.get_parent(i)
-        while curr != -1:
-            needs_anc.append(curr)
-            curr = self.get_parent(curr)
-        return needs_anc
-
-    def get_children(self, i):
-        return self.children[i]
-
-    def add_child(self, p, c):
-        self.children[p].append(c)
-
-    def remove_child(self, p, c):
-        assert c in self.children[p], "trying to remove c=%s from p=%s with kids=%s" % (
-            c,
-            p,
-            str(self.children[p]),
+        logging.debug(
+            "[graft] LCA: %s, Node ancestors: %s, Target ancestors: %s",
+            lca.id,
+            len(node_ancestors),
+            len(target_ancestors),
         )
-        self.children[p].remove(c)
 
-    def clear_children(self, i):
-        self.children[i].clear()
+        if not node_ancestors or not target_ancestors:
+            return None
 
-    def write_tree(self, filename, lbls):
-        logging.debug("writing tree to file %s", filename)
-        with open(filename, "w") as fin:
-            for i in tqdm(range(self.num_points), desc="write file"):
-                fin.write("%s\t%s\t%s\n" % (i, self.get_parent(i), lbls[i]))
-            for j in range(self.num_points, self.next_node_id):
-                if self.parent[j] != -2:
-                    fin.write("%s\t%s\tNone\n" % (j, self.parent[j]))
-            r = self.root()
-            fin.write("-1\tNone\tNone\n" % r)
+        return {
+            "lca": lca,
+            "node_ancestors": node_ancestors,
+            "target_ancestors": target_ancestors,
+        }
+
+    def _collect_ancestors_to_lca(self, node, lca):
+        """收集从节点到LCA的祖先路径（受graft_cap限制）
+
+        Args:
+            node: 起始节点
+            lca: 最低公共祖先
+
+        Returns:
+            list: 祖先节点列表
+        """
+        ancestors = []
+        current = node
+
+        while current != lca and current is not None:
+            # 只收集后代数小于graft_cap的节点
+            if current.num_descendants < self.graft_cap:
+                ancestors.append(current)
+            current = current.parent
+
+        return ancestors
+
+    def _evaluate_and_execute_graft(self, node, graft_paths):
+        """评估所有可能的graft配对并执行最佳的一个
+
+        Args:
+            node: 当前节点
+            graft_paths: graft路径信息
+        """
+        node_ancestors = graft_paths["node_ancestors"]
+        target_ancestors = graft_paths["target_ancestors"]
+
+        # 构建graft评分矩阵
+        score_matrix = self._build_graft_score_matrix(node_ancestors, target_ancestors)
+
+        # 找到最佳graft配对
+        best_pair = self._find_best_graft_pair(
+            node_ancestors, target_ancestors, score_matrix
+        )
+
+        # 更新统计信息
+        num_considered = len(node_ancestors) * len(target_ancestors)
+        self.number_of_grafts_considered += num_considered
+        self.this_number_of_grafts_considered = num_considered
+
+        # 执行graft（如果找到有效的配对）
+        if best_pair:
+            self._execute_graft(node, best_pair)
+        else:
+            logging.debug("[graft] No beneficial graft found")
+
+    def _build_graft_score_matrix(self, node_ancestors, target_ancestors):
+        """构建graft评分矩阵
+
+        评分矩阵的每个元素 [i,j] 表示将 node_ancestors[i] 和
+        target_ancestors[j] 进行graft的收益。
+
+        Args:
+            node_ancestors: 节点侧的祖先列表
+            target_ancestors: 目标侧的祖先列表
+
+        Returns:
+            dict: 包含评分矩阵和相关信息
+        """
+        M = len(node_ancestors)
+        N = len(target_ancestors)
+
+        # 计算如果graft的相似度分数
+        graft_scores = np.zeros((M, N), dtype=np.float32)
+        for i, n1 in enumerate(node_ancestors):
+            for j, n2 in enumerate(target_ancestors):
+                graft_scores[i, j] = n1.compute_similarity(n2, sim_type=self.sim_type)
+
+        # 获取当前父节点的分数（baseline）
+        node_parent_scores = self._get_parent_scores(node_ancestors)
+        target_parent_scores = self._get_parent_scores(target_ancestors)
+
+        return {
+            "graft_scores": graft_scores,
+            "node_parent_scores": node_parent_scores,
+            "target_parent_scores": target_parent_scores,
+        }
+
+    def _get_parent_scores(self, ancestors):
+        """获取祖先节点的父节点分数
+
+        Args:
+            ancestors: 祖先节点列表
+
+        Returns:
+            np.ndarray: 父节点分数数组
+        """
+        scores = np.full(len(ancestors), -np.inf, dtype=np.float32)
+
+        for i, node in enumerate(ancestors):
+            if node.parent and len(node.parent.children) == 2:
+                if hasattr(node.parent, "score") and node.parent.score is not None:
+                    scores[i] = node.parent.score
+
+        return scores
+
+    def _find_best_graft_pair(self, node_ancestors, target_ancestors, score_matrix):
+        """找到最佳的graft配对
+
+        Graft条件：新的配对分数必须同时优于两个节点当前的父节点分数
+
+        Args:
+            node_ancestors: 节点侧祖先列表
+            target_ancestors: 目标侧祖先列表
+            score_matrix: 评分矩阵
+
+        Returns:
+            dict: 最佳配对信息，如果没有则返回None
+        """
+        graft_scores = score_matrix["graft_scores"]
+        node_parent_scores = score_matrix["node_parent_scores"]
+        target_parent_scores = score_matrix["target_parent_scores"]
+
+        M, N = graft_scores.shape
+
+        # 转换为矩阵格式以便广播
+        node_parent_matrix = node_parent_scores.reshape(M, 1)
+        target_parent_matrix = target_parent_scores.reshape(1, N)
+
+        # 检查graft条件
+        # 只有当graft分数同时优于两个父节点分数时才有效
+        better_than_node_parent = graft_scores > node_parent_matrix
+        better_than_target_parent = graft_scores > target_parent_matrix
+        is_beneficial = better_than_node_parent & better_than_target_parent
+
+        # 将非有益的graft设为0
+        valid_scores = graft_scores.copy()
+        valid_scores[~is_beneficial] = 0
+
+        # 找到最佳配对
+        best_idx = np.argmax(valid_scores)
+        best_i = best_idx // N
+        best_j = best_idx % N
+        best_score = valid_scores[best_i, best_j]
+
+        # 检查是否真的有有益的graft
+        if best_score > 0 and is_beneficial[best_i, best_j]:
+            return {
+                "node1": node_ancestors[best_i],
+                "node2": target_ancestors[best_j],
+                "score": best_score,
+                "node_parent_score": node_parent_scores[best_i],
+                "target_parent_score": target_parent_scores[best_j],
+            }
+
+        return None
+
+    def _execute_graft(self, original_node, graft_pair):
+        """执行graft操作
+
+        Args:
+            original_node: 原始节点（用于记录）
+            graft_pair: graft配对信息
+        """
+        node1 = graft_pair["node1"]
+        node2 = graft_pair["node2"]
+
+        # 更新统计
+        self.number_of_grafts += 1
+        self.this_number_of_grafts += 1
+
+        logging.debug(
+            "[graft] Grafting %s to %s (score=%.4f > max(%.4f, %.4f))",
+            node1.id,
+            node2.id,
+            graft_pair["score"],
+            graft_pair["node_parent_score"],
+            graft_pair["target_parent_score"],
+        )
+
+        # 收集需要更新的起点
+        update_starts = self._collect_update_starts(node2, original_node)
+
+        # 执行实际的树重组
+        self._perform_graft_operation(node1, node2)
+
+        # 更新受影响的子树
+        self._update_affected_subtrees(update_starts)
+
+    def _collect_update_starts(self, node2, original_node):
+        """收集需要更新的起点节点
+
+        Args:
+            node2: graft的目标节点
+            original_node: 原始节点
+
+        Returns:
+            list: 需要更新的起点列表
+        """
+        update_starts = []
+
+        if node2.parent and node2.parent.parent:
+            update_starts.append(node2.parent.parent)
+
+        if original_node.parent:
+            update_starts.append(original_node.parent)
+
+        return update_starts
+
+    def _update_affected_subtrees(self, update_starts):
+        """更新受graft影响的子树
+
+        使用GNode的update_recursively方法更新所有受影响的节点。
+
+        Args:
+            update_starts: 更新起点列表
+        """
+        for start in update_starts:
+            if start is not None:
+                start.update_recursively(norm=self.norm, sim_type=self.sim_type)
+
+    def _perform_graft_operation(self, node1, node2):
+        """实际执行graft操作，重新组织树结构
+
+        这个方法实现了原始grinch中的make_sibling逻辑
+
+        Args:
+            node1: 第一个要graft的节点
+            node2: 第二个要graft的节点
+        """
+        logging.debug(
+            "_perform_graft_operation(node1=%s, node2=%s)", node1.id, node2.id
+        )
+
+        # 保存node2的旧父节点和祖父节点
+        node2_parent = node2.parent
+        node2_sibling = None
+        if node2_parent and len(node2_parent.children) == 2:
+            siblings = node2.siblings()
+            if siblings:
+                node2_sibling = siblings[0]
+
+        # 如果node2有父节点，需要处理node2的兄弟节点
+        if node2_parent and node2_sibling:
+            node2_grandparent = node2_parent.parent
+
+            # 将node2的兄弟节点提升到node2父节点的位置
+            node2_parent.remove_child(node2_sibling)
+            node2_parent.remove_child(node2)
+
+            if node2_grandparent:
+                node2_grandparent.remove_child(node2_parent)
+                node2_grandparent.add_child(node2_sibling)
+            else:
+                # node2_parent是根节点
+                node2_sibling.relink_parent(None)
+                if self.root_node == node2_parent:
+                    self.root_node = node2_sibling
+
+        # 创建新的父节点连接node1和node2
+        new_parent = GNode(dim=self.dim)
+
+        # 保存node1的旧父节点
+        node1_parent = node1.parent
+
+        # 设置新父节点的位置
+        if node1_parent:
+            node1_parent.remove_child(node1)
+            node1_parent.add_child(new_parent)
+            new_parent.relink_parent(node1_parent)
+        else:
+            # node1是根节点
+            new_parent.relink_parent(None)
+            self.root_node = new_parent
+
+        # 将node1和node2添加为新父节点的子节点
+        new_parent.add_child(node1)
+        new_parent.add_child(node2)
+
+        # 更新新父节点的属性
+        new_parent.num_descendants = node1.num_descendants + node2.num_descendants
+
+        if node1.sum_vector is not None and node2.sum_vector is not None:
+            new_parent.sum_vector = node1.sum_vector + node2.sum_vector
+            new_parent.update_centroid(norm=self.norm)
+
+        new_parent.score = node1.compute_similarity(node2, sim_type=self.sim_type)
+        new_parent.needs_update_model = True
+        new_parent.needs_update_desc = True
 
     def root(self):
-        r = 0
-        while self.get_parent(r) != -1:
-            r = self.get_parent(r)
-        return r
-
-    def ancestors(self, i):
-        r = i
-        ancs = [r]
-        while self.get_parent(r) != -1:
-            r = self.get_parent(r)
-            ancs.append(r)
-        return ancs
-
-    def flat_clustering(self, threshold):
-        frontier = [self.root()]
-        clusters = []
-        while frontier:
-            n = frontier.pop(0)
-            if len(self.children[n]) != 0 and self.get_score(n) < threshold:
-                frontier.extend(self.children[n])
-            else:
-                clusters.append(n)
-        assignments = -1 * np.ones(self.num_points, np.int32)
-        for c_idx, c in enumerate(clusters):
-            for d in self.get_descendants(c):
-                assignments[d] = c_idx
-        return assignments
+        """返回树的根节点"""
+        return self.root_node
