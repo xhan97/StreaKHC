@@ -272,21 +272,6 @@ class Grinch:
         self.time_in_search += time.time() - start
         return nearest_node
 
-    def _find_and_time_rotate(self, new_leaf, nearest_node):
-        """执行Rotate并计时
-
-        Args:
-            new_leaf: 新叶子节点
-            nearest_node: 最近邻节点
-
-        Returns:
-            最佳兄弟节点
-        """
-        start = time.time()
-        sibling = self._find_rotate(new_leaf, nearest_node)
-        self.time_in_rotate += time.time() - start
-        return sibling
-
     def _find_and_time_rotate_with_vec(self, point_vec, nearest_node):
         """使用点向量执行Rotate并计时
 
@@ -364,56 +349,6 @@ class Grinch:
         else:
             return np.dot(vec1, vec2)
 
-    def _find_rotate(self, new_node, nearest_node):
-        """找到通过rotate操作的最佳插入位置
-
-        Rotate操作：向上遍历树，找到与新节点最相似的位置。
-        这样可以确保新节点被插入到语义最接近的位置。
-
-        Args:
-            new_node: 新插入的节点
-            nearest_node: 最近邻节点
-
-        Returns:
-            GNode: 最佳的兄弟节点位置
-        """
-        # 更新统计
-        self.number_of_rotates_considered += 1
-        self.this_number_of_rotates_considered += 1
-
-        # 计算初始相似度
-        if not self._has_valid_centroid(new_node, nearest_node):
-            return nearest_node
-
-        current = nearest_node
-        current_score = new_node.compute_similarity(current, sim_type=self.sim_type)
-
-        # 向上遍历寻找更好的位置
-        while current.parent is not None:
-            parent = current.parent
-
-            # 检查容量限制
-            if parent.num_descendants >= self.rotate_cap:
-                break
-
-            # 计算与父节点的相似度
-            if parent.centroid is None:
-                break
-
-            parent_score = new_node.compute_similarity(parent, sim_type=self.sim_type)
-
-            # 如果父节点更相似，继续向上
-            if current_score < parent_score:
-                current = parent
-                current_score = parent_score
-                self.number_of_rotates += 1
-                self.this_number_of_rotates += 1
-            else:
-                # 找到最佳位置
-                break
-
-        return current
-
     def _find_rotate_with_vec(self, point_vec, nearest_node):
         """使用点向量找到通过rotate操作的最佳插入位置
 
@@ -462,17 +397,6 @@ class Grinch:
                 break
 
         return current
-
-    def _has_valid_centroid(self, *nodes):
-        """检查所有节点是否都有有效的centroid
-
-        Args:
-            *nodes: 要检查的节点
-
-        Returns:
-            bool: 是否所有节点都有centroid
-        """
-        return all(node.has_valid_centroid() for node in nodes)
 
     def _update_parent_attributes(self, parent, child1, child2):
         """更新父节点的属性

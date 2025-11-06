@@ -133,20 +133,14 @@ def main():
 
 
 if __name__ == "__main__":
-    # main()
-    exp_dir_base_gnode = "./exp_out/purity_test/Gnode/"
-    start_time = time.strftime("%Y%m%d%H%M%S", time.localtime())
-    exp_dir_base_gnode = os.path.join(exp_dir_base_gnode, start_time)
-    os.makedirs(exp_dir_base_gnode, exist_ok=True)
-    grid_research_grinch(
-        data_path="/home/xinhan/project/code/StreaKHC/data/shuffle_data/2025-11-04-16-28-55-224/ALLAML_0.csv",
-        file_name="ALLAML_0",
-        exp_dir_base=exp_dir_base_gnode,
-        use_ik=False,
-    )
-
-    # point_labels = np.random.random_integers(0, 10, 100)
-    # vectors = np.random.random((100, 5)).astype(np.float32)
-    # grinch = Grinch(points=vectors)
-    # grinch.build_dendrogram()
-    # grinch.write_tree("tmp.tree.out", point_labels)
+    main()
+    # exp_dir_base_gnode = "./exp_out/purity_test/Gnode/"
+    # start_time = time.strftime("%Y%m%d%H%M%S", time.localtime())
+    # exp_dir_base_gnode = os.path.join(exp_dir_base_gnode, start_time)
+    # os.makedirs(exp_dir_base_gnode, exist_ok=True)
+    # grid_research_grinch(
+    #     data_path="/home/xinhan/project/code/StreaKHC/data/shuffle_data/2025-11-04-16-28-55-224/ALLAML_0.csv",
+    #     file_name="ALLAML_0",
+    #     exp_dir_base=exp_dir_base_gnode,
+    #     use_ik=False,
+    # )
